@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ro" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f8fafc">
+    <meta name="color-scheme" content="light dark">
+    <title>FeelVoyage - Descoperă Lumea Fără Limite | Agenție de Turism Globală</title>
+
+    <!-- Tema (luminos / întunecat): se aplică înainte de prima afișare, ca pagina să nu „clipească" -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('fv_theme');
+                if (t !== 'dark' && t !== 'light') t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                if (t === 'dark') { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark'; }
+            } catch (e) { /* localStorage indisponibil: rămâne tema luminoasă */ }
+        })();
+    </script>
+
+    <!-- Conexiuni timpurii către serviciile externe (încărcare mai rapidă pe telefon) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <!-- Google Fonts (Plus Jakarta Sans & Volkhov) -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Volkhov:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Stiluri: Tailwind precompilat (rapid pe telefon) + stiluri proprii + modul întunecat -->
+    <link rel="stylesheet" href="css/tailwind.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dark.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased overflow-x-hidden">
+
+    <!-- Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-40 transition-all duration-300 glass-nav border-b border-slate-200/50" id="mainHeader">
+        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 xl:h-24 flex items-center justify-between gap-3">
+
+            <!-- Logo FeelVoyage -->
+            <a href="#" class="flex items-center gap-2.5 sm:gap-3 group shrink-0" aria-label="FeelVoyage">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-sunset-gold p-0.5 shadow-lg shadow-brand-500/20 group-hover:scale-105 transition-transform">
+                    <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center p-1.5 sm:p-2">
+                        <!-- Custom SVG Logo -->
+                        <svg viewBox="0 0 100 100" class="w-full h-full text-white fill-current">
+                            <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-width="5" opacity="0.3" />
+                            <circle cx="50" cy="50" r="32" fill="none" stroke="url(#logoGrad)" stroke-width="4" stroke-dasharray="6 4" />
+                            <path d="M20 70 Q 40 10, 80 30" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+                            <path d="M78 26 L86 32 L75 38 L74 45 L70 41 L65 43 L68 36 L62 31 L68 31 Z" fill="#f59e0b" />
+                            <polygon points="50,22 56,50 50,78 44,50" fill="url(#logoGrad)" />
+                            <defs>
+                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#38bdf8" />
+                                    <stop offset="100%" stop-color="#f43f5e" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <span class="logo-text text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-brand-900 via-brand-600 to-sunset-500 bg-clip-text text-transparent">FeelVoyage</span>
+                    <span class="hidden sm:block text-[10px] uppercase font-bold tracking-widest text-slate-400 -mt-1">Global Travel Agency</span>
+                </div>
+            </a>
+
+            <!-- Desktop Menu (de la 1024px în sus; sub această lățime linkurile sunt în meniul hamburger) -->
+            <nav class="hidden lg:flex items-center gap-6 xl:gap-8 font-semibold text-sm text-slate-700">                <a href="#acasa" class="relative whitespace-nowrap hover:text-brand-600 transition-colors duration-300 after:content-[''] after:absolute after:-bottom-1.5 after:left-0 after:w-0 after:h-[2px] after:bg-brand-600 after:transition-all after:duration-300 hover:after:w-full" data-i18n="nav.acasa">Acasă</a>
+                <a href="#destinatii" class="relative whitespace-nowrap hover:text-brand-600 transition-colors duration-300 after:content-[''] after:absolute after:-bottom-1.5 after:left-0 after:w-0 after:h-[2px] after:bg-brand-600 after:transition-all after:duration-300 hover:after:w-full" data-i18n="nav.destinatii">Destinații & Pachete</a>
+                <a href="#despre" class="relative whitespace-nowrap hover:text-brand-600 transition-colors duration-300 after:content-[''] after:absolute after:-bottom-1.5 after:left-0 after:w-0 after:h-[2px] after:bg-brand-600 after:transition-all after:duration-300 hover:after:w-full" data-i18n="nav.despre">Despre Noi</a>
+                <a href="#servicii" class="relative whitespace-nowrap hover:text-brand-600 transition-colors duration-300 after:content-[''] after:absolute after:-bottom-1.5 after:left-0 after:w-0 after:h-[2px] after:bg-brand-600 after:transition-all after:duration-300 hover:after:w-full" data-i18n="nav.servicii">Servicii</a> 
+                <a href="#contact" class="relative whitespace-nowrap hover:text-brand-600 transition-colors duration-300 after:content-[''] after:absolute after:-bottom-1.5 after:left-0 after:w-0 after:h-[2px] after:bg-brand-600 after:transition-all after:duration-300 hover:after:w-full" data-i18n="nav.contact">Contact</a>
+            
+            </nav>
+
+            <!-- Butoane din dreapta: cont, temă, limbă (mereu vizibile) + Facebook, telefon, CTA (ecrane late) -->
+            <div class="flex items-center gap-2 sm:gap-3 xl:gap-4">
+
+                <!-- User Account (Autentificare / Înregistrare) -->
+                <div class="sm:relative" id="authArea">
+                    <button id="authBtn" type="button" aria-haspopup="true" aria-label="Contul Meu" class="flex items-center justify-center gap-1.5 h-10 min-w-[2.5rem] px-2.5 xl:px-3 rounded-full border border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition text-sm font-bold text-slate-700">
+                        <i class="fa-solid fa-circle-user text-brand-600 text-lg" id="authBtnIcon"></i>
+                        <span id="authBtnLabel" class="hidden xl:inline" data-i18n="auth.loginBtn">Contul Meu</span>
+                    </button>
+                    <div id="userDropdown" class="hidden absolute left-4 right-4 top-full mt-2 sm:left-auto sm:right-0 sm:w-64 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50">
+                        <div id="userDropdownContent"></div>
+                    </div>
+                </div>
+
+                <!-- Comutator temă: luminos / întunecat (vezi js/theme.js) -->
+                <button type="button" data-theme-toggle aria-label="Comută la modul întunecat" class="theme-toggle w-10 h-10 shrink-0 rounded-full border border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition flex items-center justify-center text-slate-700">
+                    <i class="fa-solid fa-moon theme-icon-moon"></i>
+                    <i class="fa-solid fa-sun theme-icon-sun"></i>
+                </button>
+
+                <!-- Language Switcher -->
+                <div class="relative hidden md:block" id="langSwitcher">
+                    <button id="langBtn" class="flex items-center gap-1.5 h-10 px-3 rounded-full border border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition text-sm font-bold text-slate-700">
+                        <i class="fa-solid fa-globe text-brand-600"></i>
+                        <span id="currentLangLabel">RO</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                    </button>
+                    <div id="langDropdown" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50">
+                        <button data-lang="ro" class="lang-option w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 flex items-center gap-2">🇷🇴 Română</button>
+                        <button data-lang="en" class="lang-option w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 flex items-center gap-2">🇬🇧 English</button>
+                        <button data-lang="it" class="lang-option w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 flex items-center gap-2">🇮🇹 Italiano</button>
+                    </div>
+                </div>
+
+                <a href="https://www.facebook.com/share/19XnMiUthZ/?mibextid=wwXlfr" target="_blank" rel="noopener noreferrer" class="hidden xl:flex w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition shadow-md" title="Pagina noastră de Facebook">
+                    <i class="fa-brands fa-facebook-f text-sm"></i>
+                </a>
+                <a href="tel:+40799927590" class="hidden 2xl:flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-brand-600 whitespace-nowrap flex-shrink-0">
+                    <div class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center text-brand-600 flex-shrink-0">
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                    0799 927 590
+                </a>
+                <a href="#destinatii" id="navSearchBtn" class="hidden xl:inline-flex items-center px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm whitespace-nowrap shadow-md shadow-brand-500/20 hover:shadow-lg hover:opacity-95 transition-all transform hover:-translate-y-0.5">
+                    <span data-i18n="hero.cautaBtn">Caută Oferte</span>
+                </a>
+
+                <!-- Mobile Hamburger Button -->
+                <button id="mobileMenuBtn" type="button" aria-expanded="false" aria-controls="mobileMenu" aria-label="Meniu" data-i18n-aria="nav.menu" class="lg:hidden w-10 h-10 shrink-0 rounded-full text-slate-800 text-xl flex items-center justify-center focus:outline-none">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobileMenu" class="hidden lg:hidden bg-white border-b border-slate-200 px-5 py-4 max-h-[calc(100svh-4rem)] overflow-y-auto">
+            <div class="flex flex-col gap-1 font-semibold text-slate-700">
+                <a href="#acasa" class="mobile-link py-3.5 border-b border-slate-100" data-i18n="nav.acasa">Acasă</a>
+                <a href="#destinatii" class="mobile-link py-3.5 border-b border-slate-100" data-i18n="nav.destinatii">Destinații & Pachete</a>
+                <a href="#despre" class="mobile-link py-3.5 border-b border-slate-100" data-i18n="nav.despre">Despre Noi</a>
+                <a href="#servicii" class="mobile-link py-3.5 border-b border-slate-100" data-i18n="nav.servicii">Servicii</a>
+                <a href="#contact" class="mobile-link py-3.5" data-i18n="nav.contact">Contact</a>
+                <!-- Language Switcher (Mobile) -->
+                <!-- Language Switcher (Mobile) -->
+                <div class="pt-4 flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-400" data-i18n="nav.language">Limbă:</span>
+                    <button data-lang="ro" class="lang-option-mobile px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-brand-500 bg-brand-50 text-brand-700">🇷🇴 RO</button>
+                    <button data-lang="en" class="lang-option-mobile px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-slate-200 text-slate-600">🇬🇧 EN</button>
+                    <button data-lang="it" class="lang-option-mobile px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-slate-200 text-slate-600">🇮🇹 IT</button>
+                </div>
+                <div class="pt-4 flex flex-col gap-3">
+                    <button id="authMobileBtn" type="button" class="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold shadow-sm">
+                        <i class="fa-solid fa-circle-user"></i> <span data-i18n="auth.loginBtn">Contul Meu</span>
+                    </button>
+                    <a href="https://www.facebook.com/share/19XnMiUthZ/?mibextid=wwXlfr" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 text-white font-bold shadow-sm">
+                        <i class="fa-brands fa-facebook-f"></i> Urmărește-ne pe Facebook
+                    </a>
+                    <a href="tel:+40799927590" class="flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 font-bold text-slate-800">
+                        <i class="fa-solid fa-phone text-brand-600"></i> 0799 927 590
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="acasa" class="hero-bg relative min-h-svh pt-24 sm:pt-28 pb-12 sm:pb-16 flex items-center justify-center bg-cover bg-center overflow-hidden">
+        <div class="absolute inset-0 hero-gradient"></div>
+
+        <div class="relative z-10 max-w-6xl mx-auto px-4 text-center text-white">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 text-sm font-medium text-amber-300 animate-pulse">
+                <i class="fa-solid fa-sparkles"></i> <span data-i18n="hero.badge">Agenție Națională & Internațională de Premium Travel</span>
+            </div>
+            
+            <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold font-serif tracking-tight leading-tight mb-6 drop-shadow-lg">
+                <span data-i18n="hero.title1">Descoperă Lumea</span> <br class="hidden sm:inline" />
+                <span class="bg-gradient-to-r from-amber-300 via-rose-300 to-sky-300 bg-clip-text text-transparent" data-i18n="hero.title2">Fără Limite cu FeelVoyage</span>
+            </h1>
+            
+            <p class="max-w-2xl mx-auto text-lg sm:text-xl text-slate-200 mb-10 font-light leading-relaxed" data-i18n="hero.subtitle">
+                Pachete turistice exclusive, vacanțe exotice, sejururi pe plajă și aventuri urbane croite special pentru emoțiile tale de călătorie.
+            </p>
+
+            <!-- Quick Search Bar -->
+            <div class="max-w-4xl mx-auto bg-white/95 backdrop-blur-xl p-4 sm:p-6 rounded-3xl shadow-2xl border border-white/50 text-slate-800 text-left">
+                <form id="heroSearchForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                    
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="hero.destinatie">Destinație</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-location-dot absolute left-3 top-3.5 text-brand-600"></i>
+                            <input type="text" id="searchInput" placeholder="Ex: Delta Dunării, Roma, Maldive..." class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium" data-i18n-ph="hero.destinatiePlaceholder">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="hero.tipVacanta">Tip Vacanță</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-compass absolute left-3 top-3.5 text-brand-600"></i>
+                            <select id="categorySelect" class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium bg-white appearance-none cursor-pointer">
+                                <option value="all" data-i18n="hero.toateCategoriile">Toate Categoriile</option>
+                                <option value="romania" data-i18n="hero.categRomania">🇷🇴 România & Local</option>
+                                <option value="plaja" data-i18n="hero.categPlaja">🏖️ Plajă & Mare</option>
+                                <option value="munte" data-i18n="hero.categMunte">⛰️ Munte & Natura</option>
+                                <option value="city-break" data-i18n="hero.categCityBreak">🏛️ City Break</option>
+                                <option value="exotic" data-i18n="hero.categExotic">🌴 Vacanțe Exotice</option>
+                                <option value="asia" data-i18n="hero.categAsia">🌏 China & Coreea de Sud</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="hero.buget">Buget Max. (€)</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-euro-sign absolute left-3 top-3.5 text-brand-600"></i>
+                            <select id="budgetSelect" class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium bg-white appearance-none cursor-pointer">
+                                <option value="all" data-i18n="hero.oriceBuget">Orice Buget</option>
+                                <option value="300" data-i18n="hero.sub300">Sub 300 €</option>
+                                <option value="600" data-i18n="hero.sub600">Sub 600 €</option>
+                                <option value="1200" data-i18n="hero.sub1200">Sub 1,200 €</option>
+                                <option value="2500" data-i18n="hero.sub2500">Sub 2,500 €</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 md:pt-5">
+                        <button type="submit" class="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="hero.cautaBtn">Caută Oferte</span>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto pt-6 border-t border-white/10 text-center">
+                <!-- Contor: +1 la fiecare click (vezi js/counter.js) -->
+                <button type="button" data-happy-counter class="happy-counter block w-full cursor-pointer rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
+                    <span class="relative block">
+                        <span data-happy-count class="block text-2xl sm:text-3xl font-extrabold text-amber-300">0</span>
+                    </span>
+                    <span class="flex items-center justify-center gap-1.5">
+                        <span class="live-dot hidden" data-live-dot aria-hidden="true"></span>
+                        <span class="text-xs text-slate-300 font-medium" data-i18n="hero.stat1">Călători Fericiți</span>
+                    </span>
+                </button>
+                <div>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-amber-300">29</p>
+                    <p class="text-xs text-slate-300 font-medium" data-i18n="hero.stat2">Destinații Active</p>
+                </div>
+                <div>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-amber-300">100%</p>
+                    <p class="text-xs text-slate-300 font-medium" data-i18n="hero.stat3">Garanția Calității</p>
+                </div>
+                <div>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-amber-300">24/7</p>
+                    <p class="text-xs text-slate-300 font-medium" data-i18n="hero.stat4">Suport Călătorie</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Destinații & Pachete Section -->
+    <section id="destinatii" class="py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto mb-12 space-y-4">
+                <span class="px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-700 text-xs font-bold uppercase tracking-wider" data-i18n="dest.badge">Destinații Exclusiviste</span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold font-serif text-slate-900" data-i18n="dest.title">Explorează Selecția FeelVoyage</h2>
+                <p class="text-slate-600" data-i18n="dest.subtitle">Aproape 30 de destinații fabuloase — de la peisajele montane din România, prin capitalele Europei, până în China, Coreea de Sud și atoluri exotice.</p>
+            </div>
+
+            <!-- Enhanced Filter Buttons -->
+            <div class="filter-scroll flex flex-nowrap sm:flex-wrap sm:justify-center gap-2 sm:gap-3 mb-8 sm:mb-10 overflow-x-auto sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 sm:pb-0" id="filterContainer">
+                <button data-filter="all" class="filter-btn shrink-0 whitespace-nowrap active px-5 py-2.5 rounded-full text-sm font-bold transition-all bg-brand-600 text-white shadow-md">
+                    <span data-i18n="dest.filterAll">🌍 Toate Destinațiile</span>
+                </button>
+                <button data-filter="romania" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all">
+                    <span data-i18n="dest.filterRomania">🇷🇴 Vacanțe în România</span>
+                </button>
+                <button data-filter="plaja" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all">
+                    <span data-i18n="dest.filterPlaja">🏖️ Plajă & Mare</span>
+                </button>
+                <button data-filter="munte" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all">
+                    <span data-i18n="dest.filterMunte">⛰️ Munte & Natură</span>
+                </button>
+                <button data-filter="city-break" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all">
+                    <span data-i18n="dest.filterCityBreak">🏛️ City Break</span>
+                </button>
+                <button data-filter="exotic" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all">
+                    <span data-i18n="dest.filterExotic">🌴 Vacanțe Exotice</span>
+                </button>
+                <button data-filter="asia" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all">
+                    <span data-i18n="dest.filterAsia">🌏 China & Coreea de Sud</span>
+                </button>
+            </div>
+
+            <!-- Destination Grid -->
+            <div id="destinationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Cards will be populated dynamically by updated JS -->
+            </div>
+
+            <!-- Empty State Message -->
+            <div id="noResultsMsg" class="hidden text-center py-16">
+                <i class="fa-solid fa-plane-slash text-5xl text-slate-300 mb-4 block"></i>
+                <h3 class="text-xl font-bold text-slate-700" data-i18n="dest.noResultsTitle">Nu am găsit nicio ofertă corespunzătoare</h3>
+                <p class="text-slate-500 mt-2" data-i18n="dest.noResultsMsg">Încearcă să resetezi filtrele sau să cauți un alt termen.</p>
+                <button id="resetFiltersBtn" class="mt-4 px-6 py-2.5 bg-brand-600 text-white font-bold rounded-xl text-sm hover:bg-brand-700 transition" data-i18n="dest.resetBtn">
+                    Resetează Filtrele
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Despre Noi Section -->
+    <section id="despre" class="py-20 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
+        <div class="absolute -top-32 -left-32 w-80 h-80 bg-brand-100/60 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-40 -right-32 w-80 h-80 bg-amber-100/60 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <span class="px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-700 text-xs font-bold uppercase tracking-wider" data-i18n="despre.badge">Povestea Noastră</span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold font-serif text-slate-900" data-i18n="despre.title">Despre FeelVoyage — Călătorii cu Suflet</h2>
+                <p class="text-slate-600" data-i18n="despre.subtitle">O agenție de turism născută în inima Gorjului, care astăzi deschide lumea întregului: de la litoralul românesc până în China și Coreea de Sud.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center mb-16">
+                <!-- Story -->
+                <div class="space-y-5 text-slate-600 leading-relaxed">
+                    <p data-i18n="despre.p1">Bun venit pe FeelVoyage, agenția de turism creată pentru a vă transforma vacanțele de vis în realitate!</p>
+                    <p data-i18n="despre.p2">Acest site reprezintă mult mai mult decât o simplă platformă de rezervări; este un proiect de echipă în care am pus multă pasiune. Suntem un grup de elevi ai liceului Economic Virgil Madgearu din Târgu Jiu, dornici să îmbinăm cunoștințele de turism și spiritul antreprenorial. Mai exact, suntem elevi în clasa a XI-a E și am gândit fiecare secțiune a acestui site cu scopul de a vă oferi cele mai frumoase destinații și experiențe de călătorie.</p>
+                    <p data-i18n="despre.p3">Întregul concept FeelVoyage a prins viață, a fost organizat și implementat cu succes alături de Doamna noastră profesoară, care ne-a îndrumat pas cu pas în dezvoltarea acestei agenții.</p>
+                    <p data-i18n="despre.p4">Vă invităm să explorați ofertele noastre și să descoperiți lumea cu FeelVoyage!</p>
+                    <a href="#contact" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                        <i class="fa-solid fa-handshake-angle"></i> <span data-i18n="despre.cta">Vino să ne cunoști</span>
+                    </a>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-card p-6 rounded-3xl text-center shadow-sm">
+                        <i class="fa-solid fa-earth-europe text-2xl text-brand-600 mb-2"></i>
+                        <p class="text-3xl font-black text-slate-900">29</p>
+                        <p class="text-xs font-semibold text-slate-500" data-i18n="despre.stat1">Destinații în portofoliu</p>
+                    </div>
+                    <button type="button" data-happy-counter class="happy-counter glass-card bg-white/75 p-6 rounded-3xl text-center shadow-sm w-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                        <i class="fa-solid fa-heart text-2xl text-sunset-500 mb-2"></i>
+                        <span class="relative block">
+                            <span data-happy-count class="block text-3xl font-black text-slate-900">0</span>
+                        </span>
+                        <span class="flex items-center justify-center gap-1.5">
+                            <span class="live-dot hidden" data-live-dot aria-hidden="true"></span>
+                            <span class="text-xs font-semibold text-slate-500" data-i18n="despre.stat2">Călători fericiți</span>
+                        </span>
+                    </button>
+                    <div class="glass-card p-6 rounded-3xl text-center shadow-sm">
+                        <i class="fa-solid fa-earth-americas text-2xl text-amber-500 mb-2"></i>
+                        <p class="text-3xl font-black text-slate-900">3</p>
+                        <p class="text-xs font-semibold text-slate-500" data-i18n="despre.stat3">Continente conectate</p>
+                    </div>
+                    <div class="glass-card p-6 rounded-3xl text-center shadow-sm">
+                        <i class="fa-solid fa-headset text-2xl text-emerald-500 mb-2"></i>
+                        <p class="text-3xl font-black text-slate-900">24/7</p>
+                        <p class="text-xs font-semibold text-slate-500" data-i18n="despre.stat4">Suport real în călătorie</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Values -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+                <div class="p-7 rounded-3xl bg-white border border-slate-100 hover:border-brand-500/30 hover:shadow-xl transition-all group">
+                    <div class="w-12 h-12 rounded-2xl bg-brand-100 text-brand-600 flex items-center justify-center text-xl mb-5 group-hover:bg-brand-600 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-route"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 mb-2" data-i18n="despre.val1Title">Experiențe personalizate</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed" data-i18n="despre.val1Desc">Nu vindem pachete „de pe raft” — construim itinerarii în jurul bugetului, ritmului și pasiunilor tale.</p>
+                </div>
+                <div class="p-7 rounded-3xl bg-white border border-slate-100 hover:border-brand-500/30 hover:shadow-xl transition-all group">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl mb-5 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 mb-2" data-i18n="despre.val2Title">Transparență totală</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed" data-i18n="despre.val2Desc">Prețul afișat este prețul final: fără comisioane ascunse, fără surprize la destinație.</p>
+                </div>
+                <div class="p-7 rounded-3xl bg-white border border-slate-100 hover:border-brand-500/30 hover:shadow-xl transition-all group">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl mb-5 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 mb-2" data-i18n="despre.val3Title">Consultant dedicat</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed" data-i18n="despre.val3Desc">Un singur om care te cunoaște pe nume, de la prima ofertă până la întoarcerea acasă.</p>
+                </div>
+                <div class="p-7 rounded-3xl bg-white border border-slate-100 hover:border-brand-500/30 hover:shadow-xl transition-all group">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl mb-5 group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-globe"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 mb-2" data-i18n="despre.val4Title">Rețea globală</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed" data-i18n="despre.val4Desc">Parteneri locali verificați pe trei continente — de la Mamaia la Beijing, Busan și Maldive.</p>
+                </div>
+            </div>
+
+            <!-- Why us checklist -->
+            <div class="max-w-4xl mx-auto p-8 sm:p-10 rounded-3xl bg-slate-900 text-white relative overflow-hidden">
+                <div class="absolute -top-20 -right-20 w-64 h-64 bg-brand-500/20 rounded-full blur-3xl"></div>
+                <div class="relative z-10">
+                    <h3 class="text-xl sm:text-2xl font-extrabold font-serif mb-6 text-center" data-i18n="despre.whyTitle">De ce aleg călătorii FeelVoyage?</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm text-slate-200">
+                        <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i><span data-i18n="despre.why1">Consultanță gratuită și ofertă personalizată în maximum 24 de ore</span></div>
+                        <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i><span data-i18n="despre.why2">Prețuri afișate în EUR și LEI, cu rate fără dobândă la comandă</span></div>
+                        <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i><span data-i18n="despre.why3">Asigurare de călătorie și asistență medicală opționale în orice pachet</span></div>
+                        <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i><span data-i18n="despre.why4">Un consultant dedicat și grup WhatsApp de asistență pe durata sejurului</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Servicii Section -->
+    <section id="servicii" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <span class="px-3.5 py-1.5 rounded-full bg-sunset-400/20 text-sunset-600 text-xs font-bold uppercase tracking-wider" data-i18n="serv.badge">Servicii Complete</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold font-serif text-slate-900" data-i18n="serv.title">Totul pentru o Călătorie Fără Griji</h2>
+                <p class="text-slate-600" data-i18n="serv.subtitle">Îți punem la dispoziție un pachet integrat de servicii pentru ca tu doar să îți faci bagajele.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="p-8 rounded-3xl bg-slate-50 border border-slate-100 hover:border-brand-500/30 hover:shadow-xl transition-all group">
+                    <div class="w-14 h-14 rounded-2xl bg-brand-100 text-brand-600 flex items-center justify-center text-2xl mb-6 group-hover:bg-brand-600 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-plane-departure"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3" data-i18n="serv.card1Title">Zboruri & Bilete de Avion</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed" data-i18n="serv.card1Desc">Rezervări rapide la companii de top, zboruri charter și opțiuni de zbor flexibile cu bagaje incluse.</p>
+                </div>
+
+                <div class="p-8 rounded-3xl bg-slate-50 border border-slate-100 hover:border-brand-500/30 hover:shadow-xl transition-all group">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mb-6 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-hotel"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3" data-i18n="serv.card2Title">Cazări Premium & Resorturi</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed" data-i18n="serv.card2Desc">Parteneriate directe cu hoteluri de 4* și 5*, resorturi All Inclusive și vile private garantate.</p>
+                </div>
+
+                <div class="p-8 rounded-3xl bg-slate-50 border border-slate-100 hover:border-brand-500/30 hover:shadow-xl transition-all group">
+                    <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mb-6 group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-ship"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3" data-i18n="serv.card3Title">Croaziere de Lux</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed" data-i18n="serv.card3Desc">Aventuri pe mare pe cele mai spectaculoase nave de croazieră din Caraibe, Mediterana și Europa de Nord.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                
+                <!-- Contact Info -->
+                <div class="lg:col-span-5 space-y-8">
+                    <div>
+                        <span class="px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-700 text-xs font-bold uppercase tracking-wider" data-i18n="contact.badge">Hai să Vorbim</span>
+                        <h2 class="text-3xl font-extrabold font-serif text-slate-900 mt-3" data-i18n="contact.title">Suntem Aici pentru Tine</h2>
+                        <p class="text-slate-600 mt-2" data-i18n="contact.subtitle">Ne poți vizita la sediul nostru din Tg-Jiu sau ne poți contacta direct prin telefon, e-mail sau social media.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+                            <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl flex-shrink-0">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900" data-i18n="contact.addressTitle">Adresă Sediu</h4>
+                                <p class="text-sm text-slate-600" data-i18n="contact.address">Strada Tudor Vladimirescu, nr 124, Tg-Jiu, România</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+                            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl flex-shrink-0">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900" data-i18n="contact.phoneTitle">Telefon & WhatsApp</h4>
+                                <p class="text-sm text-slate-600">0799 927 590</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+                            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl flex-shrink-0">
+                                <i class="fa-brands fa-facebook-f"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900" data-i18n="contact.facebookTitle">Pagina Oficială Facebook</h4>
+                                <a href="https://www.facebook.com/share/19XnMiUthZ/?mibextid=wwXlfr" target="_blank" rel="noopener noreferrer" class="text-sm text-brand-600 font-semibold hover:underline flex items-center gap-1.5 mt-0.5">
+                                    facebook.com/FeelVoyage <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+                            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl flex-shrink-0">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900" data-i18n="contact.emailTitle">E-mail Suport & Oferte</h4>
+                                <p class="text-sm text-slate-600">crucrudenis@gmail.com</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Map Preview Mock -->
+                    <div class="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative h-48 bg-slate-200">
+                        <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80" alt="Map Preview" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-slate-900/30 flex items-center justify-center">
+                            <div class="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl font-bold text-slate-800 text-sm shadow-lg flex items-center gap-2">
+                                <i class="fa-solid fa-location-pin text-rose-500"></i> <span data-i18n="contact.mapLabel">Str. Tudor Vladimirescu nr 124, Tg-Jiu</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Contact Form -->
+                <div class="lg:col-span-7 bg-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-200/80">
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2" data-i18n="contact.formTitle">Trimite o Solicitare de Ofertă</h3>
+                    <p class="text-slate-500 text-sm mb-6" data-i18n="contact.formSubtitle">Completează formularul de mai jos și un consultant te va contacta în cel mult 2 ore lucrătoare.</p>
+
+                    <form id="contactForm" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formName">Nume Complet</label>
+                                <input type="text" required placeholder="ex: Ion Popescu" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm" data-i18n-ph="contact.formNamePlaceholder">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formPhone">Număr Telefon</label>
+                                <input type="tel" required placeholder="ex: 0722 000 000" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm" data-i18n-ph="contact.formPhonePlaceholder">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formEmail">Adresă E-mail</label>
+                                <input type="email" required placeholder="ion.popescu@email.ro" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm" data-i18n-ph="contact.formEmailPlaceholder">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formDest">Destinație Dorită</label>
+                                <input type="text" placeholder="ex: Maldive, Santorini, etc." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm" data-i18n-ph="contact.formDestPlaceholder">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formMsg">Mesaj sau Detalii Călătorie</label>
+                            <textarea rows="4" placeholder="Specifică numărul de persoane, perioada estimată, bugetul sau orice altă cerință specială..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm" data-i18n-ph="contact.formMsgPlaceholder"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-brand-600 via-brand-500 to-sunset-500 text-white font-bold text-base shadow-lg hover:opacity-95 transition-all">
+                            <i class="fa-solid fa-paper-plane mr-2"></i> <span data-i18n="contact.formBtn">Trimite Cererea de Ofertă</span>
+                        </button>
+                    </form>
+
+                    <div id="contactSuccess" class="hidden mt-4 p-4 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-sm font-medium flex items-center gap-3">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
+                        <span data-i18n="contact.success">Mulțumim! Solicitarea ta a fost înregistrată. Te vom contacta în scurt timp!</span>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-brand-500 to-sunset-500 p-0.5">
+                            <div class="w-full h-full bg-slate-900 rounded-[6px] flex items-center justify-center p-1.5">
+                                <svg viewBox="0 0 100 100" class="w-full h-full text-white fill-current">
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-width="6" />
+                                    <polygon points="50,20 58,50 50,80 42,50" fill="#38bdf8" />
+                                </svg>
+                            </div>
+                        </div>
+                        <span class="text-xl font-extrabold text-white">FeelVoyage</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        <span data-i18n="footer.descAddr">Strada Tudor Vladimirescu, nr 124, Tg-Jiu, România.</span><br>
+                        <span data-i18n="footer.descTagline">Agenție de turism dedicată experiențelor memorabile la nivel global.</span>
+                    </p>
+                    <div class="flex gap-3 text-slate-300">
+                        <a href="https://www.facebook.com/share/19XnMiUthZ/?mibextid=wwXlfr" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition" title="Facebook FeelVoyage"><i class="fa-brands fa-facebook-f text-xs"></i></a>
+                        <a href="https://www.instagram.com/dede.18_" target="_blank" rel="noopener noreferrer" title="Instagram" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-rose-600 hover:text-white transition"><i class="fa-brands fa-instagram text-xs"></i></a>
+                        <a href="https://www.tiktok.com/@dede.18_1" target="_blank" rel="noopener noreferrer" title="TikTok" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fa-brands fa-tiktok text-xs"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm uppercase tracking-wider mb-4" data-i18n="footer.navTitle">Navigare Rapidă</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="#acasa" class="hover:text-white transition" data-i18n="footer.navHome">Acasă</a></li>
+                        <li><a href="#destinatii" class="hover:text-white transition" data-i18n="footer.navDest">Pachete & Destinații</a></li>
+                        <li><a href="#despre" class="hover:text-white transition" data-i18n="footer.navAbout">Despre FeelVoyage</a></li>
+                        <li><a href="#servicii" class="hover:text-white transition" data-i18n="footer.navServ">Servicii Turistice</a></li>
+                        <li><a href="#contact" class="hover:text-white transition" data-i18n="footer.navContact">Contact & Suport</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm uppercase tracking-wider mb-4" data-i18n="footer.destTitle">Destinații Exclusiviste</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="#destinatii" onclick="filterCategory('exotic')" class="hover:text-white transition">Maldive & Bali</a></li>
+                        <li><a href="#destinatii" onclick="filterCategory('city-break')" class="hover:text-white transition">Paris & New York</a></li>
+                        <li><a href="#destinatii" onclick="filterCategory('exotic')" class="hover:text-white transition">Santorini & Dubai</a></li>
+                        <li><a href="#destinatii" onclick="filterCategory('romania')" class="hover:text-white transition">Circuite în România</a></li>
+                        <li><a href="#destinatii" onclick="filterCategory('asia')" class="hover:text-white transition">China & Coreea de Sud</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm uppercase tracking-wider mb-4" data-i18n="footer.fbTitle">Urmărește-ne Pe Facebook</h4>
+                    <p class="text-xs text-slate-400 mb-3" data-i18n="footer.fbDesc">Conectează-te cu noi pe Facebook pentru oferte zilnice și noutăți din călătorii!</p>
+                    <a href="https://www.facebook.com/share/19XnMiUthZ/?mibextid=wwXlfr" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition">
+                        <i class="fa-brands fa-facebook-f"></i> <span data-i18n="footer.fbBtn">Deschide Pagina Facebook</span>
+                    </a>
+                </div>
+
+            </div>
+
+            <div class="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+                <p data-i18n="footer.copyright">&copy; 2026 FeelVoyage Romania. Toate drepturile rezervate.</p>
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <a href="#" class="hover:text-slate-400" data-i18n="footer.terms">Termeni și Condiții</a>
+                    <a href="#" class="hover:text-slate-400" data-i18n="footer.privacy">Politica de Confidențialitate</a>
+                    <a href="#" class="hover:text-slate-400" data-i18n="footer.anpc">ANPC / SAL</a>
+                    <span class="text-slate-700">•</span>
+                    <span class="text-slate-500">Made by <span class="font-semibold text-slate-300">DeDe</span></span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Chat Widget (OPENS UPWARDS) -->
+    <div class="chat-dock fixed z-50 flex flex-col items-end">
+        
+        <!-- Chat Window Box -->
+        <div id="chatWindow" class="chat-window hidden mb-3 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 transform scale-95 opacity-0 origin-bottom-right">
+            
+            <!-- Chat Header -->
+            <div class="bg-gradient-to-r from-brand-900 via-brand-700 to-brand-600 p-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-amber-300 font-bold border border-white/30">
+                            <i class="fa-solid fa-plane-departure"></i>
+                        </div>
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-brand-900 animate-pulse"></span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm" data-i18n="chat.headerTitle">Asistent FeelVoyage</h4>
+                        <p class="text-[11px] text-brand-100 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> <span data-i18n="chat.headerStatus">Online • Răspunde în câteva secunde</span>
+                        </p>
+                    </div>
+                </div>
+                <button id="closeChatBtn" type="button" aria-label="Închide" class="text-white/80 hover:text-white w-10 h-10 flex items-center justify-center text-lg transition-transform hover:rotate-90">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Chat Messages Container -->
+            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-xs custom-scrollbar"></div>
+
+            <!-- Quick Replies Container (dynamic) -->
+            <div id="quickRepliesContainer" class="px-4 pb-2 flex flex-wrap gap-1.5"></div>
+
+            <!-- Typing Indicator -->
+            <div id="typingIndicator" class="hidden px-4 pb-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs flex-shrink-0">
+                        <i class="fa-solid fa-plane-departure"></i>
+                    </div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100">
+                        <div class="flex gap-1 items-center">
+                            <span class="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style="animation-delay: 0s;"></span>
+                            <span class="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style="animation-delay: 0.15s;"></span>
+                            <span class="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style="animation-delay: 0.3s;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Bar -->
+            <form id="chatForm" class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+                <input type="text" id="chatInput" placeholder="Scrie un mesaj..." autocomplete="off" class="flex-1 px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" data-i18n-ph="chat.placeholder">
+                <button type="submit" aria-label="Trimite" class="w-10 h-10 rounded-xl bg-gradient-to-r from-brand-600 to-sunset-500 hover:opacity-90 text-white flex items-center justify-center text-sm transition flex-shrink-0 shadow">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Chat Trigger Button -->
+        <button id="chatToggleBtn" type="button" aria-label="Chat" class="relative group w-14 h-14 rounded-full bg-gradient-to-r from-brand-600 to-sunset-500 text-white shadow-2xl flex items-center justify-center text-2xl hover:scale-110 active:scale-95 transition-all">
+            <i class="fa-solid fa-comments transition-transform duration-300" id="chatIcon"></i>
+            <span id="chatBadge" class="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center border-2 border-white animate-bounce">1</span>
+        </button>
+    </div>
+
+    <!-- Package Details & Multi-Image Gallery Modal -->
+    <div id="bookingModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden max-h-[94svh] sm:max-h-[90vh] flex flex-col transform transition-all scale-95 opacity-0" id="modalContainer">
+            
+            <!-- Modal Header Image & Gallery Slider -->
+            <div class="relative bg-slate-900">
+                <div class="relative h-48 sm:h-72 w-full overflow-hidden">
+                    <img id="modalImg" src="" alt="Destination" class="w-full h-full object-cover transition-all duration-300">
+                    <button id="closeModalBtn" type="button" aria-label="Închide" class="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/60 text-white hover:bg-black flex items-center justify-center backdrop-blur-md transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div class="absolute bottom-3 sm:bottom-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1 sm:gap-3 text-white drop-shadow">
+                        <div>
+                            <span id="modalBadge" class="px-3 py-1 rounded-full bg-brand-600 text-[11px] font-bold uppercase tracking-wider mb-2 inline-block"></span>
+                            <h3 id="modalTitle" class="text-xl sm:text-3xl font-extrabold font-serif leading-tight"></h3>
+                        </div>
+                        <div class="sm:text-right">
+                            <span class="text-xs opacity-90 block">Preț / persoană</span>
+                            <span id="modalPrice" class="text-xl sm:text-3xl font-black text-amber-300"></span>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
+                </div>
+
+                <!-- Thumbnails Gallery Bar -->
+                <div class="p-3 bg-slate-950 flex items-center justify-center gap-3 overflow-x-auto border-b border-slate-800" id="modalGalleryThumbnails">
+                    <!-- Dynamic Thumbnails inserted by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-5 sm:space-y-6 custom-scrollbar">
+                
+                <div>
+                    <h4 class="font-bold text-slate-900 mb-2 text-sm uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-brand-600"></i> <span data-i18n="modal.descTitle">Descriere Pachet & Destinație</span>
+                    </h4>
+                    <p id="modalDesc" class="text-slate-600 text-sm leading-relaxed"></p>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-900 mb-3 text-sm uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-square-check text-brand-600"></i> <span data-i18n="modal.amenitiesTitle">Servicii & Facilități Incluse</span>
+                    </h4>
+                    <div id="modalAmenities" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Booking Form inside Modal -->
+                <div class="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
+                    <h4 class="font-bold text-slate-900 mb-3 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-brand-600"></i> <span data-i18n="modal.bookingTitle">Rezervă sau Solicită Informații Suplimentare</span>
+                    </h4>
+                    <form id="modalBookingForm" class="space-y-4">
+                        <!-- Personal Info -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="text" id="bookingName" required placeholder="Nume și Prenume (ex: Ion Popescu)" class="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none" data-i18n-ph="modal.namePlaceholder">
+                            <input type="tel" id="bookingPhone" required placeholder="Telefon (ex: +40 7XX XXX XXX)" class="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none" data-i18n-ph="modal.phonePlaceholder">
+                        </div>
+                        <p id="bookingNameError" class="hidden text-[10px] text-red-500 font-medium -mt-2"><i class="fa-solid fa-circle-exclamation mr-1"></i><span data-i18n="modal.nameError">Te rog introdu Numele și Prenumele (ex: Ion Popescu)</span></p>
+                        <p id="bookingPhoneError" class="hidden text-[10px] text-red-500 font-medium -mt-2"><i class="fa-solid fa-circle-exclamation mr-1"></i><span data-i18n="modal.phoneError">Număr de telefon invalid. Folosește formatul internațional (ex: +40 7XX XXX XXX)</span></p>
+                        <input type="email" id="bookingEmail" required placeholder="E-mail" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none" data-i18n-ph="modal.emailPlaceholder">
+                        <p id="bookingEmailError" class="hidden text-[10px] text-red-500 font-medium mt-1"><i class="fa-solid fa-circle-exclamation mr-1"></i><span data-i18n="modal.emailError">Email-ul trebuie să conțină @business.com, @gmail.com sau @yahoo.com</span></p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1" data-i18n="modal.travelersLabel">Număr Călători</label>
+                                <select class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                    <option data-i18n="modal.travelers1">1 Persoană</option>
+                                    <option selected data-i18n="modal.travelers2">2 Persoane</option>
+                                    <option data-i18n="modal.travelers3">3 Persoane</option>
+                                    <option data-i18n="modal.travelers4">4+ Persoane (Grup)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1" data-i18n="modal.periodLabel">Perioadă Estimată</label>
+                                <input type="date" id="bookingDate" min="2026-01-01" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Booking Options: Choose Services -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">
+                                <i class="fa-solid fa-sliders text-brand-600 mr-1"></i> <span data-i18n="modal.servicesTitle">Alege Serviciile Dorite</span>
+                            </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="booking-service" value="transport" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500" checked>
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-plane text-brand-500"></i> <span data-i18n="modal.serviceTransport">Transport (zbor/autocar)</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="booking-service" value="cazare" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500" checked>
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-bed text-brand-500"></i> <span data-i18n="modal.serviceCazare">Cazare hotel</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="booking-service" value="transfer" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-taxi text-brand-500"></i> <span data-i18n="modal.serviceTransfer">Transfer aeroport-hotel</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="booking-service" value="meals" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-utensils text-brand-500"></i> <span data-i18n="modal.serviceMeals">Demipensiune / Mic dejun</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="booking-service" value="tickets" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-ticket text-brand-500"></i> <span data-i18n="modal.serviceTickets">Bilete la atracții</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="booking-service" value="insurance" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-shield-halved text-brand-500"></i> <span data-i18n="modal.serviceInsurance">Asigurare de călătorie</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="booking-service" value="guide" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-user-tie text-brand-500"></i> <span data-i18n="modal.serviceGuide">Ghid local</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="booking-service" value="car" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-car text-brand-500"></i> <span data-i18n="modal.serviceCar">Închiriere auto</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md hover:opacity-95 transition">
+                            <i class="fa-solid fa-check-circle mr-1"></i> <span data-i18n="modal.submitBtn">Trimite Solicitarea de Rezervare</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Auth Modal (Autentificare / Înregistrare) -->
+    <div id="authModal" class="fixed inset-0 z-[90] hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full overflow-hidden max-h-[94svh] sm:max-h-[92vh] flex flex-col transform transition-all scale-95 opacity-0" id="authModalContainer">
+            <div class="relative bg-gradient-to-r from-brand-800 via-brand-600 to-sunset-500 p-5 sm:p-6 text-white">
+                <button id="closeAuthBtn" type="button" aria-label="Închide" class="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/30 text-white hover:bg-black/60 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="flex items-center gap-3 pr-10">
+                    <i class="fa-solid fa-earth-americas text-3xl text-amber-300"></i>
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-extrabold font-serif" data-i18n="auth.modalTitle">Bine ai venit la FeelVoyage</h3>
+                        <p class="text-[11px] text-white/80" data-i18n="auth.modalSubtitle">Conectează-te pentru rezervări mai rapide și oferte personalizate</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="grid grid-cols-2 border-b border-slate-100" id="authTabs">
+                <button id="tabLoginBtn" class="py-3.5 text-sm font-bold text-brand-600 border-b-2 border-brand-600 transition" data-i18n="auth.tabLogin">Autentificare</button>
+                <button id="tabRegisterBtn" class="py-3.5 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-brand-600 transition" data-i18n="auth.tabRegister">Înregistrare</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="px-6 pt-6 pb-6 space-y-4 overflow-y-auto">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.emailLabel">E-mail</label>
+                    <input type="email" id="loginEmail" required autocomplete="email" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.passwordLabel">Parolă</label>
+                    <input type="password" id="loginPassword" required autocomplete="current-password" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium">
+                </div>
+                <p id="loginError" class="hidden text-xs text-red-500 font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i><span id="loginErrorText">E-mail sau parolă incorectă.</span></p>
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md hover:shadow-xl transition-all">
+                    <i class="fa-solid fa-spinner fa-spin mr-1.5 hidden" data-spinner></i><i class="fa-solid fa-right-to-bracket mr-1.5"></i><span data-i18n="auth.loginSubmit">Autentifică-te</span>
+                </button>
+                <button type="button" id="forgotBtn" class="hidden w-full text-center text-xs font-bold text-brand-600 hover:underline py-1" data-i18n="auth.forgot">Ai uitat parola?</button>
+                <p data-note="local" class="text-[11px] text-slate-400 text-center leading-relaxed" data-i18n="auth.optionalNote">Contul este opțional — poți rezerva oricând și fără el. Datele contului demo sunt salvate doar local, pe dispozitivul tău.</p>
+                <p data-note="cloud" class="hidden text-[11px] text-slate-400 text-center leading-relaxed" data-i18n="auth.optionalNoteCloud">Contul este opțional — poți rezerva oricând și fără el. Te poți autentifica de pe orice dispozitiv, cu același e-mail și aceeași parolă.</p>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="px-6 pt-6 pb-6 space-y-4 overflow-y-auto hidden">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.nameLabel">Nume și Prenume</label>
+                    <input type="text" id="regName" required autocomplete="name" placeholder="Ex: Ion Popescu" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium" data-i18n-ph="modal.namePlaceholder">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.phoneLabel">Telefon (opțional)</label>
+                    <input type="tel" id="regPhone" autocomplete="tel" placeholder="Ex: +40 7XX XXX XXX" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.emailLabel">E-mail</label>
+                    <input type="email" id="regEmail" required autocomplete="email" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.passwordLabel">Parolă</label>
+                        <input type="password" id="regPassword" required minlength="6" autocomplete="new-password" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.password2Label">Confirmă parola</label>
+                        <input type="password" id="regPassword2" required autocomplete="new-password" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium">
+                    </div>
+                </div>
+                <p id="registerError" class="hidden text-xs text-red-500 font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i><span id="registerErrorText"></span></p>
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md hover:shadow-xl transition-all">
+                    <i class="fa-solid fa-spinner fa-spin mr-1.5 hidden" data-spinner></i><i class="fa-solid fa-user-plus mr-1.5"></i><span data-i18n="auth.registerSubmit">Creează cont gratuit</span>
+                </button>
+                <p class="text-[11px] text-slate-400 text-center leading-relaxed" data-i18n="auth.termsNote">Prin înregistrare accepți Termenii și Condițiile și Politica de Confidențialitate FeelVoyage.</p>
+            </form>
+
+            <!-- Profile View (logat) -->
+            <div id="profileView" class="p-5 sm:p-6 space-y-5 hidden">
+                <div class="flex items-center gap-4">
+                    <div id="profileAvatar" class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-600 to-sunset-500 text-white flex items-center justify-center text-xl font-black shadow-md">FV</div>
+                    <div class="min-w-0">
+                        <h4 id="profileName" class="font-bold text-slate-900 truncate">—</h4>
+                        <p id="profileEmail" class="text-xs text-slate-500 truncate">—</p>
+                        <span class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><i class="fa-solid fa-circle-check"></i> <span data-i18n="auth.memberChip">Membru FeelVoyage</span></span>
+                    </div>
+                </div>
+                <div class="p-4 rounded-2xl bg-brand-50 border border-brand-100 space-y-2">
+                    <p class="text-[10px] uppercase font-bold text-brand-700 tracking-wider" data-i18n="auth.perksTitle">Avantajele contului tău</p>
+                    <p class="text-xs text-slate-600 flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-500"></i><span data-i18n="auth.perk1">Rezervări precompletate — nu mai tastezi datele</span></p>
+                    <p class="text-xs text-slate-600 flex items-center gap-2"><i class="fa-solid fa-gift text-rose-500"></i><span data-i18n="auth.perk2">Oferte exclusive pentru membri</span></p>
+                    <p class="text-xs text-slate-600 flex items-center gap-2"><i class="fa-solid fa-clock text-brand-600"></i><span data-i18n="auth.perk3">Răspuns prioritar de la consultantul tău</span></p>
+                </div>
+                <button id="logoutBtn" type="button" class="w-full py-3.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200 transition-all">
+                    <i class="fa-solid fa-right-from-bracket mr-1.5"></i><span data-i18n="auth.logoutBtn">Deconectare</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="fvToast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[110] hidden w-max max-w-[calc(100vw-2rem)] px-5 py-3 rounded-2xl bg-slate-900 text-white text-sm font-semibold shadow-2xl border border-white/10 flex items-center gap-2 text-left" role="status" aria-live="polite"></div>
+
+    <!-- Thank You Overlay -->
+    <div id="thankYouOverlay" class="fixed inset-0 z-[100] hidden bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div id="thankYouContent" class="flex flex-col items-center text-center transform scale-50 opacity-0 transition-all duration-500">
+            <!-- Logo -->
+            <div class="w-28 h-28 mb-6">
+                <div class="w-full h-full bg-slate-900 rounded-2xl flex items-center justify-center p-3 shadow-2xl">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="white" stroke-width="5" opacity="0.3" />
+                        <circle cx="50" cy="50" r="32" fill="none" stroke="url(#thankYouGrad)" stroke-width="4" stroke-dasharray="6 4" />
+                        <path d="M20 70 Q 40 10, 80 30" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M78 26 L86 32 L75 38 L74 45 L70 41 L65 43 L68 36 L62 31 L68 31 Z" fill="#f59e0b" />
+                        <polygon points="50,22 56,50 50,78 44,50" fill="url(#thankYouGrad)" />
+                        <defs>
+                            <linearGradient id="thankYouGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#38bdf8" />
+                                <stop offset="100%" stop-color="#f43f5e" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+            <!-- Thank You Text -->
+            <h2 class="text-5xl sm:text-6xl font-extrabold font-serif bg-gradient-to-r from-brand-400 via-amber-300 to-sunset-400 bg-clip-text text-transparent mb-3" data-i18n="thankyou.title">Mulțumim!</h2>
+            <p class="text-white/80 text-sm sm:text-base font-medium max-w-sm" data-i18n="thankyou.msg">Solicitarea ta de rezervare a fost trimisă cu succes. Un agent FeelVoyage te va contacta în cel mai scurt timp posibil.</p>
+            <div class="mt-6 flex items-center gap-2 text-white/50 text-xs">
+                <i class="fa-solid fa-phone text-brand-400"></i> 0799 927 590
+                <span class="mx-1">•</span>
+                <i class="fa-solid fa-envelope text-brand-400"></i> crucrudenis@gmail.com
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripturi (ordinea contează: app.js definește fvStore, folosit de backend.js, auth.js și counter.js) -->
+    <script src="js/translations.js"></script>
+    <script src="js/destinations.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/backend.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/counter.js"></script>
+
+</body>
+</html>

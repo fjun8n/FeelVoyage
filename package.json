@@ -1,0 +1,13 @@
+{
+  "name": "feelvoyage",
+  "version": "2.0.0",
+  "private": true,
+  "description": "FeelVoyage — site de turism (HTML + Tailwind precompilat + JS simplu)",
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i src/tailwind-input.css -o css/tailwind.css --minify",
+    "watch:css": "tailwindcss -c tailwind.config.js -i src/tailwind-input.css -o css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}

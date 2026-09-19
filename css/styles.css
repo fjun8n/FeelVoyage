@@ -1,0 +1,154 @@
+.glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.glass-card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #0284c7;
+    border-radius: 10px;
+}
+.hero-gradient {
+    background: linear-gradient(180deg, rgba(12, 74, 110, 0.65) 0%, rgba(7, 89, 133, 0.4) 60%, rgba(15, 23, 42, 0.8) 100%);
+}
+/* Gallery Thumbnail active state */
+.thumb-active {
+    border-color: #0284c7 !important;
+    opacity: 1 !important;
+    transform: scale(1.05);
+}
+
+/* ===== Contor "Călători Fericiți" ===== */
+.happy-counter {
+    transition: transform 0.15s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation; /* fără zoom la tap-uri rapide */
+}
+.happy-counter:hover { transform: scale(1.06); }
+.happy-counter:active { transform: scale(0.95); }
+
+.counter-pop { animation: counterPop 0.3s ease-out; }
+@keyframes counterPop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+.plus-one {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    font-weight: 800;
+    font-size: 1rem;
+    line-height: 1;
+    color: #f59e0b;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    animation: plusOneFloat 0.8s ease-out forwards;
+}
+@keyframes plusOneFloat {
+    0%   { opacity: 0; transform: translate(-50%, 0) scale(0.8); }
+    20%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -38px) scale(1.15); }
+}
+
+
+/* Punct „în direct" lângă contor (apare doar când datele vin din cloud) */
+.live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: #94a3b8;
+    flex: none;
+}
+.live-dot.is-live {
+    background: #34d399;
+    animation: livePulse 2s ease-out infinite;
+}
+@keyframes livePulse {
+    0%   { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55); }
+    70%  { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+/* ===== Comutator temă: luna în modul luminos, soarele în modul întunecat ===== */
+i.theme-icon-sun { display: none; }
+html.dark i.theme-icon-sun { display: inline-block; }
+html.dark i.theme-icon-moon { display: none; }
+
+/* ===== Imaginea din hero: dimensiune potrivită ecranului (telefonul descarcă mult mai puțin) ===== */
+.hero-bg {
+    background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=75');
+}
+@media (min-width: 640px) {
+    .hero-bg { background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80'); }
+}
+@media (min-width: 1280px) {
+    .hero-bg { background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80'); }
+}
+
+/* ===== Chat: se adaptează la ecran și la marginile telefonului (notch, bara de jos) ===== */
+.chat-dock {
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    right: max(1rem, env(safe-area-inset-right));
+}
+@media (min-width: 640px) {
+    .chat-dock {
+        bottom: max(1.5rem, env(safe-area-inset-bottom));
+        right: max(1.5rem, env(safe-area-inset-right));
+    }
+}
+.chat-window {
+    width: min(380px, calc(100vw - 2rem));
+    height: min(540px, calc(100vh - 7.5rem));
+    height: min(540px, calc(100svh - 7.5rem));
+}
+
+/* ===== Filtrele de categorii: un singur rând care se derulează lateral pe telefon ===== */
+.filter-scroll {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+
+/* ===== Ferestre (modale): derulare în interior, nu în pagina din spate ===== */
+.custom-scrollbar,
+#authModalContainer form,
+#profileView { overscroll-behavior: contain; }
+
+/* ===== Optimizări pentru telefon ===== */
+a, button { -webkit-tap-highlight-color: transparent; }
+
+@media (max-width: 767px) {
+    /* iOS mărește automat pagina când un câmp are textul sub 16px; așa evităm asta */
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea { font-size: 16px !important; }
+
+    /* linkuri din subsol: zonă de atingere mai comodă */
+    footer ul a { display: inline-block; padding: 0.375rem 0; }
+}
+
+/* ===== Respectă setarea „reduce animațiile" a telefonului / computerului ===== */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto !important; }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    .live-dot.is-live { animation: none; }
+}

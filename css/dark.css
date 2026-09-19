@@ -1,0 +1,139 @@
+/* FeelVoyage — modul întunecat.
+   Se activează când <html> are clasa "dark" (vezi js/theme.js). Nu schimbă nimic în modul luminos.
+   Suprascrie culorile claselor Tailwind folosite în site; dacă adaugi culori noi în HTML,
+   adaugă aici și perechea lor pentru modul întunecat. */
+
+html.dark {
+    color-scheme: dark;
+
+    --fv-page: #0b1220;         /* fundalul paginii   (în modul luminos: slate-50)  */
+    --fv-surface: #111a2e;      /* carduri, ferestre  (alb)                          */
+    --fv-surface-2: #182339;    /* chip-uri, câmpuri  (slate-100)                    */
+    --fv-surface-3: #223050;    /* hover, placeholder (slate-200)                    */
+    --fv-input: #0d1627;        /* câmpuri de text                                   */
+    --fv-line: #2a3956;         /* linii / borduri    (slate-200)                    */
+    --fv-line-soft: #1f2d47;    /* linii fine         (slate-100)                    */
+
+    --fv-text-strong: #f8fafc;  /* slate-900 */
+    --fv-text: #e2e8f0;         /* slate-800 */
+    --fv-text-mid: #cbd5e1;     /* slate-700 */
+    --fv-text-soft: #b4c0d1;    /* slate-600 */
+    --fv-text-muted: #94a3b8;   /* slate-500 */
+
+    --fv-accent: #38bdf8;       /* brand-500/600 pe fundal închis */
+    --fv-accent-strong: #7dd3fc;
+}
+
+/* ---------------------------------------------------------------- fundaluri */
+html.dark body { background-color: var(--fv-page); color: var(--fv-text); }
+
+html.dark .bg-slate-50 { background-color: var(--fv-page); }
+html.dark .bg-white { background-color: var(--fv-surface); }
+html.dark .bg-slate-100 { background-color: var(--fv-surface-2); }
+html.dark .bg-slate-200 { background-color: var(--fv-surface-3); }
+html.dark .bg-white\/95 { background-color: rgba(17, 26, 46, 0.94); }
+html.dark .bg-white\/75 { background-color: rgba(17, 26, 46, 0.78); }
+html.dark select.bg-white { background-color: var(--fv-input); }
+
+/* antet și carduri „sticlă" */
+html.dark .glass-nav { background: rgba(11, 18, 32, 0.84); }
+html.dark .glass-card { background: rgba(17, 26, 46, 0.78); border-color: rgba(148, 163, 184, 0.16); }
+
+/* petele decorative din „Despre noi" */
+html.dark .bg-brand-100\/60 { background-color: rgba(56, 189, 248, 0.10); }
+html.dark .bg-amber-100\/60 { background-color: rgba(245, 158, 11, 0.08); }
+
+/* degrade-ul secțiunii „Despre noi": de la fundalul paginii la o nuanță ușor mai deschisă */
+html.dark .from-slate-50 {
+    --tw-gradient-from: var(--fv-page) var(--tw-gradient-from-position);
+    --tw-gradient-to: rgb(11 18 32 / 0) var(--tw-gradient-to-position);
+}
+html.dark .to-white { --tw-gradient-to: #0e1729 var(--tw-gradient-to-position); }
+
+/* zona din spatele imaginii hero: se lasă spre culoarea paginii */
+html.dark .hero-gradient {
+    background: linear-gradient(180deg, rgba(2, 6, 23, 0.72) 0%, rgba(8, 47, 73, 0.5) 55%, rgba(11, 18, 32, 1) 100%);
+}
+
+/* ---------------------------------------------------------------- culori „tint" (iconițe, insigne, mesaje) */
+html.dark .bg-brand-50 { background-color: rgba(56, 189, 248, 0.09); }
+html.dark .bg-brand-100 { background-color: rgba(56, 189, 248, 0.15); }
+html.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.10); }
+html.dark .bg-amber-100 { background-color: rgba(245, 158, 11, 0.16); }
+html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.10); }
+html.dark .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.16); }
+html.dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.10); }
+html.dark .bg-rose-100 { background-color: rgba(244, 63, 94, 0.16); }
+html.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.13); }
+
+/* ---------------------------------------------------------------- text */
+html.dark .text-slate-900 { color: var(--fv-text-strong); }
+html.dark .text-slate-800 { color: var(--fv-text); }
+html.dark .text-slate-700 { color: var(--fv-text-mid); }
+html.dark .text-slate-600 { color: var(--fv-text-soft); }
+html.dark .text-slate-500 { color: var(--fv-text-muted); }
+
+html.dark .text-brand-500,
+html.dark .text-brand-600 { color: var(--fv-accent); }
+html.dark .text-brand-900 { color: #bae6fd; }
+html.dark .hover\:text-brand-600:hover,
+html.dark .hover\:text-brand-700:hover { color: var(--fv-accent-strong); }
+html.dark .group:hover .group-hover\:text-brand-600 { color: var(--fv-accent); }
+
+html.dark .text-emerald-600 { color: #34d399; }
+html.dark .text-emerald-800 { color: #a7f3d0; }
+html.dark .text-amber-600 { color: #fbbf24; }
+html.dark .text-rose-600,
+html.dark .text-sunset-600 { color: #fb7185; }
+html.dark .text-blue-600 { color: #60a5fa; }
+html.dark .text-red-500 { color: #f87171; }
+
+/* excepții: text închis pe fundal mereu deschis (insigna cu nota, de pe imaginea cardului) */
+html.dark .bg-amber-400.text-slate-900,
+html.dark .bg-amber-400 .text-slate-900 { color: #0f172a; }
+
+/* ---------------------------------------------------------------- borduri */
+html.dark .border-slate-100 { border-color: var(--fv-line-soft); }
+html.dark .border-slate-200 { border-color: var(--fv-line); }
+html.dark .border-slate-200\/50 { border-color: rgba(148, 163, 184, 0.14); }
+html.dark .border-slate-200\/60 { border-color: rgba(148, 163, 184, 0.16); }
+html.dark .border-slate-200\/80 { border-color: rgba(148, 163, 184, 0.18); }
+html.dark .border-brand-100 { border-color: rgba(56, 189, 248, 0.20); }
+html.dark .border-brand-200\/60 { border-color: rgba(56, 189, 248, 0.26); }
+html.dark .border-emerald-200 { border-color: rgba(16, 185, 129, 0.32); }
+
+/* ---------------------------------------------------------------- stări hover (specificitate mai mare decât fundalurile de mai sus) */
+html.dark .hover\:bg-slate-100:hover { background-color: var(--fv-surface-3); }
+html.dark .hover\:bg-slate-200:hover { background-color: #2c3d5f; }
+html.dark .hover\:bg-brand-50:hover { background-color: rgba(56, 189, 248, 0.11); }
+html.dark .hover\:bg-brand-100:hover { background-color: rgba(56, 189, 248, 0.18); }
+html.dark .hover\:bg-rose-50:hover { background-color: rgba(244, 63, 94, 0.13); }
+html.dark .hover\:border-brand-200:hover { border-color: rgba(56, 189, 248, 0.34); }
+html.dark .hover\:border-brand-300:hover { border-color: rgba(56, 189, 248, 0.45); }
+
+/* ---------------------------------------------------------------- câmpuri de formular */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea { background-color: var(--fv-input); color: var(--fv-text); }
+html.dark input::placeholder,
+html.dark textarea::placeholder { color: #7d8ba1; opacity: 1; }
+html.dark #chatInput { background-color: var(--fv-surface-2); }
+
+/* bara de derulare din ferestre */
+html.dark .custom-scrollbar::-webkit-scrollbar-track { background: var(--fv-surface-2); }
+
+/* ---------------------------------------------------------------- elemente speciale */
+/* sigla „FeelVoyage": începutul degradeului (albastru închis) ar dispărea pe fundal închis */
+html.dark .logo-text { background-image: linear-gradient(to right, #7dd3fc, #38bdf8 45%, #fb7185); }
+
+/* butonul „Detalii Pachet" (negru în modul luminos) ar dispărea pe cardul închis */
+html.dark .dest-btn { background-color: #0369a1; }
+html.dark .group:hover .dest-btn { background-color: #075985; }
+
+/* subsol: separatorul „•" rămâne discret */
+html.dark footer .text-slate-700 { color: #475569; }
+
+/* notificarea (toast) trebuie să se vadă pe pagina închisă */
+html.dark #fvToast { background-color: #1e2b45; }
+
+/* punctul „în direct" de lângă contor rămâne vizibil pe cardul din „Despre noi" */
+html.dark .live-dot:not(.is-live) { background: #64748b; }
