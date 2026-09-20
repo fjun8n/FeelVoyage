@@ -24,6 +24,7 @@ js/backend.js        ← contorul comun, conturile și comenzile (Firebase sau l
 js/theme.js          ← comutatorul luminos / întunecat
 js/auth.js           ← autentificare, înregistrare, profil
 js/counter.js        ← contorul „Călători Fericiți"
+js/admin.js          ← panoul de administrator (se încarcă doar pentru admin)
 firebase-rules.json  ← regulile bazei de date (le lipești în Firebase)
 ```
 
@@ -80,6 +81,32 @@ Toate valorile (suplimente, procente, sezoane, prețurile serviciilor) sunt în 
 - **Sezonul** se stabilește după data plecării.
 - În comandă ajung `travelDate` și `returnDate` (AAAA-LL-ZZ), `nights` și `periodText` (ex. „20/12/2026 – 27/12/2026 (7 nopți)").
 - Regulile din `firebase-rules.json` includ aceste câmpuri: **publică-le din nou în Firebase** după ce actualizezi site-ul.
+
+## Administrator (panou de utilizatori + chat fără restricții)
+
+Un cont poate fi **administrator**. Rolul se dă **doar din baza de date** (din site nu poate scrie nimeni în acel loc, deci nimeni nu-și poate da singur drept de admin).
+
+**Cum îți dai (sau dai altcuiva) drept de administrator**
+1. Publică regulile actualizate: Firebase → **Realtime Database** → **Rules** → lipește tot conținutul `firebase-rules.json` → **Publish**. (Obligatoriu, altfel panoul nu poate citi utilizatorii.)
+2. Firebase → **Authentication** → **Users** → copiază **User UID** al contului dorit.
+3. Firebase → **Realtime Database** → **Data** → adaugă nodul `admins`, iar în el un copil cu **numele = UID-ul** și **valoarea = `true`** (boolean, scris fără ghilimele).
+4. Contul se reconectează (sau reîncarcă pagina). Ca să retragi rolul, ștergi acel copil din `admins`.
+
+**Ce primește administratorul**
+- În **profil**: insignă albastră „Administrator" (în loc de „Membru FeelVoyage") și butonul **Utilizatori** lângă nume (plus un element „Utilizatori" în meniul contului).
+- Panoul **Utilizatori**: lista tuturor utilizatorilor, cu căutare (nume, e-mail, telefon). Click pe un utilizator arată profilul lui așa cum îl vede el, **doar pentru citire**. Panoul nu poate modifica nimic.
+- **Chat fără restricții de subiect**: poate întreba orice (cod, texte, idei), fără limita de întrebări pe sesiune și cu întrebări/răspunsuri mai lungi. Are o insignă albastră „Admin" în antetul chatului.
+
+**Cum e protejat**
+- Datele sunt apărate de **regulile bazei de date**, nu de butoanele din pagină: doar un cont din `admins` poate citi lista `users`; oricine altcineva primește PERMISSION_DENIED chiar dacă modifică pagina în browser.
+- Fișierul `js/admin.js` se descarcă doar pentru conturile marcate ca administrator.
+- Numele și e-mailurile utilizatorilor se afișează mereu ca text (nu se poate injecta cod prin ele).
+
+**De știut**
+- Chatul fără restricții e activat de pagină, nu de server (Firebase AI Logic nu verifică conturile). Nu expune date, dar cineva tehnic ar putea folosi cota Gemini fără limita de subiect. Păstrează **App Check** și setează o limită de cotă în Firebase.
+- E-mailul se salvează în profil de la înregistrare. Conturile mai vechi îl primesc la următoarea lor autentificare; până atunci panoul arată „necunoscut".
+- Lista conține conturile cu profil salvat în baza de date. Conturile fără profil se văd doar în **Authentication**.
+- Fără Firebase configurat (mod local) nu există administrator.
 
 ## Asistent AI (Gemini)
 

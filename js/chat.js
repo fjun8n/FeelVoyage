@@ -317,11 +317,16 @@ function getBotResponse(msg) {
 }
 
 // Initialize chat with welcome message
-function initChat() {
+function initChat(immediate) {
     if (chatInitialized) return;
     chatInitialized = true;
-    const relanguage = chatMessages.children.length > 0;   // schimbare de limbă cu chatul deschis
+    const relanguage = immediate === true || chatMessages.children.length > 0;   // schimbare de limbă / de mod cu chatul deschis: fără întârziere
     chatMessages.innerHTML = '';
+    if (chatAdmin) {   // administratorul: salut propriu, fără butoane de meniu
+        const g = tr('chat.admin.greeting', 'Salut, administratorule! 🛡️ Ai acces liber: îmi poți pune orice întrebare, nu doar despre site sau călătorii (cod, texte, idei, calcule...). Întreabă-mă ce vrei!');
+        if (relanguage) addBotMessage(g, []); else sendBotReply(g, []);
+        return;
+    }
     const greeting = getTranslatedBotResponse('greeting');
     if (relanguage) addBotMessage(greeting.text, greeting.quickReplies);   // fără întârziere, ca să nu apară după mesajul următor
     else sendBotReply(greeting.text, greeting.quickReplies);
@@ -438,6 +443,37 @@ function loadFAQ() {
     return faqPromise;
 }
 
+// ============ Mod administrator (rolul vine din baza de date; vezi js/auth.js și js/ai.js) ============
+// Administratorul poate discuta despre orice, nu doar despre site. Restul vizitatorilor rămân cu limita de subiect.
+let chatAdmin = false;
+function applyChatAdminUI() {
+    const badge = document.getElementById('chatAdminBadge');
+    if (badge) { badge.classList.toggle('hidden', !chatAdmin); badge.classList.toggle('inline-flex', chatAdmin); }
+    const swap = (el, keyAdmin, keyNormal, fbAdmin, fbNormal) => {
+        if (!el) return;
+        const k = chatAdmin ? keyAdmin : keyNormal;
+        el.setAttribute('data-i18n', k);
+        el.textContent = tr(k, chatAdmin ? fbAdmin : fbNormal);
+    };
+    swap(document.getElementById('chatHeaderStatus'), 'chat.admin.status', 'chat.headerStatus', 'Mod administrator • Fără restricții de subiect', 'Online • Răspunde în câteva secunde');
+    swap(document.getElementById('chatAiShort'), 'chat.admin.note', 'chat.ai.short', 'Mod administrator: răspunsuri AI, fără limită de subiect', 'Răspunsuri generate de AI · pot conține greșeli');
+    const ph = chatAdmin ? 'chat.admin.placeholder' : 'chat.placeholder';
+    chatInput.setAttribute('data-i18n-ph', ph);
+    chatInput.placeholder = tr(ph, chatAdmin ? 'Întreabă orice...' : 'Scrie un mesaj...');
+}
+document.addEventListener('fv:admin', (e) => {
+    const admin = !!(e.detail && e.detail.admin);
+    if (admin === chatAdmin) return;
+    chatAdmin = admin;
+    applyChatAdminUI();
+    // alt mod = alte reguli: conversația începe de la zero
+    chatInitialized = false;
+    chatMessages.innerHTML = '';
+    quickRepliesContainer.innerHTML = '';
+    if (isChatOpen) initChat(true);   // salutul apare imediat, ca să nu vină după următorul mesaj
+});
+document.addEventListener('fv:language', applyChatAdminUI);
+
 // ============ Asistentul AI (js/ai.js) ============
 // Întrebările scrise liber merg la Gemini; butoanele rapide rămân cu răspunsuri scrise (rapide și gratuite).
 // Dacă AI-ul nu e disponibil sau dă eroare, se folosește automat botul clasic.
@@ -464,7 +500,7 @@ function addBotAIMessage(text, packageIds) {
             <i class="fa-solid fa-plane-departure"></i>
         </div>
         <div class="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 leading-relaxed max-w-[88%]">
-            ${FVAI.formatAIText(text)}
+            ${FVAI.formatAIText(text, undefined, { admin: chatAdmin })}
         </div>
     `;
     chatMessages.appendChild(botMsgDiv);
@@ -485,7 +521,9 @@ function showPackageButtons(ids, replies) {
         btn.textContent = '🔎 ' + getDestinationText(d).title;
         quickRepliesContainer.appendChild(btn);
     });
-    const extra = (replies && replies.length) ? replies.slice(0, 3) : [{ label: tr('chat.pricing.qr0', '📞 Contact'), value: 'contact' }];
+    // administratorul pune întrebări generale (cod, texte...): butonul „Contact" apare la el doar când modelul recomandă pachete
+    const dflt = (chatAdmin && !ids.length) ? [] : [{ label: tr('chat.pricing.qr0', '📞 Contact'), value: 'contact' }];
+    const extra = (replies && replies.length) ? replies.slice(0, 3) : dflt;
     extra.forEach(r => {
         const b = document.createElement('button');
         b.type = 'button';
@@ -502,7 +540,7 @@ function handleFreeText(text) {
     if (!(window.FVAI && FVAI.enabled())) { handleUserMessage(text); return; }
 
     // mesaje scurte și clare (salut, mulțumesc, la revedere...) au răspuns pregătit: nu consumăm o cerere către AI
-    if (window.FVFAQ && FVFAQ.ready) {
+    if (!chatAdmin && window.FVFAQ && FVFAQ.ready) {
         const local = FVFAQ.matchLocal(text, currentLang);
         if (local) { addUserMessage(text); quickRepliesContainer.innerHTML = ''; respondFaq(local); return; }
     }
@@ -528,7 +566,9 @@ function handleFreeText(text) {
             if (err && err.code === 'limit') {
                 addBotMessage(tr('chat.ai.limit', 'Ai atins limita de întrebări pentru această sesiune. Ne poți suna la **0799 927 590** sau poți alege una dintre opțiunile de mai jos.'), getTranslatedBotResponse('default').quickReplies);
             } else {
-                respondScripted(text);   // AI indisponibil: răspuns clasic
+                // AI indisponibil: administratorul primește o explicație, apoi răspunsul preprogramat
+                if (chatAdmin) addBotMessage(tr('chat.admin.aiDown', 'Asistentul AI nu e disponibil acum (detalii în consola browserului, F12). Îți răspund cu răspunsurile preprogramate.'), []);
+                respondScripted(text);
             }
         })
         .finally(() => setChatBusy(false));

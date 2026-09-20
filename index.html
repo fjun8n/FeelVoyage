@@ -659,9 +659,12 @@
                         <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-brand-900 animate-pulse"></span>
                     </div>
                     <div>
-                        <h4 class="font-bold text-[15px]" data-i18n="chat.headerTitle">Asistent FeelVoyage</h4>
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-[15px]" data-i18n="chat.headerTitle">Asistent FeelVoyage</h4>
+                            <span id="chatAdminBadge" class="hidden items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider bg-blue-500 text-white px-2 py-0.5 rounded-full shadow"><i class="fa-solid fa-shield-halved"></i> Admin</span>
+                        </div>
                         <p class="text-[11px] text-brand-100 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> <span data-i18n="chat.headerStatus">Online • Răspunde în câteva secunde</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> <span id="chatHeaderStatus" data-i18n="chat.headerStatus">Online • Răspunde în câteva secunde</span>
                         </p>
                     </div>
                 </div>
@@ -703,7 +706,7 @@
             <!-- Notă despre asistentul AI (apare doar când AI-ul e activ; vezi js/ai.js): o singură linie, detaliile se deschid la cerere -->
             <div id="chatAiNote" data-ai-only class="hidden px-5 pb-3 pt-0.5 bg-white text-center">
                 <p class="text-[11px] text-slate-400 leading-snug">
-                    <span data-i18n="chat.ai.short">Răspunsuri generate de AI · pot conține greșeli</span>
+                    <span id="chatAiShort" data-i18n="chat.ai.short">Răspunsuri generate de AI · pot conține greșeli</span>
                     <button type="button" id="chatAiInfoBtn" aria-expanded="false" aria-controls="chatAiInfo" aria-label="Detalii" class="ml-1 inline-flex w-4 h-4 items-center justify-center rounded-full border border-slate-300 text-[9px] font-bold text-slate-400 hover:text-brand-600 hover:border-brand-400 align-middle">i</button>
                 </p>
                 <div id="chatAiInfo" class="hidden mt-2 text-[10.5px] leading-snug text-slate-400">
@@ -1014,10 +1017,12 @@
             <div id="profileView" class="p-5 sm:p-6 space-y-5 hidden">
                 <div class="flex items-center gap-4">
                     <div id="profileAvatar" class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-600 to-sunset-500 text-white flex items-center justify-center text-xl font-black shadow-md">FV</div>
-                    <div class="min-w-0">
-                        <h4 id="profileName" class="font-bold text-slate-900 truncate">—</h4>
+                    <div class="min-w-0 flex-1">
+                        <div id="profileNameRow" class="flex items-center gap-2 min-w-0">
+                            <h4 id="profileName" class="font-bold text-slate-900 truncate min-w-0">—</h4>
+                        </div>
                         <p id="profileEmail" class="text-xs text-slate-500 truncate">—</p>
-                        <span class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><i class="fa-solid fa-circle-check"></i> <span data-i18n="auth.memberChip">Membru FeelVoyage</span></span>
+                        <span id="profileChip" class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><i id="profileChipIcon" class="fa-solid fa-circle-check"></i> <span id="profileChipText" data-i18n="auth.memberChip">Membru FeelVoyage</span></span>
                     </div>
                 </div>
                 <div class="p-4 rounded-2xl bg-brand-50 border border-brand-100 space-y-2">

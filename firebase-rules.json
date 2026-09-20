@@ -6,7 +6,15 @@
       ".read": true,
       ".write": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || newData.val() === data.val() + 1)"
     },
+    "admins": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
     "users": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
@@ -18,6 +26,9 @@
         },
         "createdAt": {
           ".validate": "newData.isNumber()"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val().length <= 254"
         },
         "$other": {
           ".validate": false

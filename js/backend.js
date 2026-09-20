@@ -98,6 +98,7 @@
             },
             logout: function () { publishSession(null); return Promise.resolve(); },
             resetPassword: function () { return Promise.reject(FVError('unsupported')); },
+            listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
             submitOrder: function (order) {
                 // Fără Firebase comanda nu ajunge la tine; o păstrăm doar în browser, pentru testare
                 const list = readJSON(KEY_ORDERS_LOCAL, []);
@@ -120,7 +121,7 @@
             incrementCounter: fail,
             onConnection: function (cb) { cb(false); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, resetPassword: fail, submitOrder: fail,
+            register: fail, login: fail, resetPassword: fail, submitOrder: fail, listUsers: fail,
             logout: function () { return Promise.resolve(); }
         };
     }
@@ -188,14 +189,24 @@
         }
 
         async function buildSession(user) {
-            let profile = {};
-            try { profile = (await dbM.get(dbM.ref(db, 'users/' + user.uid))).val() || {}; } catch (e) { /* profilul e opțional */ }
+            let profile = {}, admin = false;
+            // Profilul și rolul se citesc separat: dacă unul eșuează (ex. regulile noi nu sunt publicate încă), celălalt rămâne valabil
+            const reads = await Promise.all([
+                dbM.get(dbM.ref(db, 'users/' + user.uid)).then(function (s) { return s.val() || {}; }, function () { return {}; }),
+                dbM.get(dbM.ref(db, 'admins/' + user.uid)).then(function (s) { return s.val() === true; }, function () { return false; })
+            ]);
+            profile = reads[0]; admin = reads[1];   // administrator = exact „admins/<uid>: true", pus din consola Firebase
             const email = user.email || '';
+            // E-mailul nu era salvat în profil la conturile mai vechi; îl completăm la următoarea autentificare (ca administratorul să-l vadă)
+            if (email && profile.email !== email) {
+                try { dbM.update(dbM.ref(db, 'users/' + user.uid), { email: email }).catch(noop); } catch (e) { /* ignorat */ }
+            }
             return {
                 uid: user.uid,
                 email: email,
                 name: profile.name || user.displayName || email.split('@')[0],
-                phone: profile.phone || ''
+                phone: profile.phone || '',
+                admin: admin
             };
         }
 
@@ -250,7 +261,7 @@
                     const cred = await authM.createUserWithEmailAndPassword(auth, d.email.trim(), d.password);
                     try { await authM.updateProfile(cred.user, { displayName: d.name }); } catch (e) { /* nu e critic */ }
                     try {
-                        await dbM.set(dbM.ref(db, 'users/' + cred.user.uid), { name: d.name, phone: d.phone || '', createdAt: dbM.serverTimestamp() });
+                        await dbM.set(dbM.ref(db, 'users/' + cred.user.uid), { name: d.name, phone: d.phone || '', email: d.email.trim(), createdAt: dbM.serverTimestamp() });
                     } catch (e) { console.warn('[FeelVoyage] Profilul nu a putut fi salvat (verifică regulile din firebase-rules.json):', e); }
                     return await refresh(auth.currentUser || cred.user);
                 } catch (e) { throw normalize(e); }
@@ -277,6 +288,22 @@
                     if (!(e && e.code === 'network')) {
                         console.error('[FeelVoyage] Nu pot salva comanda. Ai publicat regulile noi din firebase-rules.json?', e);
                     }
+                    throw FVError('network', e);
+                }
+            },
+            // Lista utilizatorilor: doar pentru administrator. Protecția reală e în regulile bazei de date (firebase-rules.json):
+            // un cont obișnuit primește PERMISSION_DENIED chiar dacă ar apela această funcție.
+            listUsers: async function () {
+                if (!session || !session.admin) throw FVError('forbidden');
+                try {
+                    const res = await Promise.all([dbM.get(dbM.ref(db, 'users')), dbM.get(dbM.ref(db, 'admins'))]);
+                    const users = res[0].val() || {}, admins = res[1].val() || {};
+                    return Object.keys(users).map(function (uid) {
+                        const u = users[uid] || {};
+                        return { uid: uid, name: String(u.name || ''), email: String(u.email || ''), phone: String(u.phone || ''), createdAt: Number(u.createdAt) || 0, admin: admins[uid] === true };
+                    }).sort(function (a, b) { return (b.createdAt - a.createdAt) || a.name.localeCompare(b.name); });
+                } catch (e) {
+                    if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
                     throw FVError('network', e);
                 }
             },
@@ -322,6 +349,7 @@
         logout: function () { return ready.then(function (b) { return b.logout(); }); },
         resetPassword: function (e) { return ready.then(function (b) { return b.resetPassword(e); }); },
         submitOrder: function (o) { return ready.then(function (b) { return b.submitOrder(o); }); },
+        listUsers: function () { return ready.then(function (b) { return b.listUsers(); }); },
 
         // Pentru asistentul AI (js/ai.js): aplicația Firebase (null dacă nu e configurat) și încărcarea modulelor SDK la cerere
         firebaseApp: function () { return ready.then(function (b) { return b.app || null; }); },

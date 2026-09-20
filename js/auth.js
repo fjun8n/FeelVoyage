@@ -90,7 +90,50 @@
         document.getElementById('profileAvatar').textContent = initials || 'FV';
         document.getElementById('profileName').textContent = session.name || '';
         document.getElementById('profileEmail').textContent = session.email || '';
+        applyProfileRole();
+        // panoul de administrator (js/admin.js, se încarcă doar pentru administrator) își pune butonul lângă nume
+        document.dispatchEvent(new CustomEvent('fv:profile', { detail: { admin: !!session.admin } }));
     }
+
+    // Membru = insignă verde; Administrator = insignă albastră (și avatar albastru)
+    function applyProfileRole() {
+        const admin = !!(session && session.admin);
+        const chip = document.getElementById('profileChip'), icon = document.getElementById('profileChipIcon'), text = document.getElementById('profileChipText');
+        const avatar = document.getElementById('profileAvatar');
+        chip.className = 'inline-flex items-center gap-1 mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ' + (admin ? 'text-white bg-blue-600' : 'text-emerald-600 bg-emerald-50');
+        icon.className = 'fa-solid ' + (admin ? 'fa-shield-halved' : 'fa-circle-check');
+        text.setAttribute('data-i18n', admin ? 'auth.adminChip' : 'auth.memberChip');
+        text.textContent = trF(admin ? 'auth.adminChip' : 'auth.memberChip', admin ? 'Administrator' : 'Membru FeelVoyage');
+        avatar.className = 'w-14 h-14 rounded-full bg-gradient-to-tr text-white flex items-center justify-center text-xl font-black shadow-md ' + (admin ? 'from-blue-700 to-sky-400 ring-4 ring-blue-200' : 'from-brand-600 to-sunset-500');
+    }
+
+    /* ---------- Administrator: panoul se încarcă doar pentru contul marcat în baza de date ---------- */
+    let adminLoading = null;
+    function loadAdminModule() {
+        if (window.FVAdmin) { window.FVAdmin.sync(session); return Promise.resolve(); }
+        if (!adminLoading) {
+            adminLoading = new Promise(function (resolve, reject) {
+                const s = document.createElement('script');
+                s.src = 'js/admin.js';
+                s.onload = resolve;
+                s.onerror = function () { adminLoading = null; reject(new Error('js/admin.js nu s-a putut încărca')); };
+                document.head.appendChild(s);
+            }).then(function () { if (window.FVAdmin) window.FVAdmin.sync(session); });
+        }
+        return adminLoading;
+    }
+    function syncAdmin(s) {
+        const admin = !!(s && s.admin);
+        if (window.FVAI && typeof FVAI.setAdmin === 'function') FVAI.setAdmin(admin);   // chatul: fără restricție de subiect doar pentru administrator
+        if (admin) loadAdminModule().catch(function (e) { console.warn('[FeelVoyage]', e); });
+        else if (window.FVAdmin) window.FVAdmin.sync(null);
+        document.dispatchEvent(new CustomEvent('fv:admin', { detail: { admin: admin } }));
+    }
+    window.fvAdminOpen = function () {
+        userDropdown.classList.add('hidden');
+        loadAdminModule().then(function () { if (window.FVAdmin && session && session.admin) window.FVAdmin.openUsers(); })
+            .catch(function () { toast(trF('auth.errorGeneric', 'A apărut o eroare. Încearcă din nou.'), 'error'); });
+    };
 
     function openAuthModal(view) {
         if (!view) view = session ? 'profile' : 'login';
@@ -131,6 +174,7 @@
                 '</div>' +
                 '<div class="p-2">' +
                 '<button onclick="openAuthModal(\'profile\')" class="' + item + '"><i class="fa-solid fa-user w-5 text-brand-600"></i>' + esc(trF('auth.profileBtn', 'Profilul meu')) + '</button>' +
+                (session.admin ? '<button onclick="fvAdminOpen()" class="' + item + ' !text-blue-700 bg-blue-50/60"><i class="fa-solid fa-users w-5 text-blue-600"></i>' + esc(trF('admin.usersBtn', 'Utilizatori')) + '</button>' : '') +
                 '<a href="#destinatii" class="dd-close ' + item + '"><i class="fa-solid fa-map-location-dot w-5 text-brand-600"></i>' + esc(trF('auth.viewDestinations', 'Vezi destinațiile')) + '</a>' +
                 '<button onclick="fvLogout()" class="w-full text-left px-3 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-xl flex items-center gap-2"><i class="fa-solid fa-right-from-bracket w-5"></i>' + esc(trF('auth.logoutBtn', 'Deconectare')) + '</button>' +
                 '</div>';
@@ -152,9 +196,11 @@
     }
 
     window.openAuthModal = openAuthModal;
+    window.closeAuthModal = closeAuthModal;
     window.fvLogout = async function () {
         try { await FVBackend.logout(); } catch (e) { /* deconectare locală oricum */ }
         session = null;
+        syncAdmin(null);
         renderAuthUI();
         userDropdown.classList.add('hidden');
         closeAuthModal();
@@ -169,6 +215,7 @@
         try {
             const s = await FVBackend.login(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
             session = s;
+            syncAdmin(s);
             renderAuthUI();
             closeAuthModal();
             toast(trF('auth.welcomeBack', 'Bine ai revenit') + ', ' + firstName(s) + '!');
@@ -196,6 +243,7 @@
         try {
             const s = await FVBackend.register({ name: name, phone: phone, email: email, password: pw1 });
             session = s;
+            syncAdmin(s);
             renderAuthUI();
             closeAuthModal();
             toast(trF('auth.registerSuccess', 'Contul a fost creat. Bine ai venit') + ', ' + firstName(s) + '!');
@@ -268,6 +316,7 @@
     /* ---------- Pornire: ascultă starea contului din backend ---------- */
     FVBackend.onAuth(function (s) {
         session = s;
+        syncAdmin(s);
         renderAuthUI();
         // dacă utilizatorul s-a deconectat din altă filă cât timp profilul e deschis
         if (isModalOpen() && !s && !profileView.classList.contains('hidden')) showAuthView('login');

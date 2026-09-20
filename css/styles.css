@@ -165,3 +165,24 @@ a, button { -webkit-tap-highlight-color: transparent; }
 /* reCAPTCHA (App Check pentru asistentul AI): insigna ar acoperi butonul de chat.
    Atribuirea cerută de Google este în nota din fereastra de chat (#chatAiNote). */
 .grecaptcha-badge { visibility: hidden; }
+
+/* Chat, mod administrator: blocuri de cod din răspunsurile AI (conținutul e scăpat de HTML în js/ai.js) */
+.fv-code {
+    margin: .5rem 0;
+    padding: .75rem .9rem;
+    border-radius: .75rem;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.fv-inline-code {
+    padding: .1rem .35rem;
+    border-radius: .35rem;
+    background: rgba(100, 116, 139, .18);
+    font-size: .9em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
