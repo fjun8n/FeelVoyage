@@ -106,6 +106,8 @@
                         <button data-lang="ro" class="lang-option w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 flex items-center gap-2">🇷🇴 Română</button>
                         <button data-lang="en" class="lang-option w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 flex items-center gap-2">🇬🇧 English</button>
                         <button data-lang="it" class="lang-option w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 flex items-center gap-2">🇮🇹 Italiano</button>
+                        <button data-lang="fr" class="lang-option w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 flex items-center gap-2">🇫🇷 Français</button>
+                        <button data-lang="es" class="lang-option w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 flex items-center gap-2">🇪🇸 Español</button>
                     </div>
                 </div>
 
@@ -139,11 +141,13 @@
                 <a href="#contact" class="mobile-link py-3.5" data-i18n="nav.contact">Contact</a>
                 <!-- Language Switcher (Mobile) -->
                 <!-- Language Switcher (Mobile) -->
-                <div class="pt-4 flex items-center gap-2">
+                <div class="pt-4 flex flex-wrap items-center gap-2">
                     <span class="text-xs font-bold text-slate-400" data-i18n="nav.language">Limbă:</span>
                     <button data-lang="ro" class="lang-option-mobile px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-brand-500 bg-brand-50 text-brand-700">🇷🇴 RO</button>
                     <button data-lang="en" class="lang-option-mobile px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-slate-200 text-slate-600">🇬🇧 EN</button>
                     <button data-lang="it" class="lang-option-mobile px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-slate-200 text-slate-600">🇮🇹 IT</button>
+                    <button data-lang="fr" class="lang-option-mobile px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-slate-200 text-slate-600">🇫🇷 FR</button>
+                    <button data-lang="es" class="lang-option-mobile px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-slate-200 text-slate-600">🇪🇸 ES</button>
                 </div>
                 <div class="pt-4 flex flex-col gap-3">
                     <button id="authMobileBtn" type="button" class="flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold shadow-sm">
@@ -989,8 +993,8 @@
                     <input type="text" id="regName" required autocomplete="name" placeholder="Ex: Ion Popescu" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium" data-i18n-ph="modal.namePlaceholder">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.phoneLabel">Telefon (opțional)</label>
-                    <input type="tel" id="regPhone" autocomplete="tel" placeholder="Ex: +40 7XX XXX XXX" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.phoneLabel">Telefon</label>
+                    <input type="tel" id="regPhone" required maxlength="32" autocomplete="tel" placeholder="Ex: +40 7XX XXX XXX" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="auth.emailLabel">E-mail</label>
@@ -1075,6 +1079,8 @@
 
     <!-- Scripturi (ordinea contează: app.js definește fvStore, folosit de backend.js, auth.js și counter.js) -->
     <script src="js/translations.js"></script>
+    <script src="js/translations-fr.js"></script>
+    <script src="js/translations-es.js"></script>
     <script src="js/destinations.js"></script>
     <script src="js/pricing.js"></script>
     <script src="js/daterange.js"></script>

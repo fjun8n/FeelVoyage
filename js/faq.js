@@ -12,16 +12,17 @@
 (function (root) {
     'use strict';
 
-    const LANGS = ['ro', 'en', 'it'];
+    const LANGS = ['ro', 'en', 'it', 'fr', 'es'];
     const SITE = {
         phone: '0799 927 590',
         email: 'crucrudenis@gmail.com',
         address: 'Str. Tudor Vladimirescu nr. 124, Tg-Jiu, Gorj',
-        hours: { ro: 'luni–vineri 09:00–18:00, sâmbătă 10:00–14:00', en: 'Monday–Friday 09:00–18:00, Saturday 10:00–14:00', it: 'lunedì–venerdì 09:00–18:00, sabato 10:00–14:00' }
+        hours: { ro: 'luni–vineri 09:00–18:00, sâmbătă 10:00–14:00', en: 'Monday–Friday 09:00–18:00, Saturday 10:00–14:00', it: 'lunedì–venerdì 09:00–18:00, sabato 10:00–14:00', fr: 'lundi–vendredi 09:00–18:00, samedi 10:00–14:00', es: 'lunes–viernes 09:00–18:00, sábado 10:00–14:00' }
     };
     const EUR_RON = 5;
 
-    const state = { entries: [], byId: {}, destMeta: {}, destEntries: [], ready: false };
+    const state = { entries: [], byId: {}, destMeta: {}, destEntries: [], ready: false, ext: {}, bestExtra: {} };
+    const zeroVotes = function () { const v = {}; LANGS.forEach(function (l) { v[l] = 0; }); return v; };
 
     /* ------------------------------------------------------------------ text */
     function norm(s) {
@@ -40,14 +41,26 @@
     const points = function (c) { return 2 * c.w + (c.stem ? 0 : 1); };
 
     /* ------------------------------------------------------------------ înregistrare */
+    // O limbă adăugată ulterior (js/faq-fr.js, js/faq-es.js) completează intrările existente după id: { id: { t, k, a } }
+    function applyExt(e, lang) {
+        const x = state.ext[lang] && state.ext[lang][e.id];
+        if (x) { e[lang] = x; e._c[lang] = (x.k || []).map(compile).filter(Boolean); }
+    }
     function register(list) {
         list.forEach(function (e) {
             e._c = {};
-            LANGS.forEach(function (l) { e._c[l] = ((e[l] && e[l].k) || []).map(compile).filter(Boolean); });
+            LANGS.forEach(function (l) { e._c[l] = ((e[l] && e[l].k) || []).map(compile).filter(Boolean); applyExt(e, l); });
             state.entries.push(e);
             state.byId[e.id] = e;
         });
     }
+    function extend(lang, map) {
+        if (LANGS.indexOf(lang) === -1) return;
+        state.ext[lang] = Object.assign(state.ext[lang] || {}, map);
+        state.entries.forEach(function (e) { applyExt(e, lang); });
+    }
+    // „Cel mai bun moment" pe destinații, într-o limbă adăugată ulterior: { 'roma': 'text' }
+    function extendDest(lang, map) { state.bestExtra[lang] = Object.assign(state.bestExtra[lang] || {}, map); }
     function registerDestinations(meta) { Object.assign(state.destMeta, meta); }
 
     // Se apelează la finalul faq-data.js: construiește intrările pentru fiecare destinație din catalog
@@ -88,18 +101,29 @@
         it: { from: 'da', nights: 'notti', adult: 'a persona', board: { ai: 'all inclusive', full: 'pensione completa', half: 'mezza pensione', bb: 'colazione', none: 'senza pasti' },
               fixed: 'durata fissa', flexible: 'durata flessibile', transportYes: 'Trasporto incluso.', transportNo: 'Il trasporto non è incluso (si può aggiungere come servizio extra).', guideYes: 'Guida locale inclusa.',
               includes: 'include', duration: 'Durata', forTwo: 'Per 2 adulti', roomNote: 'in camera doppia, bassa stagione', priceNote: 'Il prezzo sale in alta stagione e si adegua alla durata scelta; apri il pacchetto per la stima esatta con persone, date e servizi.',
-              weather: 'Controlla le previsioni prima di partire.', compare: 'Un rapido confronto:', see: 'Apri il pacchetto per i dettagli.', noneUnder: 'Sotto {b} € a persona non abbiamo pacchetti; il più economico parte da {m} €.', under: 'Con un budget di {b} € a persona (pacchetto standard, camera doppia) puoi scegliere:', ask: 'Dimmi il tuo budget (es. "ho 600 euro") e ti mostro i pacchetti adatti. Come riferimento, i nostri pacchetti vanno da {min} € a {max} € a persona:' }
+              weather: 'Controlla le previsioni prima di partire.', compare: 'Un rapido confronto:', see: 'Apri il pacchetto per i dettagli.', noneUnder: 'Sotto {b} € a persona non abbiamo pacchetti; il più economico parte da {m} €.', under: 'Con un budget di {b} € a persona (pacchetto standard, camera doppia) puoi scegliere:', ask: 'Dimmi il tuo budget (es. "ho 600 euro") e ti mostro i pacchetti adatti. Come riferimento, i nostri pacchetti vanno da {min} € a {max} € a persona:' },
+        fr: { from: 'à partir de', nights: 'nuits', adult: 'par adulte', board: { ai: 'tout compris', full: 'pension complète', half: 'demi-pension', bb: 'petit-déjeuner', none: 'sans repas' },
+              fixed: 'durée fixe', flexible: 'durée flexible', transportYes: 'Transport inclus.', transportNo: 'Le transport n\'est pas inclus (il peut être ajouté comme service supplémentaire).', guideYes: 'Guide local inclus.',
+              includes: 'comprend', duration: 'Durée', forTwo: 'Pour 2 adultes', roomNote: 'en chambre double, basse saison', priceNote: 'Le prix augmente en haute saison et s\'ajuste à la durée choisie ; ouvrez le forfait pour voir l\'estimation exacte selon les personnes, les dates et les services.',
+              weather: 'Vérifiez la météo avant de partir.', compare: 'Une comparaison rapide :', see: 'Ouvrez le forfait pour les détails.', noneUnder: 'Nous n\'avons pas de forfaits à moins de {b} € par personne ; le moins cher commence à {m} €.', under: 'Avec un budget de {b} € par personne (forfait standard, chambre double), vous pouvez choisir :', ask: 'Dites-moi votre budget (ex. « j\'ai 600 euros ») et je vous montrerai les forfaits adaptés. À titre indicatif, nos forfaits vont de {min} € à {max} € par adulte :' },
+        es: { from: 'desde', nights: 'noches', adult: 'por adulto', board: { ai: 'todo incluido', full: 'pensión completa', half: 'media pensión', bb: 'desayuno', none: 'sin comidas' },
+              fixed: 'duración fija', flexible: 'duración flexible', transportYes: 'Transporte incluido.', transportNo: 'El transporte no está incluido (se puede añadir como servicio extra).', guideYes: 'Guía local incluido.',
+              includes: 'incluye', duration: 'Duración', forTwo: 'Para 2 adultos', roomNote: 'en habitación doble, temporada baja', priceNote: 'El precio sube en temporada alta y se ajusta a la duración elegida; abre el paquete para ver la estimación exacta según personas, fechas y servicios.',
+              weather: 'Consulta la previsión del tiempo antes de viajar.', compare: 'Una comparación rápida:', see: 'Abre el paquete para ver los detalles.', noneUnder: 'No tenemos paquetes por menos de {b} € por persona; el más económico empieza en {m} €.', under: 'Con un presupuesto de {b} € por persona (paquete estándar, habitación doble) puedes elegir:', ask: 'Dime tu presupuesto (p. ej. «tengo 600 euros») y te mostraré los paquetes adecuados. Como referencia, nuestros paquetes van de {min} € a {max} € por adulto:' }
     };
 
     /* ------------------------------------------------------------------ răspunsuri pentru destinații */
     const INTENT = {
-        time: /(?:^| )(?:cand|sezon|moment|luna|vreme|clima|meteo|temperatur|cel mai bun|when|season|weather|climate|month|best time|quando|stagione|periodo|mese|tempo)/,
-        price: /(?:^| )(?:cat cost|costa|cost|pret|tarif|price|prices|how much|quanto|prezzo|prezzi|euro|lei|ron|buget|budget)/,
-        incl: /(?:^| )(?:includ|inclus|contine|facilit|amenit|included|includes|inclu|compres|comprend|cosa include)/
+        time: /(?:^| )(?:cand|sezon|moment|luna|vreme|clima|meteo|temperatur|cel mai bun|when|season|weather|climate|month|best time|quando|stagione|periodo|mese|tempo|quand|saison|meteo|climat|quel mois|mois ideal|meilleure periode|cuando|epoca|temporada|clima|que mes|mes ideal|mejor epoca|mejor momento)/,
+        price: /(?:^| )(?:cat cost|costa|cost|pret|tarif|price|prices|how much|quanto|prezzo|prezzi|euro|lei|ron|buget|budget|combien|prix|tarif|cout|coute|cuanto|precio|cuesta|presupuesto)/,
+        incl: /(?:^| )(?:includ|inclus|contine|facilit|amenit|included|includes|inclu|compres|comprend|cosa include|contien|prestations|comodidades|servicios)/
     };
     function intentOf(t) { return INTENT.time.test(t) ? 'time' : INTENT.price.test(t) ? 'price' : INTENT.incl.test(t) ? 'incl' : 'info'; }
 
-    function bestOf(d, lang) { const m = state.destMeta[d.id]; return m && m.best ? (m.best[lang] || m.best.ro) : ''; }
+    function bestOf(d, lang) {
+        const m = state.destMeta[d.id], x = state.bestExtra[lang] && state.bestExtra[lang][d.id];
+        return m && m.best ? (m.best[lang] || x || m.best.en || m.best.ro) : (x || '');
+    }
 
     function destAnswer(d, intent, lang) {
         const w = W[lang], p = profile(d), tx = destText(d, lang), board = w.board[p.board] || '';
@@ -142,7 +166,9 @@
         const L = {
             ro: ['România', 'City break în Europa', 'Plajă și munte în Europa', 'Exotice', 'China și Coreea de Sud'],
             en: ['Romania', 'City breaks in Europe', 'Beach and mountains in Europe', 'Exotic', 'China and South Korea'],
-            it: ['Romania', 'City break in Europa', 'Mare e montagna in Europa', 'Esotiche', 'Cina e Corea del Sud']
+            it: ['Romania', 'City break in Europa', 'Mare e montagna in Europa', 'Esotiche', 'Cina e Corea del Sud'],
+            fr: ['Roumanie', 'City breaks en Europe', 'Mer et montagne en Europe', 'Destinations exotiques', 'Chine et Corée du Sud'],
+            es: ['Rumanía', 'Escapadas urbanas en Europa', 'Playa y montaña en Europa', 'Destinos exóticos', 'China y Corea del Sur']
         }[lang];
         const groups = [['romania'], ['city-break'], ['plaja', 'munte'], ['exotic'], ['asia']];
         return groups.map(function (g, i) {
@@ -170,11 +196,13 @@
     const HINTS = {
         ro: ['cat', 'cum', 'ce', 'cand', 'unde', 'este', 'sunt', 'pentru', 'vreau', 'aveti', 'pot', 'imi', 'mi', 'si', 'sau', 'la', 'un', 'o', 'de', 'cu', 'nu', 'da'],
         en: ['how', 'much', 'what', 'when', 'where', 'is', 'are', 'the', 'for', 'want', 'do', 'you', 'can', 'my', 'and', 'or', 'to', 'a', 'of', 'with', 'i', 'have'],
-        it: ['quanto', 'come', 'che', 'cosa', 'quando', 'dove', 'per', 'voglio', 'avete', 'posso', 'il', 'lo', 'la', 'un', 'una', 'di', 'con', 'non', 'e', 'sono', 'ho', 'del']
+        it: ['quanto', 'come', 'che', 'cosa', 'quando', 'dove', 'per', 'voglio', 'avete', 'posso', 'il', 'lo', 'la', 'un', 'una', 'di', 'con', 'non', 'e', 'sono', 'ho', 'del'],
+        fr: ['combien', 'comment', 'quel', 'quelle', 'quand', 'pour', 'veux', 'avez', 'puis', 'mon', 'les', 'des', 'une', 'du', 'avec', 'pas', 'vous', 'je', 'est', 'sont', 'bonjour', 'merci'],
+        es: ['cuanto', 'como', 'cuando', 'donde', 'quiero', 'tienen', 'puedo', 'los', 'las', 'una', 'con', 'son', 'tengo', 'del', 'por', 'para', 'hola', 'gracias']
     };
     function pickLang(t, votes, uiLang) {
         const words = t.split(' ');
-        const score = { ro: votes.ro, en: votes.en, it: votes.it };
+        const score = {}; LANGS.forEach(function (l) { score[l] = votes[l] || 0; });
         LANGS.forEach(function (l) { words.forEach(function (x) { if (HINTS[l].indexOf(x) !== -1) score[l] += 0.5; }); });
         let best = uiLang, top = score[uiLang] + 0.01;   // limba paginii câștigă la egalitate
         LANGS.forEach(function (l) { if (score[l] > top) { top = score[l]; best = l; } });
@@ -192,7 +220,7 @@
             });
         });
         found.sort(function (a, b) { return b.p - a.p || a.s - b.s; });
-        const picked = [], votes = { ro: 0, en: 0, it: 0 };
+        const picked = [], votes = zeroVotes();
         let total = 0;
         found.forEach(function (x) {
             const clash = picked.filter(function (y) { return x.s < y.e && y.s < x.e; })[0];
@@ -243,14 +271,14 @@
             for (let i = cands.length - 1; i >= 0; i--) if (cands[i].e.defer) cands.splice(i, 1);
             // o destinație numită în mesaj = intenție foarte clară: bonus față de răspunsurile generale
             if (destHits.length >= 2 && destHits[1].score >= 2) {
-                return { entry: null, compare: destHits.slice(0, 3).map(function (h) { return h.e.dest; }), lang: pickLang(t, { ro: 0, en: 0, it: 0 }, uiLang), text: t, score: destHits[0].score + 7 };
+                return { entry: null, compare: destHits.slice(0, 3).map(function (h) { return h.e.dest; }), lang: pickLang(t, zeroVotes(), uiLang), text: t, score: destHits[0].score + 7 };
             }
-            cands.push({ e: destHits[0].e, idx: 1000, score: destHits[0].score + 7, votes: { ro: 0, en: 0, it: 0 }, dest: true });
+            cands.push({ e: destHits[0].e, idx: 1000, score: destHits[0].score + 7, votes: zeroVotes(), dest: true });
         }
         if (BUDGET_RX.test(t) && state.byId.budget) {
             const bi = state.entries.indexOf(state.byId.budget);
             const ex = cands.filter(function (c) { return c.e === state.byId.budget; })[0];
-            if (ex) ex.score += 6; else cands.push({ e: state.byId.budget, idx: bi, score: 6, votes: { ro: 0, en: 0, it: 0 } });
+            if (ex) ex.score += 6; else cands.push({ e: state.byId.budget, idx: bi, score: 6, votes: zeroVotes() });
         }
         if (!cands.length) return null;
         cands.sort(function (a, b) { return b.score - a.score || a.idx - b.idx; });
@@ -273,7 +301,7 @@
             .replace(/\{phone\}/g, SITE.phone).replace(/\{email\}/g, SITE.email).replace(/\{address\}/g, SITE.address)
             .replace(/\{hours\}/g, SITE.hours[lang] || SITE.hours.ro).replace(/\{count\}/g, String(dests().length));
     }
-    const labelOf = function (id, lang) { const e = state.byId[id]; return e ? ((e[lang] && e[lang].t) || (e.ro && e.ro.t) || id) : id; };
+    const labelOf = function (id, lang) { const e = state.byId[id]; return e ? ((e[lang] && e[lang].t) || (e.en && e.en.t) || (e.ro && e.ro.t) || id) : id; };
     function chips(ids, lang) {
         const out = [];
         (ids || []).forEach(function (id) { if (state.byId[id]) out.push({ label: labelOf(id, lang), value: 'faq:' + id }); });
@@ -292,7 +320,7 @@
             return { text: destAnswer(d, hit.intent || 'info', lang), replies: chips(['how-to-book', 'extras', 'contact'], lang), packages: [d.id], lang: lang };
         }
         const e = hit.entry;
-        const tx = e[lang] || e.ro;
+        const tx = e[lang] || e.en || e.ro;
         let text = fill(tx.a || '', lang), pk = (e.p || []).slice();
         if (e.dyn === 'budget') {
             const b = budgetAnswer(hit, lang);
@@ -323,7 +351,7 @@
     }
 
     const api = {
-        SITE: SITE, LANGS: LANGS, norm: norm, register: register, registerDestinations: registerDestinations, finish: finish,
+        SITE: SITE, LANGS: LANGS, norm: norm, register: register, extend: extend, extendDest: extendDest, registerDestinations: registerDestinations, finish: finish,
         match: match, matchLocal: matchLocal, answer: answer, answerById: answerById, stats: stats,
         entries: function () { return state.entries; }, byId: function (id) { return state.byId[id]; }, destMeta: function () { return state.destMeta; },
         get ready() { return state.ready; }, _state: state

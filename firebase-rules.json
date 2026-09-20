@@ -22,7 +22,7 @@
           ".validate": "newData.isString() && newData.val().length <= 80"
         },
         "phone": {
-          ".validate": "newData.isString() && newData.val().length <= 32"
+          ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length <= 32"
         },
         "createdAt": {
           ".validate": "newData.isNumber()"

@@ -78,6 +78,7 @@
                 return function () { authSubs.delete(cb); };
             },
             register: function (d) {
+                if (!d.phone || !String(d.phone).trim()) return Promise.reject(FVError('invalid-phone'));
                 const email = d.email.trim().toLowerCase();
                 if (users().some(function (u) { return u.email === email; })) return Promise.reject(FVError('email-in-use'));
                 if (d.password.length < 6) return Promise.reject(FVError('weak-password'));
@@ -257,6 +258,7 @@
                 return function () { authSubs.delete(cb); };
             },
             register: async function (d) {
+                if (!d.phone || !String(d.phone).trim()) throw FVError('invalid-phone');   // telefonul e obligatoriu la conturile noi
                 try {
                     const cred = await authM.createUserWithEmailAndPassword(auth, d.email.trim(), d.password);
                     try { await authM.updateProfile(cred.user, { displayName: d.name }); } catch (e) { /* nu e critic */ }

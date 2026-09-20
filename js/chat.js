@@ -213,67 +213,93 @@ const chatKeywords = {
     greeting: {
         ro: ['salut','buna','bună','neata','neața','meniu','principal','înapoi','inapoi'],
         en: ['hello','hi','hey','menu','main','back'],
-        it: ['ciao','salve','menu','principale','indietro']
+        it: ['ciao','salve','menu','principale','indietro'],
+        fr: ['bonjour','salut','bonsoir','coucou','menu','principal','retour'],
+        es: ['hola','buenas','buenos dias','buenos días','menu','menú','principal','volver','atras','atrás']
     },
     destinations: {
         ro: ['destinaț','destinat','pachet','ofertă','oferta','unde pot călători','ce oferiți'],
         en: ['destination','package','offer','where can i travel','what do you offer'],
-        it: ['destinazione','pacchetto','offerta','dove posso viaggiare','cosa offrite']
+        it: ['destinazione','pacchetto','offerta','dove posso viaggiare','cosa offrite'],
+        fr: ['destination','forfait','offre','où puis-je voyager','ou puis-je voyager','que proposez-vous'],
+        es: ['destino','paquete','oferta','dónde puedo viajar','donde puedo viajar','qué ofrecen','que ofrecen']
     },
     exotic: {
         ro: ['exotic','maldive','bali','santorini','dubai','tokyo','cappadocia','new york','kenya','safari'],
         en: ['exotic','maldives','bali','santorini','dubai','tokyo','cappadocia','new york','kenya','safari'],
-        it: ['esotico','maldive','bali','santorini','dubai','tokyo','cappadocia','new york','kenya','safari']
+        it: ['esotico','maldive','bali','santorini','dubai','tokyo','cappadocia','new york','kenya','safari'],
+        fr: ['exotique','maldives','bali','santorin','dubai','tokyo','cappadoce','new york','kenya','safari'],
+        es: ['exótico','exotico','maldivas','bali','santorini','dubai','tokio','capadocia','nueva york','kenia','safari']
     },
     romania: {
         ro: ['român','romania','delta','brașov','brasov','bran','transfăgărășan','cazanele','maramureș','sibiu','sighișoara','mamaia','constanța'],
         en: ['romania','danube delta','brasov','bran','transfagarasan','maramures','sibiu','sighisoara','mamaia','constanta'],
-        it: ['romania','delta del danubio','brasov','bran','transfagarasan','maramures','sibiu','sighisoara','mamaia','costanza']
+        it: ['romania','delta del danubio','brasov','bran','transfagarasan','maramures','sibiu','sighisoara','mamaia','costanza'],
+        fr: ['roumanie','delta du danube','brasov','bran','transfagarasan','maramures','sibiu','sighisoara','mamaia','constanta'],
+        es: ['rumanía','rumania','delta del danubio','brasov','bran','transfagarasan','maramures','sibiu','sighisoara','mamaia','constanza']
     },
     europe: {
         ro: ['europa','roma','barcelona','londra','praga','viena','paris'],
         en: ['europe','rome','barcelona','london','prague','vienna','paris'],
-        it: ['europa','roma','barcellona','londra','praga','vienna','parigi']
+        it: ['europa','roma','barcellona','londra','praga','vienna','parigi'],
+        fr: ['europe','rome','barcelone','londres','prague','vienne','paris'],
+        es: ['europa','roma','barcelona','londres','praga','viena','parís','paris']
     },
     packages: {
         ro: ['pachete','vezi toate','oferte','listă'],
         en: ['packages','all offers','list'],
-        it: ['pacchetti','tutte le offerte','lista']
+        it: ['pacchetti','tutte le offerte','lista'],
+        fr: ['forfaits','toutes les offres','liste'],
+        es: ['paquetes','todas las ofertas','lista']
     },
     pricing: {
         ro: ['preț','pret','buget','cât costă','cat costa','tarif','prețuri'],
         en: ['price','budget','how much','cost','rates'],
-        it: ['prezzo','budget','quanto costa','tariffa','prezzi']
+        it: ['prezzo','budget','quanto costa','tariffa','prezzi'],
+        fr: ['prix','budget','combien','coût','cout','tarifs','tarif'],
+        es: ['precio','precios','presupuesto','cuánto','cuanto','cuesta','tarifas']
     },
     booking: {
         ro: ['rezerv','booking','vreau să plec','vreau sa plec','cumpăr'],
         en: ['book','booking','reservation','i want to travel','buy'],
-        it: ['prenota','prenotazione','voglio viaggiare','comprare']
+        it: ['prenota','prenotazione','voglio viaggiare','comprare'],
+        fr: ['réserver','reserver','réservation','reservation','je veux voyager','acheter'],
+        es: ['reservar','reserva','reservación','quiero viajar','comprar']
     },
     contact: {
         ro: ['contact','telefon','email','mail','yahoo'],
         en: ['contact','phone','email','mail'],
-        it: ['contatto','telefono','email','mail']
+        it: ['contatto','telefono','email','mail'],
+        fr: ['contact','téléphone','telephone','email','mail','contacter'],
+        es: ['contacto','teléfono','telefono','email','correo','contactar']
     },
     location: {
         ro: ['sediul','adresa','unde sunteți','unde sunteti','tg-jiu','tg jiu','tudor vladimirescu'],
         en: ['office','address','where are you','tg-jiu','tudor vladimirescu'],
-        it: ['sede','indirizzo','dove siete','tg-jiu','tudor vladimirescu']
+        it: ['sede','indirizzo','dove siete','tg-jiu','tudor vladimirescu'],
+        fr: ['bureau','adresse','où êtes-vous','ou etes-vous','tg-jiu','tudor vladimirescu','siège','siege'],
+        es: ['oficina','dirección','direccion','dónde están','donde estan','tg-jiu','tudor vladimirescu','sede']
     },
     facebook: {
         ro: ['facebook','pagina','social'],
         en: ['facebook','page','social'],
-        it: ['facebook','pagina','social']
+        it: ['facebook','pagina','social'],
+        fr: ['facebook','page','réseaux','reseaux'],
+        es: ['facebook','página','pagina','redes']
     },
     services: {
         ro: ['servici','ce faceți','ce faceti','ajut'],
         en: ['service','what do you do','help'],
-        it: ['servizi','cosa fate','aiuto']
+        it: ['servizi','cosa fate','aiuto'],
+        fr: ['services','que faites-vous','aide','aidez'],
+        es: ['servicios','qué hacen','que hacen','ayuda']
     },
     payment: {
         ro: ['plată','plata','rate','card','transfer'],
         en: ['payment','installment','card','transfer'],
-        it: ['pagamento','rate','carta','bonifico']
+        it: ['pagamento','rate','carta','bonifico'],
+        fr: ['paiement','payer','mensualités','mensualites','carte','virement'],
+        es: ['pago','pagar','cuotas','tarjeta','transferencia']
     }
 };
 
@@ -436,6 +462,7 @@ function loadFAQ() {
     if (!faqPromise) {
         faqPromise = loadScript('js/faq.js')
             .then(() => Promise.all(['js/faq-data-1.js', 'js/faq-data-2.js', 'js/faq-data-3.js'].map(loadScript)))
+            .then(() => Promise.all(['js/faq-fr.js', 'js/faq-es.js'].map(s => loadScript(s).catch(e => console.warn('[FeelVoyage]', e.message)))))   // limbi adăugate ulterior; dacă lipsește una, celelalte merg mai departe
             .then(() => loadScript('js/faq-dest.js'))   // ultimul: încheie înregistrarea (finish)
             .then(() => !!(window.FVFAQ && FVFAQ.ready))
             .catch(err => { console.warn('[FeelVoyage] Baza de răspunsuri nu s-a încărcat; chatul folosește botul clasic.', err); return false; });

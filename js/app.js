@@ -279,7 +279,7 @@ const bookingState = { adults: 2, kids04: 0, kids512: 0 };
 let bookingRange = null;   // selectorul de interval de date (js/daterange.js)
 const EXTRA_LABEL_KEYS = { transport: 'modal.serviceTransport', cazare: 'modal.serviceCazare', transfer: 'modal.serviceTransfer', meals: 'modal.serviceMeals', tickets: 'modal.serviceTickets', insurance: 'modal.serviceInsurance', guide: 'modal.serviceGuide', car: 'modal.serviceCar' };
 const EXTRA_LABELS_RO = { transport: 'Transport (zbor/autocar)', cazare: 'Cazare hotel', transfer: 'Transfer aeroport-hotel', meals: 'Demipensiune / Mic dejun', tickets: 'Bilete la atracții', insurance: 'Asigurare de călătorie', guide: 'Ghid local', car: 'Închiriere auto' };
-const LOCALES = { ro: 'ro-RO', en: 'en-GB', it: 'it-IT' };
+const LOCALES = { ro: 'ro-RO', en: 'en-GB', it: 'it-IT', fr: 'fr-FR', es: 'es-ES' };
 
 function fmtTpl(str, vars) { return String(str).replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined ? vars[k] : m)); }
 function priceEUR(n) { return FVPricing.fmtEUR(n); }
@@ -469,15 +469,7 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
     const phoneInput = document.getElementById('bookingPhone');
     const phoneError = document.getElementById('bookingPhoneError');
     const phoneVal = phoneInput.value.trim();
-    // Normalize: remove spaces, dashes, parentheses
-    const phoneNorm = phoneVal.replace(/[\s\-()]/g, '');
-    // Romanian local format: 07xxxxxxxx or 02xxxxxxxx (10 digits)
-    const roLocalRegex = /^0[2-7]\d{8}$/;
-    // International format: + followed by country code and number
-    // Whitelist: RO(+40), IT(+39), UK(+44), DE(+49), MD(+373), US/CA(+1), FR(+33), ES(+34),
-    // Asia: JP(+81), KR(+82), CN(+86), IN(+91), ID(+62), PH(+63), SG(+65), TH(+66), VN(+84), AE(+971), TR(+90), MY(+60), HK(+852)
-    const intlRegex = /^\+(40|39|44|49|373|1|33|34|81|82|86|91|62|63|65|66|84|971|90|60|852)\d{6,14}$/;
-    const phoneValid = roLocalRegex.test(phoneNorm) || intlRegex.test(phoneNorm);
+    const phoneValid = fvPhoneValid(phoneVal);
     if (!phoneValid) {
         phoneInput.classList.add('border-red-500', 'ring-2', 'ring-red-400');
         phoneError.classList.remove('hidden');
@@ -652,6 +644,17 @@ function tr(key, fallback) {
 }
 
 // Get translated display fields for a destination object
+// Telefon valid: format românesc local (07xxxxxxxx / 02xxxxxxxx) sau internațional (+prefix + număr), cu prefixe acceptate.
+// Îl folosesc formularul de rezervare și înregistrarea contului.
+function fvPhoneValid(value) {
+    const norm = String(value == null ? '' : value).trim().replace(/[\s\-()]/g, '');
+    const roLocal = /^0[2-7]\d{8}$/;
+    // Prefixe acceptate: RO(+40), IT(+39), UK(+44), DE(+49), MD(+373), US/CA(+1), FR(+33), ES(+34), BE(+32), CH(+41), LU(+352),
+    // MX(+52), AR(+54), CL(+56), CO(+57), Asia: JP(+81), KR(+82), CN(+86), IN(+91), ID(+62), PH(+63), SG(+65), TH(+66), VN(+84), AE(+971), TR(+90), MY(+60), HK(+852)
+    const intl = /^\+(40|39|44|49|373|1|33|34|32|41|352|52|54|56|57|81|82|86|91|62|63|65|66|84|971|90|60|852)\d{6,14}$/;
+    return roLocal.test(norm) || intl.test(norm);
+}
+
 function getDestinationText(item) {
     const prefix = `dest.${item.id}.`;
     const amenitiesFallback = item.amenities.join('|');
@@ -710,7 +713,7 @@ function updateLangSwitcherUI() {
 
 // Master language switch function
 function setLanguage(lang) {
-    if (!['ro', 'en', 'it'].includes(lang)) lang = 'ro';
+    if (!['ro', 'en', 'it', 'fr', 'es'].includes(lang)) lang = 'ro';
     currentLang = lang;
     fvStore.set('feelvoyage_lang', lang);
     document.documentElement.setAttribute('lang', lang);

@@ -8,16 +8,20 @@ css/tailwind.css     ← stilurile Tailwind, deja generate (nu le edita de mân�
 css/styles.css       ← stiluri proprii, optimizări pentru telefon, contor
 css/dark.css         ← modul întunecat
 js/translations.js   ← texte EN / IT
+js/translations-fr.js ← texte în franceză (FR)
+js/translations-es.js ← texte în spaniolă (ES)
 js/destinations.js   ← lista destinațiilor și prețul de bază al fiecărui pachet
 js/pricing.js        ← calculatorul de preț (adulți, copii, sezon, durată, servicii extra)
 js/daterange.js      ← calendarul pentru intervalul de date (plecare → întoarcere, format zz/ll/aaaa)
 js/app.js            ← filtre, rezervări, limbi
 js/chat.js           ← fereastra de chat (butoane rapide, întrebări libere, „Vezi pachetul”)
 js/ai.js             ← asistentul AI: Gemini prin Firebase AI Logic (prompt, instrumentul de preț, limite)
-js/faq.js            ← motorul răspunsurilor preprogramate (potrivire pe cuvinte-cheie, 3 limbi)
+js/faq.js            ← motorul răspunsurilor preprogramate (potrivire pe cuvinte-cheie, 5 limbi)
 js/faq-data-1.js     ← răspunsuri preprogramate: mesaje scurte, agenție, rezervări, plată
 js/faq-data-2.js     ← răspunsuri preprogramate: prețuri, servicii extra, recomandări
 js/faq-data-3.js     ← răspunsuri preprogramate: informații de călătorie, folosirea site-ului
+js/faq-fr.js         ← aceleași răspunsuri, în franceză (titluri, cuvinte-cheie, texte + „cel mai bun moment” pe destinații)
+js/faq-es.js         ← aceleași răspunsuri, în spaniolă
 js/faq-dest.js       ← răspunsuri pentru cele 29 de destinații (nume alternative + cel mai bun moment)
 js/firebase-config.js← AICI pui cheile Firebase (vezi mai jos)
 js/backend.js        ← contorul comun, conturile și comenzile (Firebase sau local)
@@ -82,6 +86,23 @@ Toate valorile (suplimente, procente, sezoane, prețurile serviciilor) sunt în 
 - În comandă ajung `travelDate` și `returnDate` (AAAA-LL-ZZ), `nights` și `periodText` (ex. „20/12/2026 – 27/12/2026 (7 nopți)").
 - Regulile din `firebase-rules.json` includ aceste câmpuri: **publică-le din nou în Firebase** după ce actualizezi site-ul.
 
+## Cont nou: telefonul este obligatoriu
+
+La crearea unui cont, câmpul **Telefon** trebuie completat. Sunt acceptate numere românești (`07XX XXX XXX`, `02XX XXX XXX`) și internaționale cu `+` și prefix (România +40, Italia +39, Franța +33, Spania +34, Belgia +32, Elveția +41, Luxemburg +352, Mexic +52, Argentina +54, Chile +56, Columbia +57, Marea Britanie +44, Germania +49, Moldova +373, SUA / Canada +1 și prefixele din Asia și Orientul Mijlociu folosite și la rezervări). Aceeași validare se aplică și la formularul de rezervare (funcția `fvPhoneValid` din `js/app.js`).
+
+- Conturile create **înainte** de această modificare rămân valabile, chiar dacă nu au telefon; nu li se cere nimic la autentificare.
+- Regula din `firebase-rules.json` pentru `users/<uid>/phone` cere acum minim 6 caractere. **Publică din nou regulile** în Firebase (tab-ul **Rules** → **Publish**). Dacă nu le republici, site-ul merge oricum, dar baza de date nu verifică lungimea telefonului.
+- Obligativitatea telefonului este verificată de formular și de codul site-ului; baza de date nu poate impune ca un câmp să existe la crearea contului fără să blocheze conturile vechi.
+
+## Limbi: română, engleză, italiană, franceză, spaniolă
+
+Comutatorul de limbă din antet (și din meniul de pe telefon) are 5 limbi. Româna este limba de bază, scrisă direct în `index.html`, `js/destinations.js` și în cod; celelalte sunt dicționare în `js/translations.js` (EN, IT), `js/translations-fr.js` (FR) și `js/translations-es.js` (ES), toate cu aceleași chei (`nav.acasa`, `dest.roma.title`...).
+
+- Schimbarea limbii traduce pe loc textele, pachetele, calendarul (luni și zile), estimarea de preț, chatul și panoul de administrator.
+- Chatul înțelege și răspunde în limba în care scrie utilizatorul, chiar dacă pagina e în alta (ex.: pagina în română, întrebarea în franceză → răspuns în franceză). Asistentul AI primește și limba paginii ca indiciu.
+- Dacă o cheie lipsește dintr-un dicționar, se afișează textul în română, ca să nu apară niciodată chei goale.
+- **Ca să modifici un text în franceză/spaniolă**, caută cheia (ex. `hero.title1`) în `js/translations-fr.js` sau `js/translations-es.js`. Pentru o **limbă nouă**, copiezi un fișier de traduceri, îl încarci în `index.html` după `js/translations.js`, adaugi codul limbii în `setLanguage` (`js/app.js`), în `LOCALES` (`js/app.js`, `js/daterange.js`, `js/admin.js`), în `LANGS` (`js/faq.js`) și un buton în comutator.
+
 ## Administrator (panou de utilizatori + chat fără restricții)
 
 Un cont poate fi **administrator**. Rolul se dă **doar din baza de date** (din site nu poate scrie nimeni în acel loc, deci nimeni nu-și poate da singur drept de admin).
@@ -137,7 +158,7 @@ Chatul poate răspunde la întrebări scrise liber cu **Gemini**, prin **Firebas
 
 ## Răspunsuri preprogramate (peste 100)
 
-Chatul are o bază de **112 răspunsuri scrise de mână**, în **română, engleză și italiană**, plus răspunsuri pe fiecare dintre cele **29 de destinații** (în total 141). Se folosesc:
+Chatul are o bază de **112 răspunsuri scrise de mână**, în **română, engleză, italiană, franceză și spaniolă**, plus răspunsuri pe fiecare dintre cele **29 de destinații** (în total 141). Se folosesc:
 - când asistentul AI nu e disponibil (neconfigurat, fără internet, limită gratuită depășită, două erori la rând);
 - pentru mesaje scurte („salut”, „mulțumesc”, „la revedere”), ca să nu consume cereri către AI;
 - pentru butoanele de sub răspunsuri („Cum rezerv?”, „Servicii extra”...).
@@ -146,7 +167,7 @@ Teme acoperite: agenție și contact, rezervări și cont, plată, prețuri (cop
 
 Întrebarea se potrivește pe cuvinte-cheie, fără să conteze diacriticele sau majusculele, iar răspunsul vine în limba în care a scris utilizatorul. Baza se descarcă doar când se deschide chatul.
 
-**Cum adaugi un răspuns:** copiezi o intrare din `js/faq-data-1.js` (sau 2 / 3), îi dai un `id` nou și completezi titlul (`t`), cuvintele-cheie (`k`) și textul (`a`) pentru `ro`, `en`, `it`. În text poți folosi `**bold**`, `{phone}`, `{email}`, `{address}`, `{hours}`, `{count}`. Datele agenției (telefon, e-mail, adresă, program) sunt într-un singur loc, în `js/faq.js` (`SITE`).
+**Cum adaugi un răspuns:** copiezi o intrare din `js/faq-data-1.js` (sau 2 / 3), îi dai un `id` nou și completezi titlul (`t`), cuvintele-cheie (`k`) și textul (`a`) pentru `ro`, `en`, `it`. Traducerile în franceză și spaniolă stau separat, în `js/faq-fr.js` și `js/faq-es.js`: acolo adaugi aceeași intrare, după `id`, cu `t`, `k`, `a`. Dacă lipsește o traducere, chatul folosește textul în engleză pentru acea intrare. În text poți folosi `**bold**`, `{phone}`, `{email}`, `{address}`, `{hours}`, `{count}`. Datele agenției (telefon, e-mail, adresă, program) sunt într-un singur loc, în `js/faq.js` (`SITE`).
 
 ## Modificări de design
 

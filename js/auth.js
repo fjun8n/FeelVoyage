@@ -54,6 +54,7 @@
             case 'invalid-credentials': return trF('auth.errorLogin', 'E-mail sau parolă incorectă.');
             case 'weak-password': return trF('auth.errorPasswordShort', 'Parola trebuie să aibă minim 6 caractere.');
             case 'invalid-email': return trF('auth.errorInvalidEmail', 'Adresa de e-mail nu este validă.');
+            case 'invalid-phone': return trF('auth.errorPhone', 'Introdu un număr de telefon valid, în format românesc (07XX XXX XXX) sau internațional (ex: +40 7XX XXX XXX).');
             case 'network': return trF('auth.errorNetwork', 'Nu m-am putut conecta la server. Verifică internetul și încearcă din nou.');
             case 'too-many': return trF('auth.errorTooMany', 'Prea multe încercări. Încearcă din nou peste câteva minute.');
             default: return trF('auth.errorGeneric', 'A apărut o eroare. Încearcă din nou.');
@@ -236,6 +237,7 @@
         registerError.classList.add('hidden');
 
         if (name.split(' ').filter(Boolean).length < 2) { showRegisterError(trF('auth.errorName', 'Te rog introdu numele și prenumele.')); return; }
+        if (!fvPhoneValid(phone)) { showRegisterError(trF('auth.errorPhone', 'Introdu un număr de telefon valid, în format românesc (07XX XXX XXX) sau internațional (ex: +40 7XX XXX XXX).')); document.getElementById('regPhone').focus(); return; }
         if (pw1.length < 6) { showRegisterError(trF('auth.errorPasswordShort', 'Parola trebuie să aibă minim 6 caractere.')); return; }
         if (pw1 !== pw2) { showRegisterError(trF('auth.errorPasswordMatch', 'Parolele nu coincid.')); return; }
 

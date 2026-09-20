@@ -15,7 +15,7 @@
     'use strict';
 
     const OFF_TOPIC = '[[OFF_TOPIC]]';
-    const LANG_NAMES = { ro: 'română', en: 'engleză', it: 'italiană' };
+    const LANG_NAMES = { ro: 'română', en: 'engleză', it: 'italiană', fr: 'franceză', es: 'spaniolă' };
     const DEFAULTS = {
         enabled: true,
         model: 'gemini-3.5-flash-lite',
@@ -84,7 +84,7 @@
             '• Nu cere și nu accepta date personale (nume complet, telefon, e-mail, card). Dacă utilizatorul le scrie în chat, roagă-l politicos să folosească formularele.',
             '',
             'STIL:',
-            '• Răspunde în limba în care scrie utilizatorul (română, engleză sau italiană); dacă e o altă limbă sau nu se înțelege, folosește limba interfeței indicată în context.',
+            '• Răspunde în limba în care scrie utilizatorul (română, engleză, italiană, franceză sau spaniolă); dacă e o altă limbă sau nu se înțelege, folosește limba interfeței indicată în context.',
             '• Scurt și clar: 2–6 propoziții sau maximum 5 puncte, fără introduceri lungi. Ton prietenos și profesionist, maximum 1–2 emoji.',
             '• Text simplu: **bold** pentru informațiile cheie și liste cu „• ”. Fără titluri, tabele, HTML sau linkuri.',
             '• Dacă recomanzi sau discuți pachete din catalog, la SFÂRȘITUL răspunsului adaugă o singură linie [[PACKAGES: id1, id2]] (maximum 3 id-uri, exact ca în catalog). Nu folosi această linie în alt scop.',
@@ -97,7 +97,7 @@
             '• Formularul din secțiunea Contact: un consultant răspunde în cel mult 2 ore lucrătoare. Site-ul mai spune: consultanță gratuită și ofertă personalizată în maximum 24 de ore; prețuri în EUR și lei (cursul folosit: 5 lei = 1 €); rate fără dobândă pentru anumite pachete; asigurare de călătorie și asistență medicală opționale; consultant dedicat și grup WhatsApp de asistență în sejur.',
             '• Servicii: pachete complete (transport, cazare, transfer), city break-uri, sejururi la plajă și la munte, tururi culturale și gastronomice, safari și aventuri exotice, asigurare de călătorie, asistență în vacanță, rezervări de grup (nuntă, team building).',
             '• Plată: transfer bancar, card (Visa / Mastercard), rate (pentru pachete peste 500 €), cash la sediu.',
-            '• Site: filtre pe categorie și buget, căutare, limbile română / engleză / italiană, mod luminos și întunecat, cont opțional cu e-mail (funcționează pe orice dispozitiv), contorul „Călători Fericiți” (un contor al vizitatorilor, live).',
+            '• Site: filtre pe categorie și buget, căutare, limbile română / engleză / italiană / franceză / spaniolă, mod luminos și întunecat, cont opțional cu e-mail (funcționează pe orice dispozitiv), contorul „Călători Fericiți” (un contor al vizitatorilor, live).',
             '• Rezervare pe site: deschizi un pachet, alegi adulții și copiii, intervalul de date, serviciile extra, vezi estimarea, completezi datele și trimiți solicitarea; un agent te contactează.',
             '',
             'CATALOG (' + list.length + ' pachete; folosește exact aceste id-uri):',
@@ -113,7 +113,7 @@
             'Ești asistentul personal al ADMINISTRATORULUI site-ului FeelVoyage (agenție de turism din Târgu Jiu, România). Utilizatorul cu care vorbești este administratorul verificat al site-ului. Față de vizitatorii obișnuiți, pentru el NU există nicio restricție de subiect: poți răspunde la ORICE întrebare (programare și cod, matematică, scris, traduceri, analiză, idei, marketing, cunoștințe generale, tehnic etc.), nu doar despre turism.',
             '',
             'REGULI:',
-            '• Răspunde în limba în care scrie administratorul (română, engleză sau italiană; altfel, română).',
+            '• Răspunde în limba în care scrie administratorul (română, engleză, italiană, franceză sau spaniolă; altfel, română).',
             '• Fii precis, onest și util. Dacă nu știi sau nu ești sigur, spune; nu inventa fapte, surse, citate sau cifre.',
             '• Pentru cod folosește blocuri ``` cu numele limbajului. Poți folosi **bold**, liste cu „• ” și rânduri noi. Fără HTML și fără linkuri inventate.',
             '• Rămân valabile regulile de siguranță ale modelului: nu ajuți la acțiuni ilegale sau periculoase.',

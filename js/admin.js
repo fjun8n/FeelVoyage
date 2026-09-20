@@ -26,7 +26,7 @@
     const norm = function (s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
     const $ = function (id) { return doc.getElementById(id); };
     const lang = function () { return (typeof currentLang !== 'undefined' && currentLang) || 'ro'; };
-    const localeTag = function () { return ({ ro: 'ro-RO', en: 'en-GB', it: 'it-IT' })[lang()] || 'ro-RO'; };
+    const localeTag = function () { return ({ ro: 'ro-RO', en: 'en-GB', it: 'it-IT', fr: 'fr-FR', es: 'es-ES' })[lang()] || 'ro-RO'; };
 
     function initialsOf(name) {
         const i = String(name || '').split(' ').filter(Boolean).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();

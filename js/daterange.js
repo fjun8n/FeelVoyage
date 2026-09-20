@@ -12,7 +12,7 @@
     'use strict';
 
     const MAX_AHEAD_DAYS = 548;   // maximum ~18 luni în viitor
-    const LOCALES = { ro: 'ro-RO', en: 'en-GB', it: 'it-IT' };
+    const LOCALES = { ro: 'ro-RO', en: 'en-GB', it: 'it-IT', fr: 'fr-FR', es: 'es-ES' };
 
     /* ------------------------------------------------------------------ calcule cu date (fără DOM) */
     const pad = function (n) { return String(n).padStart(2, '0'); };
