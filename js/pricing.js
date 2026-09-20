@@ -4,6 +4,7 @@
    • prețul din card („de la X €") = per adult, în cameră dublă, în sezon redus, pentru pachetul standard;
    • adult singur în cameră => supliment single (pe noapte);
    • copii pe intervale de vârstă, ca procent din prețul adultului; copilul cazat cu un singur adult plătește preț întreg;
+   • durata: clientul poate alege între min și max nopți; o parte din preț (zborul/transportul) e fixă, restul crește cu nopțile;
    • sezon: prețul crește în lunile de vârf (în funcție de data plecării);
    • servicii extra: unele sunt deja incluse în pachet, altele se adaugă per persoană, per grup sau per zi.
 
@@ -20,15 +21,16 @@
     /* ------------------------------------------------------------------ reguli pe categorie */
     // kids: [copii 0–4 ani, copii 5–12 ani] ca fracție din prețul adultului
     // singlePerNight: supliment cameră single / noapte · transfer: aeroport-hotel dus-întors / persoană
+    // fixedShare: partea din prețul pachetului care NU depinde de numărul de nopți (zbor / transport) · minNights / maxNights: durata permisă
     // mealsPerNight: upgrade de masă / persoană / noapte · ticketsPerNight: bilete la atracții / persoană / noapte
     // insurancePerDay: asigurare medicală + storno / persoană / zi · guideDay: ghid local privat / grup / zi · carDay: mașină / zi
     const CATEGORY = {
-        'romania':    { kids: [0.40, 0.70], singlePerNight: 18, transfer: 12, mealsPerNight: 15, ticketsPerNight: 6,  insurancePerDay: 1.0, guideDay: 45,  carDay: 32 },
-        'city-break': { kids: [0.65, 0.85], singlePerNight: 30, transfer: 22, mealsPerNight: 22, ticketsPerNight: 14, insurancePerDay: 1.9, guideDay: 90,  carDay: 42 },
-        'plaja':      { kids: [0.65, 0.85], singlePerNight: 30, transfer: 25, mealsPerNight: 25, ticketsPerNight: 10, insurancePerDay: 1.9, guideDay: 80,  carDay: 45 },
-        'munte':      { kids: [0.65, 0.85], singlePerNight: 40, transfer: 35, mealsPerNight: 35, ticketsPerNight: 22, insurancePerDay: 2.2, guideDay: 110, carDay: 70 },
-        'exotic':     { kids: [0.75, 0.85], singlePerNight: 45, transfer: 40, mealsPerNight: 28, ticketsPerNight: 16, insurancePerDay: 3.6, guideDay: 90,  carDay: 55 },
-        'asia':       { kids: [0.75, 0.85], singlePerNight: 35, transfer: 38, mealsPerNight: 20, ticketsPerNight: 12, insurancePerDay: 3.4, guideDay: 75,  carDay: 45 }
+        'romania':    { fixedShare: 0.00, minNights: 2, maxNights: 14, kids: [0.40, 0.70], singlePerNight: 18, transfer: 12, mealsPerNight: 15, ticketsPerNight: 6,  insurancePerDay: 1.0, guideDay: 45,  carDay: 32 },
+        'city-break': { fixedShare: 0.35, minNights: 2, maxNights: 14, kids: [0.65, 0.85], singlePerNight: 30, transfer: 22, mealsPerNight: 22, ticketsPerNight: 14, insurancePerDay: 1.9, guideDay: 90,  carDay: 42 },
+        'plaja':      { fixedShare: 0.30, minNights: 2, maxNights: 14, kids: [0.65, 0.85], singlePerNight: 30, transfer: 25, mealsPerNight: 25, ticketsPerNight: 10, insurancePerDay: 1.9, guideDay: 80,  carDay: 45 },
+        'munte':      { fixedShare: 0.20, minNights: 2, maxNights: 14, kids: [0.65, 0.85], singlePerNight: 40, transfer: 35, mealsPerNight: 35, ticketsPerNight: 22, insurancePerDay: 2.2, guideDay: 110, carDay: 70 },
+        'exotic':     { fixedShare: 0.50, minNights: 5, maxNights: 21, kids: [0.75, 0.85], singlePerNight: 45, transfer: 40, mealsPerNight: 28, ticketsPerNight: 16, insurancePerDay: 3.6, guideDay: 90,  carDay: 55 },
+        'asia':       { fixedShare: 0.55, minNights: 5, maxNights: 21, kids: [0.75, 0.85], singlePerNight: 35, transfer: 38, mealsPerNight: 20, ticketsPerNight: 12, insurancePerDay: 3.4, guideDay: 75,  carDay: 45 }
     };
 
     /* ------------------------------------------------------------------ sezoane: multiplicator pe luna plecării (lipsă = 1) */
@@ -99,8 +101,13 @@
         const cat = CATEGORY[dest.category] || CATEGORY['city-break'];
         const ov = OVERRIDES[dest.id] || {};
         const nights = Math.max(1, int(String(dest.period || '').match(/\d+/), 3));
+        const fixedTour = /circuit|ghidat/i.test(String(dest.period || ''));   // circuitele ghidate au durată fixă
         return {
             nights: nights,
+            nightsFixed: fixedTour,
+            minNights: fixedTour ? nights : Math.min(cat.minNights, nights),
+            maxNights: fixedTour ? nights : Math.max(cat.maxNights, nights),
+            fixedShare: cat.fixedShare,
             category: dest.category,
             kids: cat.kids,
             singlePerNight: ov.singlePerNight !== undefined ? ov.singlePerNight : cat.singlePerNight,
@@ -114,28 +121,35 @@
             season: ov.season || 'flat',
             carUnavailable: !!ov.carUnavailable,
             board: boardOf(dest.period),
-            guideIncluded: /circuit|ghidat/i.test(String(dest.period || '')),
+            guideIncluded: fixedTour,
             transportIncluded: dest.category !== 'romania'
         };
     }
 
     // Serviciile unui pachet: incluse / opționale (cu preț) / indisponibile
     // unit: 'pp' = per persoană (pentru întreaga ședere) · 'group' = per grup (total) · 'car' = per mașină pe zi
-    function extrasFor(dest) {
+    function extrasFor(dest, nightsOpt) {
         const p = profile(dest);
+        const n = clamp(int(nightsOpt, p.nights), p.minNights, p.maxNights);   // nopțile alese (implicit, cele ale pachetului)
         const halfOrMore = p.board === 'ai' || p.board === 'full' || p.board === 'half';
         const mealsRate = p.board === 'none' ? Math.round(p.mealsPerNight * 1.5) : p.mealsPerNight;
         const map = {
             transport: { status: p.transportIncluded ? 'included' : 'optional', unit: 'pp', price: p.transport },
             cazare:    { status: 'included' },
             transfer:  { status: 'optional', unit: 'pp', price: p.transfer },
-            meals:     { status: halfOrMore ? 'included' : 'optional', unit: 'pp', price: mealsRate * p.nights },
-            tickets:   { status: 'optional', unit: 'pp', price: p.ticketsPerNight * p.nights },
-            insurance: { status: 'optional', unit: 'pp', price: Math.max(5, Math.round(p.insurancePerDay * (p.nights + 1))) },
-            guide:     { status: p.guideIncluded ? 'included' : 'optional', unit: 'group', price: p.guideDay * Math.min(3, p.nights) },
+            meals:     { status: halfOrMore ? 'included' : 'optional', unit: 'pp', price: mealsRate * n },
+            tickets:   { status: 'optional', unit: 'pp', price: p.ticketsPerNight * n },
+            insurance: { status: 'optional', unit: 'pp', price: Math.max(5, Math.round(p.insurancePerDay * (n + 1))) },
+            guide:     { status: p.guideIncluded ? 'included' : 'optional', unit: 'group', price: p.guideDay * Math.min(3, n) },
             car:       { status: p.carUnavailable ? 'unavailable' : 'optional', unit: 'car', price: p.carDay }
         };
         return SERVICE_ORDER.map(function (key) { return Object.assign({ key: key }, map[key]); });
+    }
+
+    // Prețul unui adult pentru n nopți: partea fixă (zbor/transport) + partea care crește cu nopțile. La n = nopțile pachetului = prețul din card.
+    function adultPrice(base, packageNights, n, fixedShare) {
+        if (n === packageNights) return base;
+        return Math.round(base * (fixedShare + (1 - fixedShare) * (n / packageNights)));
     }
 
     function seasonFactor(seasonName, dateStr) {
@@ -155,7 +169,8 @@
         const kids512 = clamp(int(opts.kids512, 0), 0, MAX_KIDS);
         const kids = kids04 + kids512;
         const travelers = adults + kids;
-        const base = dest.price;
+        const nights = clamp(int(opts.nights, p.nights), p.minNights, p.maxNights);
+        const base = adultPrice(dest.price, p.nights, nights, p.fixedShare);   // prețul unui adult pentru durata aleasă
 
         const soloParent = adults === 1 && kids > 0;          // copilul cazat cu un singur adult plătește preț întreg
         const pct04 = soloParent ? 1 : p.kids[0];
@@ -169,7 +184,7 @@
         if (kids512) { const u = Math.round(base * pct512); add('kids512', { count: kids512, unit: u, pct: Math.round(pct512 * 100) }, kids512 * u); }
 
         const singles = (adults % 2 === 1 && kids === 0) ? 1 : 0;   // un adult rămas fără partener de cameră
-        if (singles) { const u = p.singlePerNight * p.nights; add('single', { count: singles, unit: u, perNight: p.singlePerNight, nights: p.nights }, singles * u); }
+        if (singles) { const u = p.singlePerNight * nights; add('single', { count: singles, unit: u, perNight: p.singlePerNight, nights: nights }, singles * u); }
 
         const core = lines.reduce(function (s, l) { return s + l.amount; }, 0);
         const sf = seasonFactor(p.season, opts.date);
@@ -177,13 +192,13 @@
         if (seasonAmount > 0) add('season', { month: sf.month, pct: Math.round((sf.factor - 1) * 100) }, seasonAmount);
 
         const chosen = new Set(opts.extras || []);
-        extrasFor(dest).forEach(function (ex) {
+        extrasFor(dest, nights).forEach(function (ex) {
             if (ex.status !== 'optional' || !chosen.has(ex.key)) return;
             if (ex.unit === 'pp') add('extra', { key: ex.key, unit: ex.price, count: travelers, per: 'pp' }, ex.price * travelers);
             else if (ex.unit === 'group') add('extra', { key: ex.key, unit: ex.price, count: 1, per: 'group' }, ex.price);
             else if (ex.unit === 'car') {
                 const cars = Math.ceil(travelers / CAR_SEATS);
-                add('extra', { key: ex.key, unit: ex.price, cars: cars, days: p.nights, per: 'car' }, ex.price * cars * p.nights);
+                add('extra', { key: ex.key, unit: ex.price, cars: cars, days: nights, per: 'car' }, ex.price * cars * nights);
             }
         });
 
@@ -195,7 +210,12 @@
             ron: Math.round(total * EUR_RON),
             travelers: travelers,
             adults: adults, kids04: kids04, kids512: kids512,
-            nights: p.nights,
+            nights: nights,
+            packageNights: p.nights,
+            minNights: p.minNights,
+            maxNights: p.maxNights,
+            nightsFixed: p.nightsFixed,
+            nightsAdjusted: nights !== p.nights,
             season: { factor: sf.factor, month: sf.month, applied: seasonAmount > 0 },
             soloParent: soloParent
         };
@@ -209,7 +229,7 @@
 
     const api = {
         EUR_RON: EUR_RON, MAX_ADULTS: MAX_ADULTS, MAX_KIDS: MAX_KIDS, CAR_SEATS: CAR_SEATS,
-        profile: profile, extrasFor: extrasFor, quote: quote, seasonFactor: seasonFactor,
+        profile: profile, extrasFor: extrasFor, quote: quote, seasonFactor: seasonFactor, adultPrice: adultPrice,
         fmtEUR: fmtEUR, fmtRON: fmtRON, toRON: toRON, SERVICE_ORDER: SERVICE_ORDER
     };
     if (typeof module !== 'undefined' && module.exports) module.exports = api;

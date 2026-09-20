@@ -9,7 +9,8 @@ css/styles.css       ← stiluri proprii, optimizări pentru telefon, contor
 css/dark.css         ← modul întunecat
 js/translations.js   ← texte EN / IT
 js/destinations.js   ← lista destinațiilor și prețul de bază al fiecărui pachet
-js/pricing.js        ← calculatorul de preț (adulți, copii, sezon, servicii extra)
+js/pricing.js        ← calculatorul de preț (adulți, copii, sezon, durată, servicii extra)
+js/daterange.js      ← calendarul pentru intervalul de date (plecare → întoarcere, format zz/ll/aaaa)
 js/app.js            ← filtre, rezervări, limbi
 js/chat.js           ← asistentul de chat
 js/firebase-config.js← AICI pui cheile Firebase (vezi mai jos)
@@ -62,6 +63,17 @@ Când cineva trimite formularul de **rezervare** (din fereastra unei destinații
 
 Toate valorile (suplimente, procente, sezoane, prețurile serviciilor) sunt în tabelele de la începutul fișierului `js/pricing.js` și se pot modifica ușor.
 **Sunt estimări orientative**; oferta finală o confirmă un consultant.
+
+## Date de plecare și întoarcere
+
+În fereastra unui pachet, clientul alege **de pe ce dată până pe ce dată** (afișat zz/ll/aaaa) dintr-un calendar: apasă „Plecare", alege ziua, iar „Întoarcere" se completează automat cu durata standard a pachetului; poate apoi alege altă zi de întoarcere.
+
+- Prima zi posibilă este **mâine**; calendarul merge cu ~18 luni înainte. Nu se pot alege zile din trecut.
+- **Durata contează la preț:** o parte din preț (zborul / transportul) e fixă, restul crește cu fiecare noapte în plus. Limitele sunt de 2–14 nopți (5–21 la exotice și Asia); serviciile extra (asigurare, masă, bilete, mașină) se recalculează pe nopțile alese.
+- **Circuitele ghidate** (Kenya, Tokyo, Beijing) au durată fixă: data întoarcerii se calculează singură.
+- **Sezonul** se stabilește după data plecării.
+- În comandă ajung `travelDate` și `returnDate` (AAAA-LL-ZZ), `nights` și `periodText` (ex. „20/12/2026 – 27/12/2026 (7 nopți)").
+- Regulile din `firebase-rules.json` includ aceste câmpuri: **publică-le din nou în Firebase** după ce actualizezi site-ul.
 
 ## Modificări de design
 

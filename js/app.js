@@ -241,6 +241,7 @@ function openModal(id) {
 
 function closeModal() {
     if (bookingModal.classList.contains('hidden')) return;
+    if (bookingRange) bookingRange.close();
     lockScroll(false);
     modalContainer.classList.remove('scale-100', 'opacity-100');
     modalContainer.classList.add('scale-95', 'opacity-0');
@@ -275,6 +276,7 @@ document.addEventListener('input', (e) => {
 
 // ============ CALCULATORUL DE PREȚ AL REZERVĂRII (regulile sunt în js/pricing.js) ============
 const bookingState = { adults: 2, kids04: 0, kids512: 0 };
+let bookingRange = null;   // selectorul de interval de date (js/daterange.js)
 const EXTRA_LABEL_KEYS = { transport: 'modal.serviceTransport', cazare: 'modal.serviceCazare', transfer: 'modal.serviceTransfer', meals: 'modal.serviceMeals', tickets: 'modal.serviceTickets', insurance: 'modal.serviceInsurance', guide: 'modal.serviceGuide', car: 'modal.serviceCar' };
 const EXTRA_LABELS_RO = { transport: 'Transport (zbor/autocar)', cazare: 'Cazare hotel', transfer: 'Transfer aeroport-hotel', meals: 'Demipensiune / Mic dejun', tickets: 'Bilete la atracții', insurance: 'Asigurare de călătorie', guide: 'Ghid local', car: 'Închiriere auto' };
 const LOCALES = { ro: 'ro-RO', en: 'en-GB', it: 'it-IT' };
@@ -284,11 +286,21 @@ function priceEUR(n) { return FVPricing.fmtEUR(n); }
 function monthName(m, lang) { return new Date(2026, m - 1, 1).toLocaleString(LOCALES[lang] || 'ro-RO', { month: 'long' }); }
 function selectedServiceKeys() { return Array.from(document.querySelectorAll('input[name="booking-service"]:checked')).map(i => i.value); }
 
+// Intervalul ales de client (plecare, întoarcere) și numărul de nopți dintre ele
+function currentRange() {
+    return bookingRange ? bookingRange.getRange() : { start: '', end: '', nights: null };
+}
+function currentNights() {
+    const n = currentRange().nights;
+    return n ? n : undefined;   // fără interval ales: durata standard a pachetului
+}
+
 function currentQuote() {
     if (!currentBookingDest || !window.FVPricing) return null;
+    const range = currentRange();
     return FVPricing.quote(currentBookingDest, {
         adults: bookingState.adults, kids04: bookingState.kids04, kids512: bookingState.kids512,
-        extras: selectedServiceKeys(), date: document.getElementById('bookingDate').value
+        extras: selectedServiceKeys(), date: range.start, nights: currentNights()
     });
 }
 
@@ -313,7 +325,7 @@ function quoteLineText(l, localized) {
 
 // Servicii: incluse în pachet (bifate, blocate) / opționale (cu preț) / indisponibile
 function refreshExtraChips(item) {
-    FVPricing.extrasFor(item).forEach(ex => {
+    FVPricing.extrasFor(item, currentNights()).forEach(ex => {
         const label = document.querySelector(`#modalBookingForm [data-extra="${ex.key}"]`);
         if (!label) return;
         const chip = label.querySelector('[data-extra-chip]');
@@ -329,7 +341,7 @@ function refreshExtraChips(item) {
     });
 }
 function initBookingExtras(item) {
-    FVPricing.extrasFor(item).forEach(ex => {
+    FVPricing.extrasFor(item, currentNights()).forEach(ex => {
         const label = document.querySelector(`#modalBookingForm [data-extra="${ex.key}"]`);
         if (!label) return;
         const input = label.querySelector('input');
@@ -358,6 +370,7 @@ function renderBookingQuote() {
     const q = currentQuote();
     if (!q) return;
     renderSteppers();
+    refreshExtraChips(currentBookingDest);   // prețurile serviciilor depind de numărul de nopți
     // antetul ferestrei: prețul mediu pe persoană, actualizat live
     modalPrice.innerText = `${priceEUR(q.perPerson)} (${FVPricing.fmtRON(FVPricing.toRON(q.perPerson))})`;
     document.getElementById('quoteLines').innerHTML = q.lines.map(l =>
@@ -367,13 +380,25 @@ function renderBookingQuote() {
     document.getElementById('quoteRon').textContent = `≈ ${FVPricing.fmtRON(q.ron)}`;
     document.getElementById('quotePerPerson').textContent = `${priceEUR(q.perPerson)} · ${q.travelers} ${q.travelers === 1 ? tr('quote.person', 'persoană') : tr('quote.persons', 'persoane')}`;
     document.getElementById('quoteNights').textContent = `${q.nights} ${tr('quote.nightsWord', 'nopți')}`;
-    document.getElementById('quoteNote').textContent = q.season.month === 0
-        ? tr('quote.noteDate', 'Prețul „de la" este pentru sezonul redus. Alege data plecării ca să vezi prețul exact al sezonului.')
-        : (q.season.applied ? '' : tr('quote.noteLow', 'Data aleasă este în sezon redus: se aplică prețul de bază.'));
+    const range = currentRange();
+    const rangeEl = document.getElementById('quoteRange');
+    rangeEl.textContent = range.start && range.end ? `${FVDateRange.fmt(range.start)} – ${FVDateRange.fmt(range.end)}` : '';
+    rangeEl.classList.toggle('hidden', !(range.start && range.end));
+    const notes = [];
+    if (q.season.month === 0) notes.push(tr('quote.noteDate', 'Prețul „de la" este pentru sezonul redus. Alege data plecării ca să vezi prețul exact al sezonului.'));
+    else if (!q.season.applied) notes.push(tr('quote.noteLow', 'Data aleasă este în sezon redus: se aplică prețul de bază.'));
+    if (q.nightsAdjusted) notes.push(fmtTpl(tr('quote.noteDuration', 'Prețul este ajustat la durata aleasă (pachetul standard are {std} nopți).'), { std: q.packageNights }));
+    document.getElementById('quoteNote').textContent = notes.join(' ');
 }
 
 function initBookingPricing(item) {
     bookingState.adults = 2; bookingState.kids04 = 0; bookingState.kids512 = 0;
+    if (bookingRange) {   // durata și limitele pachetului; datele se aleg din nou pentru fiecare pachet
+        const pr = FVPricing.profile(item);
+        bookingRange.configure({ defaultNights: pr.nights, minNights: pr.minNights, maxNights: pr.maxNights, fixed: pr.nightsFixed });
+        bookingRange.reset(true);
+        bookingRange.refresh();
+    }
     initBookingExtras(item);
     renderBookingQuote();
 }
@@ -388,10 +413,15 @@ document.querySelectorAll('#modalBookingForm [data-stepper] [data-step]').forEac
     });
 });
 document.getElementById('modalBookingForm').addEventListener('change', (e) => {
-    if (e.target.name === 'booking-service' || e.target.id === 'bookingDate') renderBookingQuote();
+    if (e.target.name === 'booking-service') renderBookingQuote();
 });
-document.getElementById('bookingDate').addEventListener('input', renderBookingQuote);
+bookingRange = FVDateRange.create(document.getElementById('dateRange'), {
+    t: (key, fallback) => tr(key, fallback),
+    getLang: () => currentLang,
+    onChange: () => renderBookingQuote()
+});
 document.addEventListener('fv:language', () => {
+    if (bookingRange) bookingRange.refresh();
     if (currentBookingDest) { refreshExtraChips(currentBookingDest); renderBookingQuote(); }
 });
 
@@ -475,19 +505,16 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
         emailError.classList.add('hidden');
     }
 
-    // --- Validate Date (year >= 2026) ---
-    const dateInput = document.getElementById('bookingDate');
-    const dateVal = dateInput.value;
-    if (dateVal) {
-        const year = parseInt(dateVal.split('-')[0]);
-        if (year < 2026) {
-            dateInput.classList.add('border-red-500', 'ring-2', 'ring-red-400');
-            dateInput.focus();
-            return;
-        } else {
-            dateInput.classList.remove('border-red-500', 'ring-2', 'ring-red-400');
+    // --- Validate Dates (plecare + întoarcere, în limitele pachetului, nu în trecut) ---
+    if (!bookingRange || bookingRange.validate()) {
+        if (bookingRange) {
+            bookingRange.showError(tr('modal.dateRequired', 'Alege data plecării și data întoarcerii.'));
+            bookingRange.open(bookingRange.getRange().start ? 'end' : 'start');
+            document.getElementById('dateRange').scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
+        return;
     }
+    const range = bookingRange.getRange();
 
     // --- Trimite comanda în Firebase (fereastra rămâne deschisă dacă nu reușește, ca să nu se piardă datele) ---
     const form = e.target;
@@ -506,7 +533,10 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
         adults: quote.adults,
         children04: quote.kids04,
         children512: quote.kids512,
-        travelDate: dateVal,
+        travelDate: range.start,
+        returnDate: range.end,
+        nights: quote.nights,
+        periodText: `${FVDateRange.fmt(range.start)} – ${FVDateRange.fmt(range.end)} (${quote.nights} nopți)`,
         services: selectedServiceKeys().join(', '),
         totalPrice: quote.total,
         pricePerPerson: quote.perPerson,
