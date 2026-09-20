@@ -638,6 +638,8 @@
                     <span class="text-slate-500">Made by <span class="font-semibold text-slate-300">DeDe</span></span>
                 </div>
             </div>
+            <!-- Cerința Google reCAPTCHA (folosit de asistentul AI): mențiune vizibilă permanent, cât timp AI-ul e activ -->
+            <p data-ai-only class="hidden pt-5 text-[11px] text-slate-600 text-center"><span data-i18n="chat.ai.recaptcha">Protejat de reCAPTCHA; se aplică</span> <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-400"><span data-i18n="chat.ai.privacy">Politica de confidențialitate</span></a> <span data-i18n="chat.ai.and">și</span> <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-400"><span data-i18n="chat.ai.terms">Termenii</span></a> Google.</p>
         </div>
     </footer>
 
@@ -648,7 +650,7 @@
         <div id="chatWindow" class="chat-window hidden mb-3 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 transform scale-95 opacity-0 origin-bottom-right">
             
             <!-- Chat Header -->
-            <div class="bg-gradient-to-r from-brand-900 via-brand-700 to-brand-600 p-4 text-white flex items-center justify-between">
+            <div class="bg-gradient-to-r from-brand-900 via-brand-700 to-brand-600 px-5 py-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="relative">
                         <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-amber-300 font-bold border border-white/30">
@@ -657,7 +659,7 @@
                         <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-brand-900 animate-pulse"></span>
                     </div>
                     <div>
-                        <h4 class="font-bold text-sm" data-i18n="chat.headerTitle">Asistent FeelVoyage</h4>
+                        <h4 class="font-bold text-[15px]" data-i18n="chat.headerTitle">Asistent FeelVoyage</h4>
                         <p class="text-[11px] text-brand-100 flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> <span data-i18n="chat.headerStatus">Online • Răspunde în câteva secunde</span>
                         </p>
@@ -669,18 +671,18 @@
             </div>
 
             <!-- Chat Messages Container -->
-            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-xs custom-scrollbar"></div>
+            <div id="chatMessages" class="flex-1 px-4 sm:px-5 py-4 overflow-y-auto space-y-4 bg-slate-50 text-[13.5px] leading-relaxed custom-scrollbar"></div>
 
             <!-- Quick Replies Container (dynamic) -->
-            <div id="quickRepliesContainer" class="px-4 pb-2 flex flex-wrap gap-1.5"></div>
+            <div id="quickRepliesContainer" class="px-4 sm:px-5 pb-3 flex flex-wrap gap-2"></div>
 
             <!-- Typing Indicator -->
-            <div id="typingIndicator" class="hidden px-4 pb-2">
+            <div id="typingIndicator" class="hidden px-4 sm:px-5 pb-3">
                 <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs flex-shrink-0">
+                    <div class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs flex-shrink-0">
                         <i class="fa-solid fa-plane-departure"></i>
                     </div>
-                    <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100">
+                    <div class="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100">
                         <div class="flex gap-1 items-center">
                             <span class="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style="animation-delay: 0s;"></span>
                             <span class="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style="animation-delay: 0.15s;"></span>
@@ -691,18 +693,25 @@
             </div>
 
             <!-- Chat Input Bar -->
-            <form id="chatForm" class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
-                <input type="text" id="chatInput" placeholder="Scrie un mesaj..." autocomplete="off" class="flex-1 px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" data-i18n-ph="chat.placeholder">
-                <button type="submit" aria-label="Trimite" class="w-10 h-10 rounded-xl bg-gradient-to-r from-brand-600 to-sunset-500 hover:opacity-90 text-white flex items-center justify-center text-sm transition flex-shrink-0 shadow">
+            <form id="chatForm" class="px-4 sm:px-5 py-3.5 bg-white border-t border-slate-200 flex items-center gap-2.5">
+                <input type="text" id="chatInput" placeholder="Scrie un mesaj..." autocomplete="off" class="flex-1 px-4 py-3 rounded-2xl bg-slate-100 border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" data-i18n-ph="chat.placeholder">
+                <button type="submit" aria-label="Trimite" class="w-12 h-12 rounded-2xl bg-gradient-to-r from-brand-600 to-sunset-500 hover:opacity-90 text-white flex items-center justify-center text-sm transition flex-shrink-0 shadow">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </form>
 
-            <!-- Notă despre asistentul AI (apare doar când AI-ul e activ; vezi js/ai.js) -->
-            <div id="chatAiNote" class="hidden px-3 pb-2.5 pt-1 bg-white text-[10px] leading-snug text-slate-400 text-center">
-                <p data-i18n="chat.ai.note">Răspunsurile sunt generate de AI și pot conține greșeli. Nu scrie date personale în chat.</p>
-                <p><span data-i18n="chat.ai.recaptcha">Protejat de reCAPTCHA; se aplică</span> <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="underline"><span data-i18n="chat.ai.privacy">Politica de confidențialitate</span></a> <span data-i18n="chat.ai.and">și</span> <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" class="underline"><span data-i18n="chat.ai.terms">Termenii</span></a> Google.</p>
+            <!-- Notă despre asistentul AI (apare doar când AI-ul e activ; vezi js/ai.js): o singură linie, detaliile se deschid la cerere -->
+            <div id="chatAiNote" data-ai-only class="hidden px-5 pb-3 pt-0.5 bg-white text-center">
+                <p class="text-[11px] text-slate-400 leading-snug">
+                    <span data-i18n="chat.ai.short">Răspunsuri generate de AI · pot conține greșeli</span>
+                    <button type="button" id="chatAiInfoBtn" aria-expanded="false" aria-controls="chatAiInfo" aria-label="Detalii" class="ml-1 inline-flex w-4 h-4 items-center justify-center rounded-full border border-slate-300 text-[9px] font-bold text-slate-400 hover:text-brand-600 hover:border-brand-400 align-middle">i</button>
+                </p>
+                <div id="chatAiInfo" class="hidden mt-2 text-[10.5px] leading-snug text-slate-400">
+                    <p data-i18n="chat.ai.note">Răspunsurile sunt generate de AI și pot conține greșeli. Nu scrie date personale în chat.</p>
+                    <p><span data-i18n="chat.ai.recaptcha">Protejat de reCAPTCHA; se aplică</span> <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="underline"><span data-i18n="chat.ai.privacy">Politica de confidențialitate</span></a> <span data-i18n="chat.ai.and">și</span> <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" class="underline"><span data-i18n="chat.ai.terms">Termenii</span></a> Google.</p>
+                </div>
             </div>
+        </div>
         </div>
 
         <!-- Chat Trigger Button -->

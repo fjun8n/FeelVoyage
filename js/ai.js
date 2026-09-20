@@ -386,8 +386,8 @@
     // Nota despre AI din fereastra de chat apare doar când asistentul e activ (Firebase configurat)
     if (typeof document !== 'undefined' && root.FVBackend) {
         root.FVBackend.ready.then(function () {
-            const note = document.getElementById('chatAiNote');
-            if (note && enabled()) note.classList.remove('hidden');
+            // nota din chat și mențiunea reCAPTCHA din subsol apar doar când asistentul e activ
+            document.querySelectorAll('[data-ai-only]').forEach(function (el) { el.classList.toggle('hidden', !enabled()); });
         });
     }
 })(typeof window !== 'undefined' ? window : globalThis);

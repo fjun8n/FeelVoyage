@@ -23,20 +23,22 @@ function renderMarkdown(text) {
 }
 
 // Add a bot message to the chat
-function addBotMessage(text, quickReplies = []) {
+function addBotMessage(text, quickReplies = [], packages = []) {
     const botMsgDiv = document.createElement('div');
     botMsgDiv.className = 'flex items-start gap-2';
     botMsgDiv.innerHTML = `
-        <div class="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs flex-shrink-0 mt-1">
+        <div class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
             <i class="fa-solid fa-plane-departure"></i>
         </div>
-        <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 leading-relaxed max-w-[85%]">
+        <div class="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 leading-relaxed max-w-[88%]">
             ${renderMarkdown(text)}
         </div>
     `;
     chatMessages.appendChild(botMsgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    if (quickReplies.length > 0) {
+    if (packages.length > 0) {
+        showPackageButtons(packages, quickReplies);
+    } else if (quickReplies.length > 0) {
         showQuickReplies(quickReplies);
     } else {
         quickRepliesContainer.innerHTML = '';
@@ -53,7 +55,7 @@ function addUserMessage(text) {
     const userMsgDiv = document.createElement('div');
     userMsgDiv.className = 'flex items-end justify-end gap-2';
     userMsgDiv.innerHTML = `
-        <div class="bg-gradient-to-r from-brand-600 to-brand-500 text-white p-3 rounded-2xl rounded-tr-none shadow-sm text-xs leading-relaxed max-w-[85%]">
+        <div class="bg-gradient-to-r from-brand-600 to-brand-500 text-white px-4 py-3 rounded-2xl rounded-tr-none shadow-sm text-[13.5px] leading-relaxed max-w-[88%]">
             ${escapeChatHtml(text)}
         </div>
     `;
@@ -66,7 +68,7 @@ function showQuickReplies(replies) {
     quickRepliesContainer.innerHTML = '';
     replies.forEach(reply => {
         const btn = document.createElement('button');
-        btn.className = 'quick-btn text-left px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-medium transition border border-brand-200/60 text-[11px]';
+        btn.className = 'quick-btn text-left px-3.5 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-medium transition border border-brand-200/60 text-xs';
         btn.textContent = reply.label;
         btn.dataset.reply = reply.value;
         quickRepliesContainer.appendChild(btn);
@@ -76,13 +78,13 @@ function showQuickReplies(replies) {
 }
 
 // Show typing indicator, then send bot reply
-function sendBotReply(text, quickReplies = []) {
+function sendBotReply(text, quickReplies = [], packages = []) {
     typingIndicator.classList.remove('hidden');
     chatMessages.scrollTop = chatMessages.scrollHeight;
     const delay = 600 + Math.random() * 600;
     setTimeout(() => {
         typingIndicator.classList.add('hidden');
-        addBotMessage(text, quickReplies);
+        addBotMessage(text, quickReplies, packages);
     }, delay);
 }
 
@@ -318,9 +320,11 @@ function getBotResponse(msg) {
 function initChat() {
     if (chatInitialized) return;
     chatInitialized = true;
+    const relanguage = chatMessages.children.length > 0;   // schimbare de limbă cu chatul deschis
     chatMessages.innerHTML = '';
     const greeting = getTranslatedBotResponse('greeting');
-    sendBotReply(greeting.text, greeting.quickReplies);
+    if (relanguage) addBotMessage(greeting.text, greeting.quickReplies);   // fără întârziere, ca să nu apară după mesajul următor
+    else sendBotReply(greeting.text, greeting.quickReplies);
 }
 
 // Toggle chat window
@@ -329,6 +333,7 @@ function toggleChat() {
     if (isChatOpen) {
         chatWindow.classList.remove('hidden');
         if (chatBadge) chatBadge.style.display = 'none';
+        loadFAQ();   // pregătește răspunsurile preprogramate în fundal
         setTimeout(() => {
             chatWindow.classList.remove('scale-95', 'opacity-0');
             chatWindow.classList.add('scale-100', 'opacity-100');
@@ -382,13 +387,55 @@ chatForm.addEventListener('submit', (e) => {
 // `text` is the canonical value used for keyword/category matching.
 function handleUserMessage(text, displayText) {
     addUserMessage(displayText !== undefined ? displayText : text);
+    // butoanele generate de baza de răspunsuri au valoarea „faq:<id>"
+    if (typeof text === 'string' && text.indexOf('faq:') === 0) {
+        loadFAQ().then(ok => {
+            const a = ok ? FVFAQ.answerById(text.slice(4), currentLang) : null;
+            if (a) sendBotReply(a.text, a.replies, a.packages);
+            else respondScripted(displayText || text);
+        });
+        return;
+    }
     respondScripted(text);
 }
 
 // Răspunsul clasic (scris de noi, pe cuvinte-cheie): folosit pentru butoanele rapide și când AI-ul nu e disponibil
 function respondScripted(text) {
-    const response = getBotResponse(text);
-    sendBotReply(response.text, response.quickReplies || []);
+    loadFAQ().then(ok => {
+        const hit = ok ? FVFAQ.match(text, currentLang) : null;
+        if (hit) { respondFaq(hit); return; }
+        const response = getBotResponse(text);   // nimic potrivit în bază: botul clasic (cu mesajul implicit)
+        sendBotReply(response.text, response.quickReplies || []);
+    });
+}
+
+function respondFaq(hit) {
+    const a = FVFAQ.answer(hit, currentLang);
+    sendBotReply(a.text, a.replies, a.packages);
+}
+
+// ============ Baza de răspunsuri preprogramate (js/faq*.js) ============
+// Peste 100 de răspunsuri în română, engleză și italiană. Se încarcă la prima deschidere a chatului, nu la încărcarea paginii.
+let faqPromise = null;
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('nu s-a putut încărca ' + src));
+        document.head.appendChild(s);
+    });
+}
+function loadFAQ() {
+    if (window.FVFAQ && FVFAQ.ready) return Promise.resolve(true);
+    if (!faqPromise) {
+        faqPromise = loadScript('js/faq.js')
+            .then(() => Promise.all(['js/faq-data-1.js', 'js/faq-data-2.js', 'js/faq-data-3.js'].map(loadScript)))
+            .then(() => loadScript('js/faq-dest.js'))   // ultimul: încheie înregistrarea (finish)
+            .then(() => !!(window.FVFAQ && FVFAQ.ready))
+            .catch(err => { console.warn('[FeelVoyage] Baza de răspunsuri nu s-a încărcat; chatul folosește botul clasic.', err); return false; });
+    }
+    return faqPromise;
 }
 
 // ============ Asistentul AI (js/ai.js) ============
@@ -413,10 +460,10 @@ function addBotAIMessage(text, packageIds) {
     const botMsgDiv = document.createElement('div');
     botMsgDiv.className = 'flex items-start gap-2';
     botMsgDiv.innerHTML = `
-        <div class="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs flex-shrink-0 mt-1">
+        <div class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
             <i class="fa-solid fa-plane-departure"></i>
         </div>
-        <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 leading-relaxed max-w-[85%]">
+        <div class="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 leading-relaxed max-w-[88%]">
             ${FVAI.formatAIText(text)}
         </div>
     `;
@@ -426,30 +473,39 @@ function addBotAIMessage(text, packageIds) {
 }
 
 // Butoane „Vezi pachetul" pentru pachetele recomandate de AI (id-urile sunt verificate de ai.js), plus „Contact"
-function showPackageButtons(ids) {
+function showPackageButtons(ids, replies) {
     quickRepliesContainer.innerHTML = '';
     ids.forEach(id => {
         const d = destinations.find(x => x.id === id);
         if (!d) return;
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'pkg-btn text-left px-3 py-1.5 rounded-xl bg-white hover:bg-brand-50 text-brand-600 font-bold transition border border-brand-200/60 text-[11px]';
+        btn.className = 'pkg-btn text-left px-3.5 py-2 rounded-xl bg-white hover:bg-brand-50 text-brand-600 font-bold transition border border-brand-200/60 text-xs';
         btn.dataset.pkg = id;
         btn.textContent = '🔎 ' + getDestinationText(d).title;
         quickRepliesContainer.appendChild(btn);
     });
-    const contact = document.createElement('button');
-    contact.type = 'button';
-    contact.className = 'quick-btn text-left px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-medium transition border border-brand-200/60 text-[11px]';
-    contact.dataset.reply = 'contact';
-    contact.textContent = tr('chat.pricing.qr0', '📞 Contact');
-    quickRepliesContainer.appendChild(contact);
+    const extra = (replies && replies.length) ? replies.slice(0, 3) : [{ label: tr('chat.pricing.qr0', '📞 Contact'), value: 'contact' }];
+    extra.forEach(r => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'quick-btn text-left px-3.5 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-medium transition border border-brand-200/60 text-xs';
+        b.dataset.reply = r.value;
+        b.textContent = r.label;
+        quickRepliesContainer.appendChild(b);
+    });
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function handleFreeText(text) {
     if (aiBusy) return;
     if (!(window.FVAI && FVAI.enabled())) { handleUserMessage(text); return; }
+
+    // mesaje scurte și clare (salut, mulțumesc, la revedere...) au răspuns pregătit: nu consumăm o cerere către AI
+    if (window.FVFAQ && FVFAQ.ready) {
+        const local = FVFAQ.matchLocal(text, currentLang);
+        if (local) { addUserMessage(text); quickRepliesContainer.innerHTML = ''; respondFaq(local); return; }
+    }
 
     addUserMessage(text);
     quickRepliesContainer.innerHTML = '';
@@ -476,6 +532,18 @@ function handleFreeText(text) {
             }
         })
         .finally(() => setChatBusy(false));
+}
+
+// Detaliile despre AI (nota lungă + reCAPTCHA) se deschid doar la cerere, ca chatul să rămână aerisit
+const chatAiInfoBtn = document.getElementById('chatAiInfoBtn');
+const chatAiInfo = document.getElementById('chatAiInfo');
+if (chatAiInfoBtn && chatAiInfo) {
+    chatAiInfoBtn.addEventListener('click', () => {
+        const opening = chatAiInfo.classList.contains('hidden');
+        chatAiInfo.classList.toggle('hidden', !opening);
+        chatAiInfoBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
 }
 
 // „Vezi pachetul": închide chatul și deschide fereastra pachetului

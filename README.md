@@ -12,7 +12,13 @@ js/destinations.js   ← lista destinațiilor și prețul de bază al fiecărui 
 js/pricing.js        ← calculatorul de preț (adulți, copii, sezon, durată, servicii extra)
 js/daterange.js      ← calendarul pentru intervalul de date (plecare → întoarcere, format zz/ll/aaaa)
 js/app.js            ← filtre, rezervări, limbi
-js/chat.js           ← asistentul de chat
+js/chat.js           ← fereastra de chat (butoane rapide, întrebări libere, „Vezi pachetul”)
+js/ai.js             ← asistentul AI: Gemini prin Firebase AI Logic (prompt, instrumentul de preț, limite)
+js/faq.js            ← motorul răspunsurilor preprogramate (potrivire pe cuvinte-cheie, 3 limbi)
+js/faq-data-1.js     ← răspunsuri preprogramate: mesaje scurte, agenție, rezervări, plată
+js/faq-data-2.js     ← răspunsuri preprogramate: prețuri, servicii extra, recomandări
+js/faq-data-3.js     ← răspunsuri preprogramate: informații de călătorie, folosirea site-ului
+js/faq-dest.js       ← răspunsuri pentru cele 29 de destinații (nume alternative + cel mai bun moment)
 js/firebase-config.js← AICI pui cheile Firebase (vezi mai jos)
 js/backend.js        ← contorul comun, conturile și comenzile (Firebase sau local)
 js/theme.js          ← comutatorul luminos / întunecat
@@ -97,10 +103,23 @@ Chatul poate răspunde la întrebări scrise liber cu **Gemini**, prin **Firebas
 
 **De știut:**
 - Limitele planului gratuit sunt pe **proiect** (toți vizitatorii la un loc). Le vezi la Firebase → AI Logic; acolo poți seta și limita de cereri pe utilizator. Când se depășesc, chatul folosește răspunsurile clasice.
-- Mesajele din chat ajung la Google; în chat apare o notă că răspunsurile sunt generate de AI și că nu trebuie scrise date personale.
+- Mesajele din chat ajung la Google. Sub câmpul de scris apare o notă scurtă „Răspunsuri generate de AI · pot conține greșeli”; butonul „i” deschide detaliile (nu scrie date personale, reCAPTCHA). Mențiunea reCAPTCHA cerută de Google e mereu vizibilă în subsolul site-ului, cât timp AI-ul e activ.
 - Modelele Gemini 2.5 se închid în octombrie 2026; modelul implicit este din seria 3.5. Dacă un model e retras, schimbă `model`.
 - Test local (`localhost`): pune `appCheckDebug: true`, deschide chatul și copiază „debug token" din consola browserului în Firebase → App Check → Apps → Manage debug tokens. Nu urca site-ul cu `appCheckDebug: true`.
 - Nu ținem evidența conversațiilor: nu se salvează nicăieri pe site.
+
+## Răspunsuri preprogramate (peste 100)
+
+Chatul are o bază de **112 răspunsuri scrise de mână**, în **română, engleză și italiană**, plus răspunsuri pe fiecare dintre cele **29 de destinații** (în total 141). Se folosesc:
+- când asistentul AI nu e disponibil (neconfigurat, fără internet, limită gratuită depășită, două erori la rând);
+- pentru mesaje scurte („salut”, „mulțumesc”, „la revedere”), ca să nu consume cereri către AI;
+- pentru butoanele de sub răspunsuri („Cum rezerv?”, „Servicii extra”...).
+
+Teme acoperite: agenție și contact, rezervări și cont, plată, prețuri (copii, single, sezon, servicii extra), recomandări (mare, munte, city break, romantic, familie, aventură, iarnă...), informații de călătorie (acte, viză, vaccinuri, monedă, bagaje, prize, fus orar, bacșiș...), folosirea site-ului. Răspunsurile despre prețuri, ce include un pachet și listele („cele mai ieftine”, „all inclusive”, „cu buget de 600 €”) se calculează din `js/destinations.js`, deci rămân corecte când schimbi prețurile.
+
+Întrebarea se potrivește pe cuvinte-cheie, fără să conteze diacriticele sau majusculele, iar răspunsul vine în limba în care a scris utilizatorul. Baza se descarcă doar când se deschide chatul.
+
+**Cum adaugi un răspuns:** copiezi o intrare din `js/faq-data-1.js` (sau 2 / 3), îi dai un `id` nou și completezi titlul (`t`), cuvintele-cheie (`k`) și textul (`a`) pentru `ro`, `en`, `it`. În text poți folosi `**bold**`, `{phone}`, `{email}`, `{address}`, `{hours}`, `{count}`. Datele agenției (telefon, e-mail, adresă, program) sunt într-un singur loc, în `js/faq.js` (`SITE`).
 
 ## Modificări de design
 

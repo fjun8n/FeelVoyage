@@ -111,9 +111,16 @@ html.dark i.theme-icon-moon { display: none; }
     }
 }
 .chat-window {
-    width: min(380px, calc(100vw - 2rem));
-    height: min(540px, calc(100vh - 7.5rem));
-    height: min(540px, calc(100svh - 7.5rem));
+    width: min(420px, calc(100vw - 1.5rem));
+    height: min(680px, calc(100vh - 10rem));
+    height: min(680px, calc(100svh - 10rem));
+}
+@media (min-width: 640px) {
+    .chat-window {
+        width: 440px;
+        height: min(720px, calc(100vh - 8.5rem));
+        height: min(720px, calc(100svh - 8.5rem));
+    }
 }
 
 /* ===== Filtrele de categorii: un singur rând care se derulează lateral pe telefon ===== */
