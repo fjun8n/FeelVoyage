@@ -110,16 +110,18 @@ html.dark i.theme-icon-moon { display: none; }
         right: max(1.5rem, env(safe-area-inset-right));
     }
 }
+/* Înălțimea = ecranul minus: antetul (~65 px telefon, ~97 px PC) + butonul de chat (56 px) + marginile.
+   Astfel fereastra nu ajunge niciodată sub antetul site-ului. */
 .chat-window {
     width: min(420px, calc(100vw - 1.5rem));
-    height: min(680px, calc(100vh - 10rem));
-    height: min(680px, calc(100svh - 10rem));
+    height: min(680px, calc(100vh - 11rem));
+    height: min(680px, calc(100svh - 11rem));
 }
 @media (min-width: 640px) {
     .chat-window {
         width: 440px;
-        height: min(720px, calc(100vh - 8.5rem));
-        height: min(720px, calc(100svh - 8.5rem));
+        height: min(720px, calc(100vh - 12.5rem));
+        height: min(720px, calc(100svh - 12.5rem));
     }
 }
 
