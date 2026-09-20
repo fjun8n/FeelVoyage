@@ -93,6 +93,7 @@ i18n.fr = {
     "despre.why3": "Assurance voyage et assistance médicale en option dans chaque forfait",
     "despre.why4": "Un conseiller dédié et un groupe de soutien WhatsApp pendant toute la durée de votre séjour",
 
+    "about.close": "Fermer",
     // Cont
     "auth.loginBtn": "Mon compte",
     "auth.modalTitle": "Bienvenue chez FeelVoyage",

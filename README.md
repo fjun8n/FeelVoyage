@@ -14,6 +14,7 @@ js/destinations.js   ← lista destinațiilor și prețul de bază al fiecărui 
 js/pricing.js        ← calculatorul de preț (adulți, copii, sezon, durată, servicii extra)
 js/daterange.js      ← calendarul pentru intervalul de date (plecare → întoarcere, format zz/ll/aaaa)
 js/app.js            ← filtre, rezervări, limbi
+js/about.js          ← fereastra „Despre noi” (se deschide din antet, meniul de telefon și subsol)
 js/chat.js           ← fereastra de chat (butoane rapide, întrebări libere, „Vezi pachetul”)
 js/ai.js             ← asistentul AI: Gemini prin Firebase AI Logic (prompt, instrumentul de preț, limite)
 js/faq.js            ← motorul răspunsurilor preprogramate (potrivire pe cuvinte-cheie, 5 limbi)
@@ -85,6 +86,15 @@ Toate valorile (suplimente, procente, sezoane, prețurile serviciilor) sunt în 
 - **Sezonul** se stabilește după data plecării.
 - În comandă ajung `travelDate` și `returnDate` (AAAA-LL-ZZ), `nights` și `periodText` (ex. „20/12/2026 – 27/12/2026 (7 nopți)").
 - Regulile din `firebase-rules.json` includ aceste câmpuri: **publică-le din nou în Firebase** după ce actualizezi site-ul.
+
+## Fereastra „Despre noi”
+
+Povestea agenției, cifrele (29 destinații, contorul „Călători fericiți”, 3 continente, 24/7), cele 4 valori și „De ce aleg călătorii FeelVoyage?” **nu mai sunt pe pagina principală**: se deschid într-o fereastră din **„Despre Noi”** (antet și meniul de telefon) și **„Despre FeelVoyage”** (subsol). Se închide cu ✕, cu tasta Escape sau cu click pe fundalul din afara ei; „Vino să ne cunoști” o închide și te duce la formularul de contact. O adresă de forma `…/index.html#despre` deschide direct fereastra.
+
+- Textele rămân la locul lor: română în `index.html` (blocul `id="aboutModal"`), engleză/italiană în `js/translations.js`, franceză și spaniolă în `js/translations-fr.js` / `js/translations-es.js`, toate cu cheile `despre.*`. Limba se schimbă și cât timp fereastra e închisă.
+- Contorul „Călători fericiți” din fereastră e același contor ca cel din prima pagină (aceeași valoare, în timp real).
+- Logica (deschidere, Escape, focus, blocarea derulării paginii din spate) e în `js/about.js`.
+- **Dacă adaugi clase Tailwind noi** în fereastră, fișierul `css/tailwind.css` este precompilat și nu le cunoaște: rulează `npm run build:css` (cu Node instalat) sau pune stilul în `css/styles.css`.
 
 ## Cont nou: telefonul este obligatoriu
 

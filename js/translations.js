@@ -94,6 +94,7 @@ const i18n = {
         'despre.why3': 'Optional travel insurance and medical assistance in every package',
         'despre.why4': 'A dedicated consultant and a WhatsApp support group for the length of your stay',
 
+        'about.close': 'Close',
         // Auth System
         'auth.loginBtn': 'My Account',
         'auth.modalTitle': 'Welcome to FeelVoyage',
@@ -649,6 +650,7 @@ const i18n = {
         'despre.why3': 'Assicurazione di viaggio opzionale e assistenza medica in ogni pacchetto',
         'despre.why4': 'Un consulente dedicato e un gruppo di supporto WhatsApp per tutta la durata del soggiorno',
 
+        'about.close': 'Chiudi',
         // Auth System
         'auth.loginBtn': 'Il Mio Account',
         'auth.modalTitle': 'Benvenuto su FeelVoyage',

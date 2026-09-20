@@ -186,3 +186,10 @@ a, button { -webkit-tap-highlight-color: transparent; }
     font-size: .9em;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+
+/* Fereastra „Despre noi": lățime pentru 4 carduri pe un rând, derulare doar în interior */
+.about-panel { width: 100%; max-width: 72rem; border: 1px solid rgba(148, 163, 184, 0.28); }
+#closeAboutBtn { box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.35); }
+#aboutScroll { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+#aboutScroll { padding: 3.5rem 1.25rem 2rem; }                       /* telefon: loc sus pentru butonul de închidere */
+@media (min-width: 640px) { #aboutScroll { padding: 3rem 2.5rem 2.5rem; } }
