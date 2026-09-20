@@ -14,7 +14,7 @@ js/destinations.js   ← lista destinațiilor și prețul de bază al fiecărui 
 js/pricing.js        ← calculatorul de preț (adulți, copii, sezon, durată, servicii extra)
 js/daterange.js      ← calendarul pentru intervalul de date (plecare → întoarcere, format zz/ll/aaaa)
 js/app.js            ← filtre, rezervări, limbi
-js/about.js          ← fereastra „Despre noi” (se deschide din antet, meniul de telefon și subsol)
+js/infomodal.js      ← ferestrele „Despre noi” și „Termeni și Condiții” (se deschid din antet, meniul de telefon și subsol)
 js/chat.js           ← fereastra de chat (butoane rapide, întrebări libere, „Vezi pachetul”)
 js/ai.js             ← asistentul AI: Gemini prin Firebase AI Logic (prompt, instrumentul de preț, limite)
 js/faq.js            ← motorul răspunsurilor preprogramate (potrivire pe cuvinte-cheie, 5 limbi)
@@ -93,8 +93,18 @@ Povestea agenției, cifrele (29 destinații, contorul „Călători fericiți”
 
 - Textele rămân la locul lor: română în `index.html` (blocul `id="aboutModal"`), engleză/italiană în `js/translations.js`, franceză și spaniolă în `js/translations-fr.js` / `js/translations-es.js`, toate cu cheile `despre.*`. Limba se schimbă și cât timp fereastra e închisă.
 - Contorul „Călători fericiți” din fereastră e același contor ca cel din prima pagină (aceeași valoare, în timp real).
-- Logica (deschidere, Escape, focus, blocarea derulării paginii din spate) e în `js/about.js`.
+- Logica (deschidere, Escape, focus, blocarea derulării paginii din spate) e în `js/infomodal.js`, comună cu fereastra „Termeni și Condiții”.
 - **Dacă adaugi clase Tailwind noi** în fereastră, fișierul `css/tailwind.css` este precompilat și nu le cunoaște: rulează `npm run build:css` (cu Node instalat) sau pune stilul în `css/styles.css`.
+
+## Termeni și Condiții (fereastră)
+
+Din subsol, **„Termeni și Condiții”** deschide documentul într-o fereastră (ca „Despre noi”). Are un **cuprins** cu cifre romane (I–XI) care duce direct la fiecare secțiune, casete de atenționare la punctele importante (confirmarea fermă a rezervării, penalizările de până la 100%, asigurarea storno) și carduri pentru datele firmei și de contact. Se închide cu ✕, Escape, click pe fundal sau butonul „Închide”; o adresă `…/index.html#termeni` o deschide direct.
+
+- **Unde se editează textul:** româna în `index.html` (blocul `id="termsModal"`), celelalte limbi în `js/translations.js` (EN, IT), `js/translations-fr.js` și `js/translations-es.js`, toate cu cheile `terms.*` (64 de chei). Traducerile sunt orientative: la final documentul spune că, în caz de diferențe, prevalează versiunea în română.
+- **Datele firmei** (denumire, sediu, Registrul Comerțului, CUI, licență) și **datele de contact** (telefon, e-mail, program) sunt scrise direct în HTML, în cardul din secțiunea I și în lista din secțiunea XI, ca să le poți schimba într-un singur loc.
+- Când adaugi o secțiune, copiezi una existentă (`id="terms-sN"`), îi pui numărul roman în ecuson și o adaugi și în cuprins (`data-terms-go`).
+- Documentul nu ține loc de consultanță juridică: cere unui jurist să verifice textul, mai ales secțiunile despre anulări, plată și date personale.
+- „Politica de Confidențialitate” și „ANPC / SAL” din subsol sunt încă link-uri goale (`#`).
 
 ## Cont nou: telefonul este obligatoriu
 

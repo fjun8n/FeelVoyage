@@ -94,6 +94,136 @@ i18n.fr = {
     "despre.why4": "Un conseiller dédié et un groupe de soutien WhatsApp pendant toute la durée de votre séjour",
 
     "about.close": "Fermer",
+
+    // Termeni și Condiții
+
+    "terms.badge": "Documents juridiques",
+
+    "terms.title": "Conditions générales",
+
+    "terms.subtitle": "Les règles d'utilisation du site et les conditions de réservation, de paiement et d'annulation des services FeelVoyage.",
+
+    "terms.toc": "Sommaire",
+
+    "terms.co.label": "Exploitant du site",
+
+    "terms.co.address": "Siège social",
+
+    "terms.co.trade": "Registre du commerce",
+
+    "terms.co.cui": "CUI (identifiant fiscal)",
+
+    "terms.co.license": "Licence de tourisme",
+
+    "terms.co.licenseVal": "n° 5678, délivrée par le ministère du Tourisme",
+
+    "terms.s1.title": "Introduction",
+
+    "terms.s2.title": "Services proposés et rôle de l'agence",
+
+    "terms.s3.title": "Réservations, tarifs et modes de paiement",
+
+    "terms.s4.title": "Annulations, modifications et pénalités",
+
+    "terms.s5.title": "Documents de voyage, visas et conditions sanitaires",
+
+    "terms.s6.title": "Limitation de responsabilité",
+
+    "terms.s7.title": "Force majeure",
+
+    "terms.s8.title": "Propriété intellectuelle",
+
+    "terms.s9.title": "Protection des données personnelles (RGPD)",
+
+    "terms.s10.title": "Réclamations, droit applicable et litiges",
+
+    "terms.s11.title": "Coordonnées",
+
+    "terms.s1.p1": "Le présent document (les « Conditions générales ») fixe les règles d'utilisation de la plateforme web www.feelvoyage.ro ainsi que les conditions de réservation, d'achat et de paiement des services et forfaits touristiques proposés par son intermédiaire.",
+
+    "terms.s1.p2": "En accédant au site, en le parcourant et en l'utilisant, ainsi qu'en effectuant toute réservation, vous confirmez avoir lu, compris et accepté intégralement et sans réserve les présentes Conditions générales.",
+
+    "terms.s1.p3": "Le site est exploité par :",
+
+    "terms.s2.intro": "FeelVoyage agit, selon le cas, en l'une des qualités suivantes :",
+
+    "terms.s2.r1.title": "Organisateur (tour-opérateur)",
+
+    "terms.s2.r1.text": "Lorsqu'elle conçoit et vend ses propres forfaits de voyage.",
+
+    "terms.s2.r2.title": "Intermédiaire (agence de voyages détaillante)",
+
+    "terms.s2.r2.text": "Lorsqu'elle commercialise des services touristiques, des séjours, des billets d'avion ou des hébergements fournis par d'autres tour-opérateurs, des compagnies aériennes ou des systèmes de réservation. Dans ce cas, la responsabilité de la prestation effective des services incombe exclusivement aux prestataires finaux.",
+
+    "terms.s3.b1.lead": "Processus de réservation",
+
+    "terms.s3.b1.text": "Toute demande de réservation envoyée via le site n'est considérée comme ferme qu'après confirmation de la disponibilité et du tarif par un conseiller FeelVoyage. L'e-mail généré automatiquement à la réception de la demande ne constitue pas une confirmation ferme de la réservation.",
+
+    "terms.s3.b2.lead": "Tarifs",
+
+    "terms.s3.b2.text": "Les prix sont exprimés en EUR et en RON et incluent la TVA, conformément à la législation en vigueur. Les tarifs des billets d'avion, les taxes d'aéroport ou les cotations des hôteliers peuvent être modifiés, indépendamment de la volonté de l'agence, jusqu'à l'émission des billets ou des bons.",
+
+    "terms.s3.b3.lead": "Paiement",
+
+    "terms.s3.b3.text": "Selon le type de service et la proximité de la date de départ, le paiement peut être effectué intégralement à la réservation ou en plusieurs fois (un acompte suivi du solde). L'acompte requis et les échéances de paiement sont communiqués clairement au moment de l'offre.",
+
+    "terms.s3.b4.lead": "Modes de paiement",
+
+    "terms.s3.b4.text": "Nous acceptons le paiement en ligne par carte bancaire (via le processeur sécurisé Stripe / Netopia Payments), le virement bancaire ou les espèces / la carte au siège de l'agence, dans le respect des plafonds légaux d'encaissement.",
+
+    "terms.s4.b1.lead": "Annulation par le client",
+
+    "terms.s4.b1.text": "Si le client souhaite annuler ou modifier une réservation confirmée, il supporte les pénalités imposées par les prestataires de services. Selon le moment de l'annulation, les pénalités peuvent atteindre 100 % de la valeur du forfait ou du service (par exemple, billets d'avion non remboursables ou offres Early Booking).",
+
+    "terms.s4.b2.lead": "Assurance annulation",
+
+    "terms.s4.b2.text": "Afin d'éviter des pertes financières en cas d'annulation pour des raisons objectives (par exemple, une maladie soudaine), l'agence recommande vivement de souscrire une assurance annulation lors de la signature du contrat ou du paiement de l'acompte.",
+
+    "terms.s4.b3.lead": "Annulation par l'agence ou le prestataire",
+
+    "terms.s4.b3.text": "Si le prestataire annule le service, ou si l'agence doit annuler faute d'atteindre le nombre minimum de participants (pour les groupes), le client a droit soit au remboursement intégral des sommes versées, soit à l'acceptation d'un forfait de remplacement de qualité équivalente ou supérieure.",
+
+    "terms.s5.p1": "Il incombe exclusivement au voyageur de s'assurer qu'il détient des documents de voyage valides : carte d'identité, passeport valable au moins 6 mois après la date de retour, visa de transit ou de destination, le cas échéant.",
+
+    "terms.s5.p2": "Le voyageur est responsable du respect des conditions douanières, frontalières et sanitaires (vaccins obligatoires, certificats médicaux) imposées par le pays de destination ou de transit. FeelVoyage ne peut être tenue pour responsable et ne rembourse pas le prix des services si l'embarquement ou l'entrée dans le pays de destination est refusé au voyageur.",
+
+    "terms.s5.p3": "Pour les mineurs (de moins de 18 ans) qui voyagent seuls ou accompagnés d'un seul parent, les règles spécifiques de la Police roumaine aux frontières s'appliquent.",
+
+    "terms.s6.intro": "FeelVoyage n'est pas responsable :",
+
+    "terms.s6.l1": "des retards, changements d'horaires ou d'itinéraires, surréservations ou annulations de vols opérés par les compagnies aériennes ;",
+
+    "terms.s6.l2": "la perte ou la détérioration des bagages pendant les vols ou les transferts ;",
+
+    "terms.s6.l3": "l'insatisfaction relative à la qualité des services effectivement fournis par l'hôtel (propreté, bruit, emplacement de la chambre), l'agence n'agissant qu'en tant qu'intermédiaire pour la prise en charge des demandes.",
+
+    "terms.s7.p1": "Aucune des parties n'est responsable de l'inexécution de ses obligations si celle-ci est causée par un événement de force majeure, au sens de la loi (par exemple : guerres, pandémies, grèves, conditions météorologiques extrêmes, catastrophes naturelles, décisions des autorités gouvernementales). Dans ces situations, les politiques de remboursement ou de report des prestataires finaux s'appliquent.",
+
+    "terms.s8.p1": "L'ensemble du contenu du site (textes, images, logos, éléments graphiques, design) appartient à FeelVoyage ou à ses partenaires et est protégé par le droit d'auteur. Sa reprise, sa copie ou son utilisation sans l'accord écrit de l'agence sont strictement interdites.",
+
+    "terms.s9.p1": "La collecte et le traitement des données personnelles (nom, adresse, e-mail, téléphone, données de la pièce d'identité) sont effectués conformément au Règlement (UE) 2016/679 (RGPD). Vos données sont utilisées strictement pour le traitement des réservations, l'émission des documents de voyage et la facturation.",
+
+    "terms.s10.b1.lead": "Réclamations",
+
+    "terms.s10.b1.text": "Toute insatisfaction constatée sur place doit être signalée sans délai et par écrit au prestataire local et au représentant de l'agence, afin de pouvoir être corrigée sur-le-champ. Les réclamations ultérieures doivent être formulées par écrit dans un délai maximum de 14 jours après la fin du voyage.",
+
+    "terms.s10.b2.lead": "Droit applicable et litiges",
+
+    "terms.s10.b2.text": "Les présentes Conditions générales sont régies par le droit roumain. Tout litige est réglé en priorité à l'amiable. À défaut, il est soumis aux tribunaux compétents du siège de FeelVoyage ; le consommateur peut également saisir l'ANPC (Autorité nationale de protection des consommateurs).",
+
+    "terms.s11.intro": "Pour toute assistance, réservation ou information complémentaire, notre équipe est à votre disposition :",
+
+    "terms.ct.address": "Adresse",
+
+    "terms.ct.phone": "Téléphone assistance et urgences",
+
+    "terms.ct.email": "E-mail",
+
+    "terms.ct.hours": "Horaires",
+
+    "terms.ct.hoursVal": "Non-stop (24 h/24, 7 j/7)",
+
+    "terms.note": "Le présent document est rédigé en roumain. Les traductions sont fournies à titre indicatif ; en cas de divergence, la version roumaine prévaut.",
     // Cont
     "auth.loginBtn": "Mon compte",
     "auth.modalTitle": "Bienvenue chez FeelVoyage",
