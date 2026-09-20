@@ -132,7 +132,7 @@ const botResponses = {
         ]
     },
     pricing: {
-        text: 'Prețurile variază în funcție de destinație, durată și tipul de cazare. 💰\n\n**România:** de la 450 RON / persoană\n**Europa:** de la 599 EUR / persoană\n**Exotice:** de la 1.200 EUR / persoană\n\nPentru o ofertă personalizată, sună-ne la **0799 927 590** sau scrie-ne pe **crucrudenis@gmail.com**. Te ajutăm să găsești cea mai bună ofertă!',
+        text: 'Prețurile variază în funcție de destinație, sezon, durată și numărul de persoane. 💰\n\n**România:** de la 190 EUR / persoană\n**Europa (city break):** de la 380 EUR / persoană\n**Exotice și Asia:** de la 1.040 EUR / persoană\n\nDeschide orice pachet și alege numărul de călători și serviciile dorite: vezi imediat prețul total estimat. Pentru o ofertă personalizată, sună-ne la **0799 927 590** sau scrie-ne pe **crucrudenis@gmail.com**.',
         quickReplies: [
             { label: '📞 Contact', value: 'contact' },
             { label: '🌴 Vezi destinațiile', value: 'destinații' },

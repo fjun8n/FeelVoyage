@@ -11,6 +11,8 @@
 
     const SDK_BASE = 'https://www.gstatic.com/firebasejs/12.19.0/';
     const COUNTER_PATH = 'happyTravelers';
+    const ORDERS_PATH = 'orders';
+    const KEY_ORDERS_LOCAL = 'fv_orders_local';
     const KEY_COUNTER_LOCAL = 'fv_happy_travelers';
     const KEY_COUNTER_CACHE = 'fv_happy_cache';
     const KEY_SESSION_LOCAL = 'fv_session';
@@ -94,7 +96,15 @@
                 return Promise.resolve(s);
             },
             logout: function () { publishSession(null); return Promise.resolve(); },
-            resetPassword: function () { return Promise.reject(FVError('unsupported')); }
+            resetPassword: function () { return Promise.reject(FVError('unsupported')); },
+            submitOrder: function (order) {
+                // Fără Firebase comanda nu ajunge la tine; o păstrăm doar în browser, pentru testare
+                const list = readJSON(KEY_ORDERS_LOCAL, []);
+                const key = 'local-' + Date.now();
+                list.push(Object.assign({ key: key, status: 'nou', createdAt: Date.now() }, order));
+                kv.set(KEY_ORDERS_LOCAL, JSON.stringify(list));
+                return Promise.resolve(key);
+            }
         };
     }
 
@@ -108,7 +118,7 @@
             incrementCounter: fail,
             onConnection: function (cb) { cb(false); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, resetPassword: fail,
+            register: fail, login: fail, resetPassword: fail, submitOrder: fail,
             logout: function () { return Promise.resolve(); }
         };
     }
@@ -126,6 +136,28 @@
         const auth = authM.getAuth(app);
         const db = dbM.getDatabase(app);
         const counterRef = dbM.ref(db, COUNTER_PATH);
+
+        // Starea conexiunii: nu încercăm să scriem o comandă când nu suntem conectați
+        // (Firebase ar ține scrierea în coadă și ar putea-o trimite mai târziu, dublând comanda dacă omul retrimite)
+        let connected = false;
+        const connWaiters = [];
+        dbM.onValue(dbM.ref(db, '.info/connected'), function (snap) {
+            connected = snap.val() === true;
+            if (connected) connWaiters.splice(0).forEach(function (fn) { fn(); });
+        });
+        function waitConnected(ms) {
+            if (connected) return Promise.resolve(true);
+            return new Promise(function (resolve) {
+                const timer = setTimeout(function () { resolve(false); }, ms);
+                connWaiters.push(function () { clearTimeout(timer); resolve(true); });
+            });
+        }
+        function withTimeout(promise, ms) {
+            return new Promise(function (resolve, reject) {
+                const timer = setTimeout(function () { reject(FVError('network')); }, ms);
+                promise.then(function (v) { clearTimeout(timer); resolve(v); }, function (e) { clearTimeout(timer); reject(e); });
+            });
+        }
 
         const authSubs = new Set();
         let session = null;
@@ -230,6 +262,21 @@
                 await authM.signOut(auth);
                 await refresh(null);
             },
+            submitOrder: async function (order) {
+                const payload = Object.assign({}, order, { status: 'nou', createdAt: dbM.serverTimestamp() });
+                if (auth.currentUser) payload.uid = auth.currentUser.uid;   // dacă e logat, comanda se leagă de contul lui
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    const newRef = dbM.push(dbM.ref(db, ORDERS_PATH));
+                    await withTimeout(dbM.set(newRef, payload), 15000);
+                    return newRef.key;
+                } catch (e) {
+                    if (!(e && e.code === 'network')) {
+                        console.error('[FeelVoyage] Nu pot salva comanda. Ai publicat regulile noi din firebase-rules.json?', e);
+                    }
+                    throw FVError('network', e);
+                }
+            },
             resetPassword: async function (email) {
                 try { await authM.sendPasswordResetEmail(auth, email.trim()); }
                 catch (e) {
@@ -271,6 +318,7 @@
         login: function (e, p) { return ready.then(function (b) { return b.login(e, p); }); },
         logout: function () { return ready.then(function (b) { return b.logout(); }); },
         resetPassword: function (e) { return ready.then(function (b) { return b.resetPassword(e); }); },
+        submitOrder: function (o) { return ready.then(function (b) { return b.submitOrder(o); }); },
 
         // Ultima sesiune cunoscută, ca antetul să nu „clipească" între „Contul meu" și numele utilizatorului
         sessionHint: function () { return configured ? readJSON(KEY_SESSION_HINT, null) : null; }

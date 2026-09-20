@@ -2,20 +2,108 @@
   "rules": {
     ".read": false,
     ".write": false,
-
     "happyTravelers": {
       ".read": true,
       ".write": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || newData.val() === data.val() + 1)"
     },
-
     "users": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
-        "name":      { ".validate": "newData.isString() && newData.val().length <= 80" },
-        "phone":     { ".validate": "newData.isString() && newData.val().length <= 32" },
-        "createdAt": { ".validate": "newData.isNumber()" },
-        "$other":    { ".validate": false }
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "phone": {
+          ".validate": "newData.isString() && newData.val().length <= 32"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "orders": {
+      ".read": false,
+      "$orderId": {
+        ".write": "!data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['type', 'status', 'createdAt', 'name', 'phone', 'email'])",
+        "type": {
+          ".validate": "newData.val() === 'booking' || newData.val() === 'contact'"
+        },
+        "status": {
+          ".validate": "newData.val() === 'nou'"
+        },
+        "createdAt": {
+          ".validate": "newData.val() === now"
+        },
+        "dateText": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "lang": {
+          ".validate": "newData.isString() && newData.val().length <= 5"
+        },
+        "uid": {
+          ".validate": "auth != null && newData.val() === auth.uid"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 100"
+        },
+        "phone": {
+          ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length <= 32"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val().contains('@') && newData.val().length <= 120"
+        },
+        "destinationId": {
+          ".validate": "newData.isString() && newData.val().length <= 60"
+        },
+        "destinationTitle": {
+          ".validate": "newData.isString() && newData.val().length <= 150"
+        },
+        "price": {
+          ".validate": "newData.isNumber()"
+        },
+        "currency": {
+          ".validate": "newData.isString() && newData.val().length <= 6"
+        },
+        "travelers": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 22"
+        },
+        "travelDate": {
+          ".validate": "newData.isString() && newData.val().length <= 10"
+        },
+        "services": {
+          ".validate": "newData.isString() && newData.val().length <= 200"
+        },
+        "destination": {
+          ".validate": "newData.isString() && newData.val().length <= 150"
+        },
+        "message": {
+          ".validate": "newData.isString() && newData.val().length <= 2000"
+        },
+        "adults": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10"
+        },
+        "children04": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 6"
+        },
+        "children512": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 6"
+        },
+        "totalPrice": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "pricePerPerson": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "priceDetails": {
+          ".validate": "newData.isString() && newData.val().length <= 1500"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     }
   }

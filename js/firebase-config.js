@@ -1,10 +1,6 @@
-/* FeelVoyage — cheile proiectului tău Firebase.
-   Cât timp valorile de mai jos încep cu "PASTE", site-ul rulează în mod local (fără server):
-   contorul și conturile rămân doar în browserul fiecărui vizitator.
-
-   Pentru contor comun și conturi valabile pe orice dispozitiv, urmează pașii din README.md
-   și înlocuiește valorile cu cele din Firebase Console → Project settings → Your apps → Web app.
-   (Aceste chei NU sunt secrete — securitatea o fac regulile din firebase-rules.json.) */
+/* FeelVoyage — cheile proiectului tău Firebase ("feelvoyage").
+   Cheile de mai jos NU sunt secrete: securitatea o fac regulile din firebase-rules.json.
+   Dacă lași valorile goale sau cu "PASTE...", site-ul revine automat la modul local (fără server). */
 window.FV_FIREBASE_CONFIG = {
     apiKey: "AIzaSyCNk8906sbwc4ncH-JI6jmuMwFgP9GH8DM",
     authDomain: "feelvoyage.firebaseapp.com",

@@ -8,11 +8,12 @@ css/tailwind.css     ← stilurile Tailwind, deja generate (nu le edita de mân�
 css/styles.css       ← stiluri proprii, optimizări pentru telefon, contor
 css/dark.css         ← modul întunecat
 js/translations.js   ← texte EN / IT
-js/destinations.js   ← lista destinațiilor
+js/destinations.js   ← lista destinațiilor și prețul de bază al fiecărui pachet
+js/pricing.js        ← calculatorul de preț (adulți, copii, sezon, servicii extra)
 js/app.js            ← filtre, rezervări, limbi
 js/chat.js           ← asistentul de chat
 js/firebase-config.js← AICI pui cheile Firebase (vezi mai jos)
-js/backend.js        ← contorul comun + conturile (Firebase sau local)
+js/backend.js        ← contorul comun, conturile și comenzile (Firebase sau local)
 js/theme.js          ← comutatorul luminos / întunecat
 js/auth.js           ← autentificare, înregistrare, profil
 js/counter.js        ← contorul „Călători Fericiți"
@@ -37,6 +38,30 @@ Note:
 - Cheile din `firebase-config.js` **nu sunt secrete**; securitatea o fac regulile din pasul 3.
 - Planul gratuit permite ~100 de vizitatori conectați simultan și 10 GB trafic/lună.
 - Oricine poate da click pe contor de câte ori vrea (regulile permit doar +1 pe rând, nu salturi mari).
+
+## Comenzile clienților
+
+Când cineva trimite formularul de **rezervare** (din fereastra unei destinații) sau formularul de **contact**, comanda ajunge în Firebase:
+**Databases & Storage → Realtime Database → Data → `orders`**. Fiecare comandă are un cod generat automat și conține numele, telefonul, e-mailul, data trimiterii și, la rezervare, destinația, numărul de adulți și copii, perioada, serviciile alese, **totalul estimat** (`totalPrice`, în €), prețul pe persoană și un detaliu al calculului (`priceDetails`, mereu în română).
+
+- `status` pornește ca `nou`; îl poți schimba tu în `procesat` direct din consolă (dublu-click pe valoare).
+- Vizitatorii pot **doar crea** comenzi; nu le pot citi, modifica sau șterge. Le vezi doar tu, din consola Firebase.
+- Dacă trimiterea eșuează (fără internet, reguli nepublicate), clientul primește un mesaj și formularul rămâne completat.
+- Cine e logat pe site are și `uid` în comandă (legătura cu contul lui).
+- Ca să-ți apară comenzile, regulile din `firebase-rules.json` trebuie publicate în Firebase (tab-ul **Rules**).
+
+## Prețuri și calculator
+
+În fereastra unui pachet, clientul alege adulții, copiii, data și serviciile extra, iar prețul se recalculează pe loc (total, preț pe persoană și echivalent în lei). Regulile sunt cele ale agențiilor reale (ex. cistour.ro):
+
+- **Prețul din card** („De la X €") este pe adult, în cameră dublă, în sezon redus. Se schimbă în `js/destinations.js` (`price` și `priceRon`).
+- **Adult singur** în cameră: supliment single pe noapte. La 3 adulți, unul plătește supliment.
+- **Copii:** 0–4 ani și 5–12 ani plătesc un procent din prețul adultului (România 40% / 70%, restul 65% / 85%, exotic 75% / 85%). Copilul cazat cu un singur adult plătește preț întreg.
+- **Sezon:** în lunile de vârf (ex. iulie–august la mare) prețul crește în funcție de data plecării.
+- **Servicii:** unele sunt deja incluse în pachet (apar „Inclus"), altele se adaugă: per persoană (transfer, asigurare, bilete, masă), per grup (ghid local) sau per zi și mașină (închiriere auto; indisponibilă în Maldive și China).
+
+Toate valorile (suplimente, procente, sezoane, prețurile serviciilor) sunt în tabelele de la începutul fișierului `js/pricing.js` și se pot modifica ușor.
+**Sunt estimări orientative**; oferta finală o confirmă un consultant.
 
 ## Modificări de design
 

@@ -103,7 +103,7 @@ function renderDestinations() {
                     <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
                         <div>
                             <span class="text-[10px] uppercase text-slate-400 font-bold block">${tr('dest.deLa', 'De la')}</span>
-                            <span class="text-2xl font-black text-brand-900">${item.price} ${item.currency}</span>
+                            <span class="text-2xl font-black text-brand-900">${item.price} ${item.currency}</span><span class="text-xs font-bold text-slate-400 ml-1">/ ${tr('dest.perPerson', 'pers.')}</span>
                             ${item.priceRon ? `<span class="text-[11px] text-slate-400 font-medium block -mt-1">approx. ${item.priceRon}</span>` : ''}
                         </div>
                         <button onclick="openModal('${item.id}')" class="dest-btn px-5 py-3 sm:py-2.5 rounded-xl bg-slate-900 group-hover:bg-brand-600 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5">
@@ -188,9 +188,11 @@ if (window.matchMedia) {
 }
 
 // Open Modal Function with Multi-Image Support & Dynamic Gallery
+let currentBookingDest = null;   // destinația pentru care e deschisă fereastra de rezervare
 function openModal(id) {
     const item = destinations.find(d => d.id === id);
     if (!item) return;
+    currentBookingDest = item;
 
     const t = getDestinationText(item);
 
@@ -226,6 +228,8 @@ function openModal(id) {
             <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> ${a}
         </span>
     `).join('');
+
+    initBookingPricing(item);
 
     if (bookingModal.classList.contains('hidden')) lockScroll(true);
     bookingModal.classList.remove('hidden');
@@ -269,8 +273,150 @@ document.addEventListener('input', (e) => {
     }
 });
 
+// ============ CALCULATORUL DE PREȚ AL REZERVĂRII (regulile sunt în js/pricing.js) ============
+const bookingState = { adults: 2, kids04: 0, kids512: 0 };
+const EXTRA_LABEL_KEYS = { transport: 'modal.serviceTransport', cazare: 'modal.serviceCazare', transfer: 'modal.serviceTransfer', meals: 'modal.serviceMeals', tickets: 'modal.serviceTickets', insurance: 'modal.serviceInsurance', guide: 'modal.serviceGuide', car: 'modal.serviceCar' };
+const EXTRA_LABELS_RO = { transport: 'Transport (zbor/autocar)', cazare: 'Cazare hotel', transfer: 'Transfer aeroport-hotel', meals: 'Demipensiune / Mic dejun', tickets: 'Bilete la atracții', insurance: 'Asigurare de călătorie', guide: 'Ghid local', car: 'Închiriere auto' };
+const LOCALES = { ro: 'ro-RO', en: 'en-GB', it: 'it-IT' };
+
+function fmtTpl(str, vars) { return String(str).replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined ? vars[k] : m)); }
+function priceEUR(n) { return FVPricing.fmtEUR(n); }
+function monthName(m, lang) { return new Date(2026, m - 1, 1).toLocaleString(LOCALES[lang] || 'ro-RO', { month: 'long' }); }
+function selectedServiceKeys() { return Array.from(document.querySelectorAll('input[name="booking-service"]:checked')).map(i => i.value); }
+
+function currentQuote() {
+    if (!currentBookingDest || !window.FVPricing) return null;
+    return FVPricing.quote(currentBookingDest, {
+        adults: bookingState.adults, kids04: bookingState.kids04, kids512: bookingState.kids512,
+        extras: selectedServiceKeys(), date: document.getElementById('bookingDate').value
+    });
+}
+
+// Textul unei linii din estimare. localized=false => mereu în română (pentru comanda trimisă în Firebase, pe care o citești tu)
+function quoteLineText(l, localized) {
+    const t = localized ? tr : (k, fb) => fb;
+    const lang = localized ? currentLang : 'ro';
+    const name = (key) => t(EXTRA_LABEL_KEYS[key], EXTRA_LABELS_RO[key]);
+    switch (l.type) {
+        case 'adults': return fmtTpl(t('quote.adultsLine', '{n} × adult ({unit})'), { n: l.count, unit: priceEUR(l.unit) });
+        case 'kids04': return fmtTpl(t('quote.kids04Line', '{n} × copil 0–4 ani ({pct}% din preț)'), { n: l.count, pct: l.pct });
+        case 'kids512': return fmtTpl(t('quote.kids512Line', '{n} × copil 5–12 ani ({pct}% din preț)'), { n: l.count, pct: l.pct });
+        case 'single': return fmtTpl(t('quote.singleLine', 'Supliment cameră single ({perNight} × {nights} nopți)'), { perNight: priceEUR(l.perNight), nights: l.nights });
+        case 'season': return fmtTpl(t('quote.seasonLine', 'Supliment de sezon: {month} (+{pct}%)'), { month: monthName(l.month, lang), pct: l.pct });
+        case 'extra':
+            if (l.per === 'group') return fmtTpl(t('quote.groupLine', '{name} (per grup)'), { name: name(l.key) });
+            if (l.per === 'car') return fmtTpl(t('quote.carLine', '{name} ({cars} × {days} zile × {unit})'), { name: name(l.key), cars: l.cars, days: l.days, unit: priceEUR(l.unit) });
+            return `${name(l.key)} (${l.count} × ${priceEUR(l.unit)})`;
+    }
+    return '';
+}
+
+// Servicii: incluse în pachet (bifate, blocate) / opționale (cu preț) / indisponibile
+function refreshExtraChips(item) {
+    FVPricing.extrasFor(item).forEach(ex => {
+        const label = document.querySelector(`#modalBookingForm [data-extra="${ex.key}"]`);
+        if (!label) return;
+        const chip = label.querySelector('[data-extra-chip]');
+        let text = '', color = 'text-slate-400';
+        if (ex.status === 'included') { text = tr('modal.included', 'Inclus'); color = 'text-emerald-600'; }
+        else if (ex.status === 'unavailable') { text = tr('modal.unavailable', 'Indisponibil'); }
+        else {
+            const unit = ex.unit === 'group' ? tr('modal.unitGroup', '/ grup') : ex.unit === 'car' ? tr('modal.unitDay', '/ zi') : tr('modal.unitPerson', '/ pers.');
+            text = `+ ${priceEUR(ex.price)} ${unit}`; color = 'text-slate-500';
+        }
+        chip.textContent = text;
+        chip.className = 'ml-auto pl-1 text-[10px] font-bold whitespace-nowrap ' + color;
+    });
+}
+function initBookingExtras(item) {
+    FVPricing.extrasFor(item).forEach(ex => {
+        const label = document.querySelector(`#modalBookingForm [data-extra="${ex.key}"]`);
+        if (!label) return;
+        const input = label.querySelector('input');
+        input.checked = ex.status === 'included';
+        input.disabled = ex.status !== 'optional';
+        label.classList.toggle('opacity-60', ex.status === 'unavailable');
+        label.classList.toggle('cursor-not-allowed', ex.status !== 'optional');
+        label.classList.toggle('cursor-pointer', ex.status === 'optional');
+    });
+    refreshExtraChips(item);
+}
+
+function renderSteppers() {
+    document.querySelectorAll('#modalBookingForm [data-stepper]').forEach(el => {
+        const key = el.dataset.stepper;
+        const min = key === 'adults' ? 1 : 0;
+        const max = key === 'adults' ? FVPricing.MAX_ADULTS : FVPricing.MAX_KIDS;
+        el.querySelector('[data-stepper-value]').textContent = bookingState[key];
+        const [minus, plus] = el.querySelectorAll('[data-step]');
+        minus.disabled = bookingState[key] <= min;
+        plus.disabled = bookingState[key] >= max;
+    });
+}
+
+function renderBookingQuote() {
+    const q = currentQuote();
+    if (!q) return;
+    renderSteppers();
+    // antetul ferestrei: prețul mediu pe persoană, actualizat live
+    modalPrice.innerText = `${priceEUR(q.perPerson)} (${FVPricing.fmtRON(FVPricing.toRON(q.perPerson))})`;
+    document.getElementById('quoteLines').innerHTML = q.lines.map(l =>
+        `<li class="flex items-start justify-between gap-3"><span class="min-w-0">${quoteLineText(l, true)}</span><span class="font-bold text-slate-800 whitespace-nowrap">${priceEUR(l.amount)}</span></li>`
+    ).join('');
+    document.getElementById('quoteTotal').textContent = priceEUR(q.total);
+    document.getElementById('quoteRon').textContent = `≈ ${FVPricing.fmtRON(q.ron)}`;
+    document.getElementById('quotePerPerson').textContent = `${priceEUR(q.perPerson)} · ${q.travelers} ${q.travelers === 1 ? tr('quote.person', 'persoană') : tr('quote.persons', 'persoane')}`;
+    document.getElementById('quoteNights').textContent = `${q.nights} ${tr('quote.nightsWord', 'nopți')}`;
+    document.getElementById('quoteNote').textContent = q.season.month === 0
+        ? tr('quote.noteDate', 'Prețul „de la" este pentru sezonul redus. Alege data plecării ca să vezi prețul exact al sezonului.')
+        : (q.season.applied ? '' : tr('quote.noteLow', 'Data aleasă este în sezon redus: se aplică prețul de bază.'));
+}
+
+function initBookingPricing(item) {
+    bookingState.adults = 2; bookingState.kids04 = 0; bookingState.kids512 = 0;
+    initBookingExtras(item);
+    renderBookingQuote();
+}
+
+document.querySelectorAll('#modalBookingForm [data-stepper] [data-step]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const key = btn.closest('[data-stepper]').dataset.stepper;
+        const min = key === 'adults' ? 1 : 0;
+        const max = key === 'adults' ? FVPricing.MAX_ADULTS : FVPricing.MAX_KIDS;
+        bookingState[key] = Math.min(max, Math.max(min, bookingState[key] + parseInt(btn.dataset.step, 10)));
+        renderBookingQuote();
+    });
+});
+document.getElementById('modalBookingForm').addEventListener('change', (e) => {
+    if (e.target.name === 'booking-service' || e.target.id === 'bookingDate') renderBookingQuote();
+});
+document.getElementById('bookingDate').addEventListener('input', renderBookingQuote);
+document.addEventListener('fv:language', () => {
+    if (currentBookingDest) { refreshExtraChips(currentBookingDest); renderBookingQuote(); }
+});
+
+// ---- Trimiterea comenzilor către Firebase (vezi backend.js → submitOrder) ----
+function setFormBusy(form, busy) {
+    const btn = form.querySelector('button[type="submit"]');
+    if (!btn) return;
+    btn.disabled = busy;
+    btn.classList.toggle('opacity-70', busy);
+    const spinner = btn.querySelector('[data-spinner]');
+    if (spinner) spinner.classList.toggle('hidden', !busy);
+}
+function notify(message, kind) {
+    if (typeof window.fvToast === 'function') window.fvToast(message, kind);
+}
+function sendOrder(order) {
+    if (!window.FVBackend) return Promise.reject(new Error('backend indisponibil'));
+    order.lang = currentLang;
+    order.dateText = new Date().toLocaleString('ro-RO');
+    return window.FVBackend.submitOrder(order);
+}
+const ORDER_ERROR_RO = 'Nu am putut trimite solicitarea. Încearcă din nou sau sună-ne la 0799 927 590.';
+
 // Modal Form Booking
-document.getElementById('modalBookingForm').addEventListener('submit', (e) => {
+document.getElementById('modalBookingForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     // --- Validate Name (Nume + Prenume: at least 2 words) ---
@@ -343,6 +489,39 @@ document.getElementById('modalBookingForm').addEventListener('submit', (e) => {
         }
     }
 
+    // --- Trimite comanda în Firebase (fereastra rămâne deschisă dacă nu reușește, ca să nu se piardă datele) ---
+    const form = e.target;
+    const dest = currentBookingDest;
+    const quote = currentQuote();
+    const order = {
+        type: 'booking',
+        name: nameVal,
+        phone: phoneVal,
+        email: emailVal,
+        destinationId: dest ? dest.id : '',
+        destinationTitle: dest ? dest.title : '',
+        price: dest ? Number(dest.price) || 0 : 0,
+        currency: dest ? String(dest.currency || '') : '',
+        travelers: quote.travelers,
+        adults: quote.adults,
+        children04: quote.kids04,
+        children512: quote.kids512,
+        travelDate: dateVal,
+        services: selectedServiceKeys().join(', '),
+        totalPrice: quote.total,
+        pricePerPerson: quote.perPerson,
+        priceDetails: quote.lines.map(l => `${quoteLineText(l, false)} = ${l.amount} €`).join('; ') + ` | Total ${quote.total} € (≈ ${quote.ron} lei)`
+    };
+    setFormBusy(form, true);
+    try {
+        await sendOrder(order);
+    } catch (err) {
+        setFormBusy(form, false);
+        notify(tr('order.error', ORDER_ERROR_RO), 'error');
+        return;
+    }
+    setFormBusy(form, false);
+
     // --- Close the booking modal ---
     closeModal();
     // --- Show the Thank You overlay ---
@@ -355,6 +534,7 @@ document.getElementById('modalBookingForm').addEventListener('submit', (e) => {
     }, 50);
     // Reset form
     e.target.reset();
+    if (dest) initBookingPricing(dest);
     // Auto-hide after 3.5 seconds
     setTimeout(() => {
         content.classList.remove('scale-100', 'opacity-100');
@@ -366,10 +546,31 @@ document.getElementById('modalBookingForm').addEventListener('submit', (e) => {
 });
 
 // Contact Form Submission
-document.getElementById('contactForm').addEventListener('submit', (e) => {
+document.getElementById('contactForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const form = e.target;
+    const val = (id) => document.getElementById(id).value.trim();
+    const order = {
+        type: 'contact',
+        name: val('contactName'),
+        phone: val('contactPhone'),
+        email: val('contactEmail').toLowerCase()
+    };
+    if (val('contactDest')) order.destination = val('contactDest');
+    if (val('contactMsg')) order.message = val('contactMsg');
+
+    setFormBusy(form, true);
+    try {
+        await sendOrder(order);
+    } catch (err) {
+        setFormBusy(form, false);
+        notify(tr('order.error', ORDER_ERROR_RO), 'error');
+        return;
+    }
+    setFormBusy(form, false);
+
     document.getElementById('contactSuccess').classList.remove('hidden');
-    e.target.reset();
+    form.reset();
     setTimeout(() => {
         document.getElementById('contactSuccess').classList.add('hidden');
     }, 5000);
