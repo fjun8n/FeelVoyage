@@ -43,13 +43,18 @@ function addBotMessage(text, quickReplies = []) {
     }
 }
 
+// Textul scris de utilizator se afișează ca text, nu ca HTML
+function escapeChatHtml(s) {
+    return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+}
+
 // Add a user message
 function addUserMessage(text) {
     const userMsgDiv = document.createElement('div');
     userMsgDiv.className = 'flex items-end justify-end gap-2';
     userMsgDiv.innerHTML = `
         <div class="bg-gradient-to-r from-brand-600 to-brand-500 text-white p-3 rounded-2xl rounded-tr-none shadow-sm text-xs leading-relaxed max-w-[85%]">
-            ${text}
+            ${escapeChatHtml(text)}
         </div>
     `;
     chatMessages.appendChild(userMsgDiv);
@@ -66,6 +71,8 @@ function showQuickReplies(replies) {
         btn.dataset.reply = reply.value;
         quickRepliesContainer.appendChild(btn);
     });
+    // butoanele micșorează zona de mesaje: derulăm din nou, ca ultimul rând să rămână vizibil
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 // Show typing indicator, then send bot reply
@@ -124,7 +131,7 @@ const botResponses = {
         ]
     },
     packages: {
-        text: 'Toate cele 23 de pachete turistice sunt afișate în secțiunea **Destinații & Pachete** de pe site. Fiecare pachet include galerie foto cu 4 imagini, descriere detaliată, preț și durata sejurului. Poți filtra după categorie (Litoral, City Break, Exotic, etc.) și după buget.\n\nVrei să vezi pachetele acum?',
+        text: 'Toate cele 29 de pachete turistice sunt afișate în secțiunea **Destinații & Pachete** de pe site. Fiecare pachet include galerie foto cu 4 imagini, descriere detaliată, preț și durata sejurului. Poți filtra după categorie (Litoral, City Break, Exotic, etc.) și după buget.\n\nVrei să vezi pachetele acum?',
         quickReplies: [
             { label: '📋 Vezi pachetele', value: 'scroll_packages' },
             { label: '💰 Prețuri', value: 'prețuri' },
@@ -366,7 +373,7 @@ chatForm.addEventListener('submit', (e) => {
     const text = chatInput.value.trim();
     if (text) {
         chatInput.value = '';
-        handleUserMessage(text);
+        handleFreeText(text);
     }
 });
 
@@ -375,6 +382,108 @@ chatForm.addEventListener('submit', (e) => {
 // `text` is the canonical value used for keyword/category matching.
 function handleUserMessage(text, displayText) {
     addUserMessage(displayText !== undefined ? displayText : text);
+    respondScripted(text);
+}
+
+// Răspunsul clasic (scris de noi, pe cuvinte-cheie): folosit pentru butoanele rapide și când AI-ul nu e disponibil
+function respondScripted(text) {
     const response = getBotResponse(text);
     sendBotReply(response.text, response.quickReplies || []);
 }
+
+// ============ Asistentul AI (js/ai.js) ============
+// Întrebările scrise liber merg la Gemini; butoanele rapide rămân cu răspunsuri scrise (rapide și gratuite).
+// Dacă AI-ul nu e disponibil sau dă eroare, se folosește automat botul clasic.
+let aiBusy = false;
+const chatSendBtn = chatForm.querySelector('button[type="submit"]');
+
+function setChatBusy(busy) {
+    aiBusy = busy;
+    chatInput.disabled = busy;
+    if (chatSendBtn) chatSendBtn.disabled = busy;
+}
+
+// Pachetul deschis acum în fereastra de rezervare (context pentru „cât costă?")
+function currentOpenPackageId() {
+    return (typeof currentBookingDest !== 'undefined' && currentBookingDest && typeof bookingModal !== 'undefined' && !bookingModal.classList.contains('hidden'))
+        ? currentBookingDest.id : undefined;
+}
+
+function addBotAIMessage(text, packageIds) {
+    const botMsgDiv = document.createElement('div');
+    botMsgDiv.className = 'flex items-start gap-2';
+    botMsgDiv.innerHTML = `
+        <div class="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs flex-shrink-0 mt-1">
+            <i class="fa-solid fa-plane-departure"></i>
+        </div>
+        <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 leading-relaxed max-w-[85%]">
+            ${FVAI.formatAIText(text)}
+        </div>
+    `;
+    chatMessages.appendChild(botMsgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    showPackageButtons(packageIds || []);
+}
+
+// Butoane „Vezi pachetul" pentru pachetele recomandate de AI (id-urile sunt verificate de ai.js), plus „Contact"
+function showPackageButtons(ids) {
+    quickRepliesContainer.innerHTML = '';
+    ids.forEach(id => {
+        const d = destinations.find(x => x.id === id);
+        if (!d) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pkg-btn text-left px-3 py-1.5 rounded-xl bg-white hover:bg-brand-50 text-brand-600 font-bold transition border border-brand-200/60 text-[11px]';
+        btn.dataset.pkg = id;
+        btn.textContent = '🔎 ' + getDestinationText(d).title;
+        quickRepliesContainer.appendChild(btn);
+    });
+    const contact = document.createElement('button');
+    contact.type = 'button';
+    contact.className = 'quick-btn text-left px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-medium transition border border-brand-200/60 text-[11px]';
+    contact.dataset.reply = 'contact';
+    contact.textContent = tr('chat.pricing.qr0', '📞 Contact');
+    quickRepliesContainer.appendChild(contact);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function handleFreeText(text) {
+    if (aiBusy) return;
+    if (!(window.FVAI && FVAI.enabled())) { handleUserMessage(text); return; }
+
+    addUserMessage(text);
+    quickRepliesContainer.innerHTML = '';
+    setChatBusy(true);
+    typingIndicator.classList.remove('hidden');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    FVAI.ask(text, { lang: currentLang, packageId: currentOpenPackageId() })
+        .then(res => {
+            typingIndicator.classList.add('hidden');
+            if (res.offTopic) {
+                // mesaj fix, scris de noi: modelul doar semnalează că întrebarea e din afara domeniului
+                addBotMessage(tr('chat.ai.offTopic', 'Te pot ajuta doar cu întrebări despre agenția FeelVoyage, site-ul nostru și destinațiile de vacanță. 🌍 Întreabă-mă, de exemplu, despre pachetele disponibile, prețuri sau ce poți vizita într-o destinație!'), getTranslatedBotResponse('default').quickReplies);
+            } else {
+                addBotAIMessage(res.text, res.packages);
+            }
+        })
+        .catch(err => {
+            typingIndicator.classList.add('hidden');
+            if (err && err.code === 'limit') {
+                addBotMessage(tr('chat.ai.limit', 'Ai atins limita de întrebări pentru această sesiune. Ne poți suna la **0799 927 590** sau poți alege una dintre opțiunile de mai jos.'), getTranslatedBotResponse('default').quickReplies);
+            } else {
+                respondScripted(text);   // AI indisponibil: răspuns clasic
+            }
+        })
+        .finally(() => setChatBusy(false));
+}
+
+// „Vezi pachetul": închide chatul și deschide fereastra pachetului
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest && e.target.closest('[data-pkg]');
+    if (!btn) return;
+    const id = btn.dataset.pkg;
+    quickRepliesContainer.innerHTML = '';
+    if (isChatOpen) toggleChat();
+    setTimeout(() => { if (typeof openModal === 'function') openModal(id); }, 260);
+});

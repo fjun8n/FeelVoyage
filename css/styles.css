@@ -152,3 +152,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
     }
     .live-dot.is-live { animation: none; }
 }
+
+/* reCAPTCHA (App Check pentru asistentul AI): insigna ar acoperi butonul de chat.
+   Atribuirea cerută de Google este în nota din fereastra de chat (#chatAiNote). */
+.grecaptcha-badge { visibility: hidden; }

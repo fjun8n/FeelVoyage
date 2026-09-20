@@ -59,6 +59,7 @@
 
         return {
             mode: 'local',
+            app: null,
             onCounter: function (cb) {
                 counterSubs.add(cb);
                 Promise.resolve().then(function () { cb(readCount()); });
@@ -114,6 +115,7 @@
         const fail = function () { return Promise.reject(FVError('network', err)); };
         return {
             mode: 'offline',
+            app: null,
             onCounter: function (cb) { Promise.resolve().then(function () { cb(cachedCount()); }); return noop; },
             incrementCounter: fail,
             onConnection: function (cb) { cb(false); return noop; },
@@ -212,6 +214,7 @@
 
         return {
             mode: 'firebase',
+            app: app,   // aplicația Firebase, folosită și de asistentul AI (js/ai.js)
 
             onCounter: function (cb) {
                 return dbM.onValue(counterRef, function (snap) {
@@ -319,6 +322,10 @@
         logout: function () { return ready.then(function (b) { return b.logout(); }); },
         resetPassword: function (e) { return ready.then(function (b) { return b.resetPassword(e); }); },
         submitOrder: function (o) { return ready.then(function (b) { return b.submitOrder(o); }); },
+
+        // Pentru asistentul AI (js/ai.js): aplicația Firebase (null dacă nu e configurat) și încărcarea modulelor SDK la cerere
+        firebaseApp: function () { return ready.then(function (b) { return b.app || null; }); },
+        importSDK: function (name) { return import(SDK_BASE + 'firebase-' + name + '.js'); },
 
         // Ultima sesiune cunoscută, ca antetul să nu „clipească" între „Contul meu" și numele utilizatorului
         sessionHint: function () { return configured ? readJSON(KEY_SESSION_HINT, null) : null; }
