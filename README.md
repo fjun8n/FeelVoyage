@@ -54,6 +54,29 @@ Note:
 - Planul gratuit permite ~100 de vizitatori conectați simultan și 10 GB trafic/lună.
 - Oricine poate da click pe contor de câte ori vrea (regulile permit doar +1 pe rând, nu salturi mari).
 
+## Pachete și galerii foto (59 de destinații)
+
+Catalogul are **59 de pachete**: cele 29 inițiale și **30 noi**, din toată lumea:
+
+- **America (10):** Yosemite, Grand Canyon, Horseshoe Bend & Page, San Francisco, Hawaii (Maui & Big Island), Cascada Niagara, Banff & Lake Louise, Machu Picchu, Rio de Janeiro, Patagonia (Torres del Paine);
+- **Marea Britanie și Irlanda (4):** Edinburgh, Insula Skye, Cornwall, Irlanda (Cliffs of Moher);
+- **Norvegia și Islanda (3):** Fiordul Geiranger, Lofoten (cu aurora boreală), Islanda (cascadele);
+- **Africa (7):** Cape Town, Marrakech, Egipt (Giza), Zanzibar, Tanzania (Serengeti), Cascada Victoria, Namibia (Sossusvlei);
+- **Asia și Oceania (6):** India (Taj Mahal & Jaipur), Vietnam (Golful Ha Long), Thailanda (Krabi & Phi Phi), Iordania (Petra), Noua Zeelandă (Milford Sound), Sydney.
+
+Numărul „Destinații” din prima pagină și din „Despre noi” se calculează singur din listă (`data-dest-count`).
+
+- **Galeria:** fereastra pachetului arată poza mare cu săgeți, contor („3 / 14”), miniaturi derulabile, glisare pe telefon și tastele ← →. Toate cele 59 de pachete au **11–15 poze**: cele 30 noi au 11–14 (396 în total), iar cele 29 vechi păstrează pozele de dinainte (coperta rămâne aceeași) și primesc încă 8–11 de pe Commons (289 în total). Insigna de pe card („14 Foto”) e numărată din listă.
+- **De unde sunt pozele:** de pe **Wikimedia Commons** (fotografii făcute de oameni obișnuiți, publicate sub licențe libere: CC BY, CC BY-SA, CC0 ș.a.), în aceeași formă ca la pachetele existente (`upload.wikimedia.org/.../thumb/...`). **Nu sunt luate de pe Facebook, Instagram sau Reddit**: acolo fotografiile aparțin autorilor, iar folosirea lor pe un site comercial fără acordul lor ar încălca drepturile de autor. Sub poză apare „Foto: Wikimedia Commons, licență liberă. Autor și licență”, cu link către pagina fișierului, unde sunt autorul și licența exactă (licențele CC cer menționarea autorului; linkul o asigură).
+- **Adresele pozelor** conțin calea MD5 a fișierului (`/thumb/a/ab/Nume.jpg/960px-Nume.jpg`). Site-ul cere doar lățimile standard acceptate de Wikimedia (250, 330, 500, 960, 1280 px). **Pozele nu au putut fi încărcate și verificate vizual în mediul în care a fost făcut site-ul** (fără internet): numele fișierelor vin din listele Commons, iar calea a fost verificată pe adresele deja existente. Dacă un fișier e redenumit sau șters pe Commons, site-ul scoate automat poza din galerie (miniatura dispare, contorul se ajustează), ca vizitatorul să nu vadă un chenar gol. Ca să revină numărul complet de poze, înlocuiește adresa în `js/destinations.js`.
+- **Adaugi un pachet nou (5 locuri):**
+  1. `js/destinations.js`: o intrare nouă (id, titlu, categorie, etichetă, preț în €, `priceRon` = preț × 5, rating, perioadă de forma „8 Nopți / Mic Dejun”, `images`, descriere, facilități);
+  2. `js/translations.js` (EN, IT), `js/translations-fr.js`, `js/translations-es.js`: cheile `dest.<id>.title / tagLabel / period / description / amenities` (facilitățile, separate prin `|`);
+  3. `js/faq-dest.js`: nume alternative + „cel mai bun moment” (RO, EN, IT), iar în `js/faq-fr.js` și `js/faq-es.js` textul din `F.extendDest`;
+  4. `js/pricing.js`: sezonul în `OVERRIDES` (`longhaul`, `warm`, `city`, `beach`, `mountain`, `general`) și, dacă e cazul, `carUnavailable`;
+  5. asistentul AI și „Destinații” din chat se actualizează singure din listă (doar textul din chat pentru „noutăți” se scrie la mână).
+- **Prețurile noilor pachete sunt orientative** (estimări de pornit, nu oferte reale): verifică-le înainte să le publici.
+
 ## Cutia „Conturi Create” (prima pagină)
 
 Între „Călători Fericiți” și „Destinații Active” se vede câte persoane au cont pe site, iar numărul se schimbă **live** la toți vizitatorii când cineva își face un cont (cu animație „+1” și indicatorul „în direct”).
@@ -112,7 +135,7 @@ Povestea agenției, cifrele (29 destinații, contorul „Călători fericiți”
 
 Din subsol, cele trei link-uri deschid documentele în ferestre (ca „Despre noi”). Fiecare are **cuprins** cu cifre romane care duce direct la secțiune, casete de atenționare la punctele importante, carduri pentru datele firmei și de contact, mod luminos/întunecat și 5 limbi. Se închid cu ✕, Escape, click pe fundal sau „Închide”; adresele `…/index.html#termeni`, `#confidentialitate` și `#anpc` le deschid direct. Între documente se poate trece direct (link-ul „Termeni și Condiții” din ANPC / SAL, stările din blocul de acceptare); se vede mereu o singură fereastră.
 
-- **Plata:** Termenii spun că **nu se plătește pe site** și că plata se face doar după discuția cu un agent și oferta confirmată. Nu mai există nicio mențiune despre Stripe, Netopia sau plata cu cardul online. Dacă mai există texte despre card în răspunsurile chatului (`js/faq-data-*.js`, `faq-fr.js`, `faq-es.js`, intrările despre plată), ele trebuie aduse la zi separat.
+- **Plata:** Termenii spun că **nu se plătește pe site** și că plata se face doar după discuția cu un agent și oferta confirmată. Nu mai există nicio mențiune despre Stripe, Netopia sau plata cu cardul online. Chatul (răspunsurile preprogramate din toate limbile, botul clasic și instrucțiunile AI) spune la fel: plata se face doar după discuția cu un agent, nu pe site, iar cardul (Visa / Mastercard) nu mai e menționat ca metodă de plată către agenție (cardurile în străinătate rămân, ca sfat pentru călători).
 - **Unde se editează textul:** româna în `index.html` (blocurile `id="termsModal"`, `id="privacyModal"`, `id="anpcModal"`), celelalte limbi în `js/translations.js` (EN, IT), `js/translations-fr.js` și `js/translations-es.js`, cu cheile `terms.*`, `privacy.*`, `anpc.*`, `accept.*` și cele partajate `legal.*` (cuprins, notă, contact, data actualizării). Titlurile vin din `footer.terms`, `footer.privacy`, `footer.anpc`. Traducerile sunt orientative: la final documentele spun că, în caz de diferențe, prevalează versiunea în română.
 - **Datele firmei** (denumire, sediu, Registrul Comerțului, CUI, licență) și **datele de contact** (telefon, e-mail, program) sunt scrise direct în HTML (cardul din Termeni, secțiunea I, și listele de contact din fiecare document), ca să le poți schimba într-un singur loc.
 - **Data actualizării:** „Ultima actualizare: septembrie 2026” (`legal.updated`). Când schimbi un document, schimbă și versiunea acceptării (mai jos).
@@ -124,7 +147,10 @@ Din subsol, cele trei link-uri deschid documentele în ferestre (ca „Despre no
 
 La finalul fiecărui document: o **bifă** și butonul **„Acceptă”** (activ doar după bifare). După acceptare apare „Acceptat pe <data>”, iar „Retrage acceptul” anulează. Blocul arată și starea celor trei documente.
 
-- **Se salvează doar în browserul utilizatorului** (`fv_consents`, cu data și versiunea documentului). **Nu se trimite către FeelVoyage și nu e dovadă legală.** Pentru dovadă pe server, acceptul ar trebui salvat în contul utilizatorului sau în comandă (asta cere câmpuri noi în `firebase-rules.json`).
+- **Cu cont (autentificat):** acceptul se salvează **pe cont**, în Firebase, la `users/<uid>/consents/<document>` = `{ v: versiunea documentului, at: data (ora serverului), off: data retragerii }`. Îl vezi pe orice dispozitiv, iar **administratorul îl vede în panoul „Utilizatori”**, la rândul „Acceptări documente” (acceptat pe dată / retras pe dată / versiune veche / neacceptat). „Retrage acceptul” păstrează urma (adaugă `off`), nu șterge înregistrarea.
+- **Fără cont:** acceptul se salvează doar în browserul acelui dispozitiv (`fv_consents`). **La prima autentificare sau creare de cont**, acceptele date așa se mută automat pe cont (cu data originală) și dispar de pe dispozitiv; un acord vechi de pe dispozitiv nu reînvie ceva ce ai retras ulterior pe cont. Dacă mutarea eșuează (fără internet, reguli nepublicate), acceptul rămâne pe dispozitiv și se reîncearcă la următoarea încărcare.
+- **Trebuie să publici din nou `firebase-rules.json`** (regula `consents`). Fără ea, salvarea pe cont e respinsă, utilizatorul vede „Nu am putut salva acceptul pe contul tău” și acceptul rămâne nesalvat (nu se pretinde niciodată că e salvat).
+- **Limită de securitate:** înregistrarea stă în profilul utilizatorului, pe care acesta îl poate modifica (regulile îi permit să scrie în propriul profil). Este o evidență utilă, dar **nu o probă juridică nemodificabilă**; pentru asta ar fi nevoie de o funcție pe server (Cloud Functions) care să scrie acceptul.
 - **Versiunea:** fiecare bloc are `data-doc-version="2026-09"`. Dacă îl schimbi (după ce modifici un document), acceptele vechi nu mai contează și se cere din nou acceptul.
 - Textul „Prin înregistrare accepți Termenii…” din formularul de cont nu e legat de aceste ferestre.
 
@@ -222,3 +248,6 @@ npm run build:css
 ```
 
 Culorile modului întunecat sunt în `css/dark.css`.
+
+### Prețurile pachetelor noi
+Prețurile celor 30 de pachete noi au fost aliniate la oferte găsite pe site-urile agențiilor românești (cercetare din 21 septembrie 2026). Sursele, reperele găsite și pachetele care rămân estimări sunt în `PRETURI-SURSE.md`. Verifică prețurile înainte de a le folosi în vânzare.

@@ -310,3 +310,22 @@ html.dark .doc-chip.is-done { border-color: rgba(52, 211, 153, 0.5); background:
 /* bifa de acceptare: țintă de atingere mai mare pe telefon */
 .doc-accept-row { padding: .35rem 0; }
 .doc-accept-check { width: 1.4rem; height: 1.4rem; }
+.doc-accept-login { display: inline-block; margin-top: .5rem; padding: .2rem .1rem; border: 0; background: none; color: #0369a1; font-size: .8rem; font-weight: 800; text-decoration: underline; cursor: pointer; }
+html.dark .doc-accept-login { color: var(--fv-accent-strong); }
+.doc-accept-withdraw:disabled { opacity: .5; cursor: wait; }
+
+/* ---------------------------------------------------------------- galeria din fereastra pachetului (10+ poze) */
+#modalGalleryThumbnails { justify-content: flex-start; scroll-behavior: smooth; }
+#modalGalleryThumbnails > * { flex: none; }
+#modalGalleryThumbnails > :first-child { margin-left: auto; }
+#modalGalleryThumbnails > :last-child { margin-right: auto; }
+.modal-nav { position: absolute; top: 50%; z-index: 15; display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; margin-top: -1.25rem; border: 0; border-radius: 999px; background: rgba(0, 0, 0, 0.45); color: #fff; cursor: pointer; backdrop-filter: blur(4px); transition: background-color .15s; }
+.modal-nav:hover, .modal-nav:focus-visible { background: rgba(0, 0, 0, 0.75); outline: none; }
+.modal-nav-prev { left: .6rem; }
+.modal-nav-next { right: .6rem; }
+.modal-nav[hidden] { display: none; }
+.modal-photo-count { position: absolute; top: .85rem; left: .85rem; z-index: 15; padding: .2rem .6rem; border-radius: 999px; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: .72rem; font-weight: 700; letter-spacing: .03em; }
+.modal-photo-count:empty { display: none; }
+.modal-photo-credit { margin: 0; padding: .4rem 1rem; background: #020617; border-bottom: 1px solid #1e293b; color: #94a3b8; font-size: .7rem; line-height: 1.4; }
+.modal-photo-credit.hidden { display: none; }
+.modal-photo-credit a { color: #7dd3fc; font-weight: 700; text-decoration: underline; }

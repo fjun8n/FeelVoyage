@@ -100,7 +100,7 @@ const botResponses = {
         ]
     },
     destinations: {
-        text: 'Avem **29 de destinații** disponibile în portofoliul nostru! 🌍\n\n**România:** Delta Dunării, Poiana Brașov, Bran & Brașov, Transfăgărășan, Cazanele Dunării, Maramureș, Sibiu & Sighișoara, Mamaia & Constanța\n\n**Europa:** Roma, Barcelona, Londra, Praga, Viena, Paris\n\n**Exotice:** Maldive, Kenya Safari, Bali, Santorini, Tokyo & Kyoto, Alpii Elvețieni, Dubai, Cappadocia, New York\n\n**China & Coreea de Sud:** Beijing & Marele Zid, Shanghai, Zhangjiajie (munții din Avatar), Seoul, Busan, Jeju\n\nVrei detalii despre o destinație anume?',
+        text: 'Avem **59 de destinații** disponibile în portofoliul nostru! 🌍\n\n**România:** Delta Dunării, Poiana Brașov, Bran & Brașov, Transfăgărășan, Cazanele Dunării, Maramureș, Sibiu & Sighișoara, Mamaia & Constanța\n\n**Europa:** Roma, Barcelona, Londra, Praga, Viena, Paris\n\n**Exotice:** Maldive, Kenya Safari, Bali, Santorini, Tokyo & Kyoto, Alpii Elvețieni, Dubai, Cappadocia, New York\n\n**China & Coreea de Sud:** Beijing & Marele Zid, Shanghai, Zhangjiajie (munții din Avatar), Seoul, Busan, Jeju\n\n**Noutăți:** America (Yosemite, Grand Canyon, Horseshoe Bend, San Francisco, Hawaii, Niagara, Banff, Machu Picchu, Rio de Janeiro, Patagonia), Marea Britanie și Irlanda (Edinburgh, Insula Skye, Cornwall, Irlanda), nordul Europei (Norvegia, Islanda), Africa (Cape Town, Marrakech, Egipt, Zanzibar, Serengeti, Cascada Victoria, Namibia) și Asia & Oceania (India, Vietnam, Thailanda, Iordania, Noua Zeelandă, Sydney)\n\nVrei detalii despre o destinație anume?',
         quickReplies: [
             { label: '🏖️ Destinații exotice', value: 'exotice' },
             { label: '🏔️ Destinații în România', value: 'romania' },
@@ -133,7 +133,7 @@ const botResponses = {
         ]
     },
     packages: {
-        text: 'Toate cele 29 de pachete turistice sunt afișate în secțiunea **Destinații & Pachete** de pe site. Fiecare pachet include galerie foto cu 4 imagini, descriere detaliată, preț și durata sejurului. Poți filtra după categorie (Litoral, City Break, Exotic, etc.) și după buget.\n\nVrei să vezi pachetele acum?',
+        text: 'Toate cele 59 de pachete turistice sunt afișate în secțiunea **Destinații & Pachete** de pe site. Fiecare pachet include galerie foto cu mai multe imagini, descriere detaliată, preț și durata sejurului. Poți filtra după categorie (Litoral, City Break, Exotic, etc.) și după buget.\n\nVrei să vezi pachetele acum?',
         quickReplies: [
             { label: '📋 Vezi pachetele', value: 'scroll_packages' },
             { label: '💰 Prețuri', value: 'prețuri' },
@@ -189,7 +189,7 @@ const botResponses = {
         ]
     },
     payment: {
-        text: 'Metode de plată disponibile: 💳\n\n• Transfer bancar\n• Card (Visa / Mastercard)\n• Plata în rate (pentru pachete > 500 EUR)\n• Cash la sediu\n\nAvem și opțiuni de plată în rate fără dobândă pentru anumite pachete. Contactează-ne pentru detalii!',
+        text: 'Plata se face doar după ce ai vorbit cu un agent FeelVoyage și ai primit oferta confirmată; nu se plătește pe site. 🤝\n\nModalități disponibile, stabilite împreună cu agentul:\n• Transfer bancar\n• Plata în rate (pentru pachete > 500 EUR; la unele pachete, fără dobândă)\n• Cash la sediu\n\nContactează-ne pentru detalii!',
         quickReplies: [
             { label: '📞 Contact', value: 'contact' },
             { label: '🌴 Destinații', value: 'destinații' },

@@ -37,6 +37,23 @@
         "email": {
           ".validate": "newData.isString() && newData.val().length <= 254"
         },
+        "consents": {
+          "$doc": {
+            ".validate": "($doc === 'terms' || $doc === 'privacy' || $doc === 'anpc') && newData.hasChildren(['v', 'at'])",
+            "v": {
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "at": {
+              ".validate": "newData.isNumber() && newData.val() <= now + 86400000"
+            },
+            "off": {
+              ".validate": "newData.isNumber() && newData.val() <= now + 86400000"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
         "$other": {
           ".validate": false
         }

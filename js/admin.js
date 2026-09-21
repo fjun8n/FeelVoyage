@@ -240,6 +240,23 @@
     function detailRow(icon, label, valueHtml) {
         return '<div class="flex items-start gap-3 text-sm"><i class="fa-solid ' + icon + ' w-4 text-blue-500 mt-0.5"></i><div class="min-w-0 flex-1"><p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">' + esc(label) + '</p><div class="text-slate-700 break-words">' + valueHtml + '</div></div></div>';
     }
+    // acceptările documentelor legale, salvate pe cont (versiunea curentă a documentelor e cea din pagină: data-doc-version)
+    function consentsHtml(u) {
+        const docs = [['terms', 'footer.terms', 'Termeni și Condiții'], ['privacy', 'footer.privacy', 'Politica de Confidențialitate'], ['anpc', 'footer.anpc', 'ANPC / SAL']];
+        const c = (u && u.consents) || {};
+        const muted = function (t) { return '<span class="text-slate-400 italic text-xs">' + esc(t) + '</span>'; };
+        return docs.map(function (d) {
+            const e = c[d[0]];
+            const blk = document.querySelector('.doc-accept[data-doc="' + d[0] + '"]');
+            const cur = blk ? blk.getAttribute('data-doc-version') : '';
+            let mark, txt;
+            if (!e) { mark = '<span class="text-slate-300">—</span>'; txt = muted(trF('admin.consentNone', 'neacceptat')); }
+            else if (e.off && e.off >= e.at) { mark = '<i class="fa-solid fa-ban text-rose-500"></i>'; txt = esc(trF('admin.consentOff', 'retras pe {date}').replace('{date}', fmtDate(e.off))); }
+            else if (cur && e.v !== cur) { mark = '<i class="fa-solid fa-triangle-exclamation text-amber-500"></i>'; txt = esc(trF('admin.consentOld', 'versiune veche ({v})').replace('{v}', e.v)); }
+            else { mark = '<i class="fa-solid fa-circle-check text-emerald-500"></i>'; txt = esc(trF('accept.done', 'Acceptat pe {date}').replace('{date}', fmtDate(e.at))) + ' <span class="text-slate-400">· ' + esc(e.v) + '</span>'; }
+            return '<span class="flex items-start gap-2 text-sm"><span class="w-4 shrink-0 text-center mt-0.5">' + mark + '</span><span class="min-w-0"><span class="font-semibold text-slate-700">' + esc(trF(d[1], d[2])) + '</span><br>' + txt + '</span></span>';
+        }).join('');
+    }
     function renderUser(u) {
         const v = $('adminUserView');
         const muted = function (t) { return '<span class="text-slate-400 italic text-xs">' + esc(t) + '</span>'; };
@@ -267,6 +284,7 @@
                 detailRow('fa-phone', trF('admin.phone', 'Telefon'), u.phone ? esc(u.phone) : muted(trF('admin.noPhone', 'nespecificat'))) +
                 detailRow('fa-envelope', trF('admin.email', 'E-mail'), u.email ? esc(u.email) : muted(trF('admin.noEmail', 'necunoscut (apare după următoarea autentificare a utilizatorului)'))) +
                 detailRow('fa-calendar-check', trF('admin.since', 'Membru din'), esc(fmtDate(u.createdAt))) +
+                detailRow('fa-file-signature', trF('admin.consents', 'Acceptări documente'), consentsHtml(u)) +
                 detailRow('fa-fingerprint', trF('admin.uid', 'ID cont'), '<code class="text-[11px] bg-slate-100 rounded px-1.5 py-0.5 break-all">' + esc(u.uid) + '</code> <button type="button" data-copy-uid class="ml-1 text-[11px] font-bold text-blue-600 hover:underline">' + esc(trF('admin.copy', 'Copiază')) + '</button>') +
             '</div>';
     }

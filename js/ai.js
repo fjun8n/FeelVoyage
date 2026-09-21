@@ -58,7 +58,7 @@
         return '• id=' + d.id + ' | ' + d.title + ' | ' + (CATEGORY_RO[d.category] || d.category)
             + ' | ' + durata + ' | ' + (BOARD_RO[p.board] || '') + ' | de la ' + d.price + ' € (' + d.priceRon + ') pe adult'
             + ' | transport inclus: ' + (p.transportIncluded ? 'da' : 'nu') + ' | ghid local inclus: ' + (p.guideIncluded ? 'da' : 'nu')
-            + ' | include: ' + amenities + ' | ' + shorten(d.description, 190);
+            + ' | include: ' + amenities + ' | ' + shorten(d.description, 100);   // 59 de destinații: descrieri scurte ca promptul să rămână sub ~30.000 de caractere
     }
 
     /* ------------------------------------------------------------------ instrucțiunile modelului (domeniul și regulile) */
@@ -93,10 +93,10 @@
             'INFORMAȚII DESPRE AGENȚIE ȘI SITE:',
             '• Agenție de turism din Târgu Jiu, județul Gorj. Sediu: Str. Tudor Vladimirescu nr. 124, Tg-Jiu. Program: luni–vineri 09:00–18:00, sâmbătă 10:00–14:00.',
             '• Contact: telefon și WhatsApp 0799 927 590; e-mail crucrudenis@gmail.com; pagina de Facebook „FeelVoyage”.',
-            '• Portofoliu: ' + list.length + ' destinații: România, city break în Europa, exotice și China & Coreea de Sud.',
+            '• Portofoliu: ' + list.length + ' destinații: România, city break în Europa, exotice din toată lumea (America, Marea Britanie și Irlanda, Norvegia, Islanda, Africa, India, Asia de Sud-Est, Oceania) și China & Coreea de Sud.',
             '• Formularul din secțiunea Contact: un consultant răspunde în cel mult 2 ore lucrătoare. Site-ul mai spune: consultanță gratuită și ofertă personalizată în maximum 24 de ore; prețuri în EUR și lei (cursul folosit: 5 lei = 1 €); rate fără dobândă pentru anumite pachete; asigurare de călătorie și asistență medicală opționale; consultant dedicat și grup WhatsApp de asistență în sejur.',
             '• Servicii: pachete complete (transport, cazare, transfer), city break-uri, sejururi la plajă și la munte, tururi culturale și gastronomice, safari și aventuri exotice, asigurare de călătorie, asistență în vacanță, rezervări de grup (nuntă, team building).',
-            '• Plată: transfer bancar, card (Visa / Mastercard), rate (pentru pachete peste 500 €), cash la sediu.',
+            '• Plată: se face doar după ce clientul a vorbit cu un agent și a primit oferta confirmată; NU se plătește pe site. Modalități, stabilite cu agentul: transfer bancar, rate (pentru pachete peste 500 €), cash la sediu. NU spune că se acceptă plata cu cardul (Visa / Mastercard) sau online.',
             '• Site: filtre pe categorie și buget, căutare, limbile română / engleză / italiană / franceză / spaniolă, mod luminos și întunecat, cont opțional cu e-mail (funcționează pe orice dispozitiv), contorul „Călători Fericiți” (un contor al vizitatorilor, live).',
             '• Rezervare pe site: deschizi un pachet, alegi adulții și copiii, intervalul de date, serviciile extra, vezi estimarea, completezi datele și trimiți solicitarea; un agent te contactează.',
             '',

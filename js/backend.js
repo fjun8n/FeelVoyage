@@ -17,6 +17,8 @@
     const KEY_COUNTER_LOCAL = 'fv_happy_travelers';
     const KEY_COUNTER_CACHE = 'fv_happy_cache';
     const KEY_ACCOUNTS_CACHE = 'fv_accounts_cache';
+    const KEY_CONSENTS_ACCT = 'fv_consents_acct';   // mod local: acceptările documentelor, pe e-mailul contului
+    const CONSENT_DOCS = ['terms', 'privacy', 'anpc'];
     const KEY_SESSION_LOCAL = 'fv_session';
     const KEY_USERS_LOCAL = 'fv_users';
     const KEY_SESSION_HINT = 'fv_session_hint';
@@ -37,6 +39,15 @@
         return typeof cfg[k] === 'string' && cfg[k].trim() !== '' && !/^PASTE/i.test(cfg[k].trim());
     });
 
+    // acceptările documentelor legale, salvate pe cont: { terms: { v: '2026-09', at: <ms>, off: <ms sau 0> }, ... }
+    function cleanConsents(raw) {
+        const out = {};
+        if (raw && typeof raw === 'object') CONSENT_DOCS.forEach(function (d) {
+            const e = raw[d];
+            if (e && typeof e === 'object' && typeof e.v === 'string' && Number(e.at) > 0) out[d] = { v: e.v, at: Number(e.at), off: Number(e.off) > 0 ? Number(e.off) : 0 };
+        });
+        return out;
+    }
     function cachedAccounts() { const n = parseInt(kv.get(KEY_ACCOUNTS_CACHE), 10); return Number.isFinite(n) && n > 0 ? n : 0; }
     function cachedCount() { const n = parseInt(kv.get(KEY_COUNTER_CACHE), 10); return Number.isFinite(n) && n > 0 ? n : 0; }
 
@@ -48,17 +59,31 @@
 
         function hash(str) { let h = 5381; for (let i = 0; i < str.length; i++) { h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; } return 'h' + h.toString(16); }
         function readCount() { const n = parseInt(kv.get(KEY_COUNTER_LOCAL), 10); return Number.isFinite(n) && n > 0 ? n : 0; }
-        function readSession() { return readJSON(KEY_SESSION_LOCAL, null); }
+        function acctConsents(email) { const all = readJSON(KEY_CONSENTS_ACCT, {}); return cleanConsents(all && all[email]); }
+        function withConsents(s) { return s ? Object.assign({}, s, { consents: acctConsents(s.email) }) : s; }
+        function readSession() { return withConsents(readJSON(KEY_SESSION_LOCAL, null)); }
         function users() { return readJSON(KEY_USERS_LOCAL, []); }
         function publishSession(s) {
-            if (s) kv.set(KEY_SESSION_LOCAL, JSON.stringify(s)); else kv.del(KEY_SESSION_LOCAL);
-            authSubs.forEach(function (cb) { cb(s); });
+            if (s) kv.set(KEY_SESSION_LOCAL, JSON.stringify({ name: s.name, email: s.email, phone: s.phone })); else kv.del(KEY_SESSION_LOCAL);
+            const out = withConsents(s);
+            authSubs.forEach(function (cb) { cb(out); });
+        }
+        function writeConsent(doc, mutate) {
+            const s = readJSON(KEY_SESSION_LOCAL, null);
+            if (!s || CONSENT_DOCS.indexOf(doc) < 0) return Promise.reject(FVError('forbidden'));
+            const all = readJSON(KEY_CONSENTS_ACCT, {}) || {};
+            const mine = Object.assign({}, all[s.email] || {});
+            mutate(mine);
+            all[s.email] = mine;
+            kv.set(KEY_CONSENTS_ACCT, JSON.stringify(all));
+            publishSession(s);
+            return Promise.resolve(cleanConsents(mine));
         }
 
         // Sincronizare între filele aceluiași browser
         window.addEventListener('storage', function (e) {
             if (e.key === KEY_COUNTER_LOCAL) { const n = readCount(); counterSubs.forEach(function (cb) { cb(n); }); }
-            if (e.key === KEY_SESSION_LOCAL) { const s = readSession(); authSubs.forEach(function (cb) { cb(s); }); }
+            if (e.key === KEY_SESSION_LOCAL || e.key === KEY_CONSENTS_ACCT) { const s = readSession(); authSubs.forEach(function (cb) { cb(s); }); }
             if (e.key === KEY_USERS_LOCAL) { const n = users().length; accountSubs.forEach(function (cb) { cb(n); }); }
         });
 
@@ -109,6 +134,12 @@
                 return Promise.resolve(s);
             },
             logout: function () { publishSession(null); return Promise.resolve(); },
+            saveConsent: function (doc, version, at) {
+                return writeConsent(doc, function (mine) { mine[doc] = { v: String(version), at: at ? Number(at) : Date.now() }; });
+            },
+            withdrawConsent: function (doc) {
+                return writeConsent(doc, function (mine) { if (mine[doc]) mine[doc] = Object.assign({}, mine[doc], { off: Date.now() }); });
+            },
             resetPassword: function () { return Promise.reject(FVError('unsupported')); },
             listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
             submitOrder: function (order) {
@@ -134,7 +165,7 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, resetPassword: fail, submitOrder: fail, listUsers: fail,
+            register: fail, login: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, saveConsent: fail, withdrawConsent: fail,
             logout: function () { return Promise.resolve(); }
         };
     }
@@ -234,7 +265,8 @@
                 email: email,
                 name: profile.name || user.displayName || email.split('@')[0],
                 phone: profile.phone || '',
-                admin: admin
+                admin: admin,
+                consents: cleanConsents(profile.consents)
             };
         }
 
@@ -247,6 +279,20 @@
             if (s) kv.set(KEY_SESSION_HINT, JSON.stringify({ name: s.name, email: s.email, phone: s.phone })); else kv.del(KEY_SESSION_HINT);
             authSubs.forEach(function (cb) { cb(session); });
             return s;
+        }
+
+        // după o salvare/retragere, sesiunea curentă primește imediat acceptările actualizate
+        function applyConsent(doc, val) {
+            const mine = Object.assign({}, session.consents);
+            const c = cleanConsents({ [doc]: val });
+            if (c[doc]) mine[doc] = c[doc]; else delete mine[doc];
+            session = Object.assign({}, session, { consents: mine });
+            authSubs.forEach(function (cb) { cb(session); });
+            return mine;
+        }
+        function consentError(e) {
+            if (!(e && e.code === 'network')) console.error('[FeelVoyage] Nu pot salva acceptul pe cont. Ai publicat regulile noi din firebase-rules.json?', e);
+            return FVError('network', e);
         }
 
         authM.onAuthStateChanged(auth, function (user) { refresh(user); });
@@ -313,6 +359,25 @@
                 await authM.signOut(auth);
                 await refresh(null);
             },
+            // Acceptul documentelor legale, pe cont: users/<uid>/consents/<doc> = { v: versiunea, at: ora serverului, off: ora retragerii }
+            saveConsent: async function (doc, version, at) {
+                if (!auth.currentUser || !session || CONSENT_DOCS.indexOf(doc) < 0) throw FVError('forbidden');
+                const r = dbM.ref(db, 'users/' + auth.currentUser.uid + '/consents/' + doc);
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(r, { v: String(version), at: at ? Number(at) : dbM.serverTimestamp() }), 15000);
+                    return applyConsent(doc, (await dbM.get(r)).val());
+                } catch (e) { throw consentError(e); }
+            },
+            withdrawConsent: async function (doc) {
+                if (!auth.currentUser || !session || CONSENT_DOCS.indexOf(doc) < 0) throw FVError('forbidden');
+                const r = dbM.ref(db, 'users/' + auth.currentUser.uid + '/consents/' + doc);
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.update(r, { off: dbM.serverTimestamp() }), 15000);
+                    return applyConsent(doc, (await dbM.get(r)).val());
+                } catch (e) { throw consentError(e); }
+            },
             submitOrder: async function (order) {
                 const payload = Object.assign({}, order, { status: 'nou', createdAt: dbM.serverTimestamp() });
                 if (auth.currentUser) payload.uid = auth.currentUser.uid;   // dacă e logat, comanda se leagă de contul lui
@@ -337,7 +402,7 @@
                     const users = res[0].val() || {}, admins = res[1].val() || {};
                     return Object.keys(users).map(function (uid) {
                         const u = users[uid] || {};
-                        return { uid: uid, name: String(u.name || ''), email: String(u.email || ''), phone: String(u.phone || ''), createdAt: Number(u.createdAt) || 0, admin: admins[uid] === true };
+                        return { uid: uid, name: String(u.name || ''), email: String(u.email || ''), phone: String(u.phone || ''), createdAt: Number(u.createdAt) || 0, admin: admins[uid] === true, consents: cleanConsents(u.consents) };
                     }).sort(function (a, b) { return (b.createdAt - a.createdAt) || a.name.localeCompare(b.name); });
                 } catch (e) {
                     if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
@@ -388,6 +453,8 @@
         register: function (d) { return ready.then(function (b) { return b.register(d); }); },
         login: function (e, p) { return ready.then(function (b) { return b.login(e, p); }); },
         logout: function () { return ready.then(function (b) { return b.logout(); }); },
+        saveConsent: function (doc, v, at) { return ready.then(function (b) { return b.saveConsent(doc, v, at); }); },
+        withdrawConsent: function (doc) { return ready.then(function (b) { return b.withdrawConsent(doc); }); },
         resetPassword: function (e) { return ready.then(function (b) { return b.resetPassword(e); }); },
         submitOrder: function (o) { return ready.then(function (b) { return b.submitOrder(o); }); },
         listUsers: function () { return ready.then(function (b) { return b.listUsers(); }); },

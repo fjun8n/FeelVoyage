@@ -29,7 +29,19 @@ const modalGalleryThumbnails = document.getElementById('modalGalleryThumbnails')
 
 // Unsplash permite alegerea lățimii imaginii: pe telefon descărcăm poze mai mici (mai puțini MB)
 function imgSized(url, width) {
-    return url ? url.replace(/([?&])w=\d+/, '$1w=' + width) : url;
+    if (!url) return url;
+    // Wikimedia Commons: lățimea e în adresa miniaturii (…/960px-Nume.jpg); folosim doar lățimile standard acceptate de Wikimedia
+    if (/^https:\/\/(upload|thumb)\.wikimedia\.org\//.test(url)) {
+        const steps = [250, 330, 500, 960, 1280];
+        const w = steps.find(s => s >= width) || 1280;
+        return url.replace(/\/\d+px-([^/]+)$/, '/' + w + 'px-$1');
+    }
+    return url.replace(/([?&])w=\d+/, '$1w=' + width);
+}
+// Pagina fișierului de pe Wikimedia Commons (cu autorul și licența), dedusă din adresa miniaturii; '' pentru alte surse
+function commonsFilePage(url) {
+    const m = /^https:\/\/(?:upload|thumb)\.wikimedia\.org\/wikipedia\/commons\/thumb\/[0-9a-f]\/[0-9a-f]{2}\/([^/]+)\//.exec(url || '');
+    return m ? 'https://commons.wikimedia.org/wiki/File:' + m[1] : '';
 }
 
 // Blochează derularea paginii cât timp o fereastră (modal) e deschisă; numără câte sunt deschise
@@ -41,6 +53,8 @@ function lockScroll(on) {
 
 // Render Destinations Function with RON conversion support & Rating Stars
 function renderDestinations() {
+    // numărul de destinații din pagină (statisticile din prima pagină și „Despre noi”) vine din listă
+    document.querySelectorAll('[data-dest-count]').forEach(el => { el.textContent = String(destinations.length); });
     destinationsGrid.innerHTML = '';
     
     const filtered = destinations.filter(item => {
@@ -85,7 +99,7 @@ function renderDestinations() {
                             <i class="fa-regular fa-clock mr-1"></i> ${t.period}
                         </span>
                         <span class="text-xs bg-brand-600/90 px-2 py-0.5 rounded backdrop-blur-sm font-semibold">
-                            <i class="fa-solid fa-images mr-1"></i> ${tr('dest.foto', '4 Foto')}
+                            <i class="fa-solid fa-images mr-1"></i> ${tr('dest.fotoN', '{n} Foto').replace('{n}', (item.images || []).length)}
                         </span>
                     </div>
                 </div>
@@ -187,6 +201,77 @@ if (window.matchMedia) {
     if (wide.addEventListener) wide.addEventListener('change', onWide); else if (wide.addListener) wide.addListener(onWide);
 }
 
+// ----- galeria fotografiilor din fereastra pachetului
+let galleryImages = [];
+let galleryIndex = 0;
+let galleryTitle = '';
+// pozele de pe Commons se cer la lățimea standard de 960 px; celelalte rămân cum sunt
+function mainPhotoUrl(url) { return /wikimedia\.org\//.test(url || '') ? imgSized(url, 960) : url; }
+function showPhoto(i) {
+    const n = galleryImages.length;
+    if (!n) return;
+    galleryIndex = ((i % n) + n) % n;
+    const url = galleryImages[galleryIndex];
+    modalImg.dataset.url = url;   // adresa din listă (pentru a scoate poza dacă nu se încarcă)
+    modalImg.src = mainPhotoUrl(url);
+    modalImg.alt = `${galleryTitle} foto ${galleryIndex + 1}`;
+    const thumbs = modalGalleryThumbnails.querySelectorAll('img');
+    thumbs.forEach((th, k) => {
+        th.classList.toggle('thumb-active', k === galleryIndex);
+        th.classList.toggle('border-slate-700', k !== galleryIndex);
+    });
+    const active = thumbs[galleryIndex];
+    if (active && modalGalleryThumbnails.scrollTo) {
+        const left = active.offsetLeft - modalGalleryThumbnails.offsetLeft - (modalGalleryThumbnails.clientWidth - active.offsetWidth) / 2;
+        modalGalleryThumbnails.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+    }
+    const prev = document.getElementById('modalPrev'), next = document.getElementById('modalNext'), count = document.getElementById('modalPhotoCount');
+    if (prev) prev.hidden = n < 2;
+    if (next) next.hidden = n < 2;
+    if (count) count.textContent = n > 1 ? `${galleryIndex + 1} / ${n}` : '';
+    // sursa poze: pagina fișierului de pe Commons (autor + licență)
+    const page = commonsFilePage(url), credit = document.getElementById('modalPhotoCredit'), link = document.getElementById('modalPhotoLink');
+    if (credit) credit.classList.toggle('hidden', !page);
+    if (link && page) link.href = page;
+    // încarcă din timp pozele vecine
+    if (n > 1) [galleryIndex + 1, galleryIndex - 1].forEach(k => { const u = galleryImages[((k % n) + n) % n]; if (u) { const im = new Image(); im.src = mainPhotoUrl(u); } });
+}
+// O poză de pe Commons care nu se încarcă (fișier redenumit sau șters) se scoate din galerie, ca vizitatorul să nu vadă un chenar gol
+function isCommonsUrl(url) { return /^https:\/\/(upload|thumb)\.wikimedia\.org\//.test(url || ''); }
+function dropPhoto(url) {
+    const i = galleryImages.indexOf(url);
+    if (i < 0 || galleryImages.length < 2 || !isCommonsUrl(url)) return;
+    galleryImages.splice(i, 1);
+    const th = modalGalleryThumbnails.querySelectorAll('img')[i];
+    if (th) th.remove();
+    // rămânem pe aceeași poză (sau pe următoarea, dacă tocmai a dispărut cea afișată)
+    showPhoto(galleryIndex > i ? galleryIndex - 1 : galleryIndex);
+}
+(function initGalleryControls() {
+    const prev = document.getElementById('modalPrev'), next = document.getElementById('modalNext');
+    modalImg.addEventListener('error', () => { const u = modalImg.dataset.url; if (u) dropPhoto(u); });
+    if (prev) prev.addEventListener('click', () => showPhoto(galleryIndex - 1));
+    if (next) next.addEventListener('click', () => showPhoto(galleryIndex + 1));
+    // glisare pe telefon
+    let touchX = null;
+    modalImg.addEventListener('touchstart', (e) => { touchX = e.changedTouches[0].clientX; }, { passive: true });
+    modalImg.addEventListener('touchend', (e) => {
+        if (touchX === null) return;
+        const dx = e.changedTouches[0].clientX - touchX; touchX = null;
+        if (Math.abs(dx) > 40) showPhoto(galleryIndex + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+    // săgeți de la tastatură (nu când scrii într-un câmp sau când calendarul e deschis)
+    document.addEventListener('keydown', (e) => {
+        if (bookingModal.classList.contains('hidden') || galleryImages.length < 2) return;
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        const el = e.target;
+        if (el && (/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName) || el.isContentEditable || (el.closest && el.closest('[role="grid"]')))) return;
+        if (bookingRange && bookingRange.isOpen && bookingRange.isOpen()) return;
+        showPhoto(galleryIndex + (e.key === 'ArrowRight' ? 1 : -1));
+        e.preventDefault();
+    });
+})();
+
 // Open Modal Function with Multi-Image Support & Dynamic Gallery
 let currentBookingDest = null;   // destinația pentru care e deschisă fereastra de rezervare
 function openModal(id) {
@@ -202,25 +287,23 @@ function openModal(id) {
     modalPrice.innerText = `${item.price} ${item.currency} (${item.priceRon || ''})`;
     modalDesc.innerText = t.description;
 
-    // Main display image
-    modalImg.src = item.images[0];
-
-    // Render Multi-Image 4 Photo Thumbnails Gallery
+    // Galeria: imaginea principală, săgeți, contor, miniaturi derulabile și sursa pozei (11–15 poze la fiecare pachet)
+    galleryImages = item.images.slice();
+    galleryTitle = t.title;
     modalGalleryThumbnails.innerHTML = '';
-    item.images.forEach((imgUrl, index) => {
+    galleryImages.forEach((imgUrl, index) => {
         const thumb = document.createElement('img');
-        thumb.src = imgSized(imgUrl, 160);
+        thumb.src = imgSized(imgUrl, 250);
         thumb.alt = `${t.title} foto ${index + 1}`;
+        thumb.loading = 'lazy';
+        thumb.decoding = 'async';
         thumb.className = `w-16 h-12 object-cover rounded-lg cursor-pointer border-2 transition-all opacity-70 hover:opacity-100 ${index === 0 ? 'thumb-active' : 'border-slate-700'}`;
-        
-        thumb.addEventListener('click', () => {
-            modalImg.src = imgUrl;
-            document.querySelectorAll('#modalGalleryThumbnails img').forEach(t => t.classList.remove('thumb-active'));
-            thumb.classList.add('thumb-active');
-        });
-        
+        // poziția se citește la click (după ce unele poze pot fi scoase din listă)
+        thumb.addEventListener('click', () => showPhoto(Array.prototype.indexOf.call(modalGalleryThumbnails.children, thumb)));
+        thumb.addEventListener('error', () => dropPhoto(imgUrl));
         modalGalleryThumbnails.appendChild(thumb);
     });
+    showPhoto(0);
 
     // Render Amenities
     modalAmenities.innerHTML = t.amenities.map(a => `
@@ -231,7 +314,9 @@ function openModal(id) {
 
     initBookingPricing(item);
 
-    if (bookingModal.classList.contains('hidden')) lockScroll(true);
+    // dacă fereastra a fost închisă cu câteva zeci de milisecunde înainte, anulăm ascunderea întârziată (și reblocăm derularea)
+    if (bookingModal.classList.contains('hidden') || modalCloseTimer) lockScroll(true);
+    clearTimeout(modalCloseTimer); modalCloseTimer = null;
     bookingModal.classList.remove('hidden');
     setTimeout(() => {
         modalContainer.classList.remove('scale-95', 'opacity-0');
@@ -239,13 +324,15 @@ function openModal(id) {
     }, 10);
 }
 
+let modalCloseTimer = null;
 function closeModal() {
-    if (bookingModal.classList.contains('hidden')) return;
+    if (bookingModal.classList.contains('hidden') || modalCloseTimer) return;
     if (bookingRange) bookingRange.close();
     lockScroll(false);
     modalContainer.classList.remove('scale-100', 'opacity-100');
     modalContainer.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => {
+    modalCloseTimer = setTimeout(() => {
+        modalCloseTimer = null;
         bookingModal.classList.add('hidden');
     }, 200);
 }
