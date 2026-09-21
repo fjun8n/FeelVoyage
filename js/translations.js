@@ -96,15 +96,13 @@ const i18n = {
 
         'about.close': 'Close',
 
-        // Termeni și Condiții
+        // Documente legale, acceptare, contor conturi
 
-        'terms.badge': 'Legal documents',
-
-        'terms.title': 'Terms and Conditions',
+        'legal.badge': 'Legal documents',
 
         'terms.subtitle': 'The rules for using the site and the conditions for booking, paying for and cancelling FeelVoyage services.',
 
-        'terms.toc': 'Contents',
+        'legal.toc': 'Contents',
 
         'terms.co.label': 'Site operator',
 
@@ -170,7 +168,7 @@ const i18n = {
 
         'terms.s3.b4.lead': 'Payment methods',
 
-        'terms.s3.b4.text': 'We accept online card payment (through the secure payment processor Stripe / Netopia Payments), bank transfer, or cash / card at the agency\'s office, within the legal cash-payment limits.',
+        'terms.s3.b4.text': 'No payments are made on the website. Payment is made only after you have spoken with a FeelVoyage agent and received the confirmed offer. The payment method (for example, bank transfer or cash at the agency\'s office) is agreed together with the agent, within the legal cash-payment limits.',
 
         'terms.s4.b1.lead': 'Cancellation by the client',
 
@@ -214,17 +212,256 @@ const i18n = {
 
         'terms.s11.intro': 'For assistance, bookings or further information, our team is at your service:',
 
-        'terms.ct.address': 'Address',
+        'legal.ct.address': 'Address',
 
-        'terms.ct.phone': 'Support and emergency phone',
+        'legal.ct.phone': 'Support and emergency phone',
 
-        'terms.ct.email': 'E-mail',
+        'legal.ct.email': 'E-mail',
 
-        'terms.ct.hours': 'Opening hours',
+        'legal.ct.hours': 'Opening hours',
 
-        'terms.ct.hoursVal': 'Non-stop (24/7)',
+        'legal.ct.hoursVal': 'Non-stop (24/7)',
 
-        'terms.note': 'This document is drafted in Romanian. Translations are for guidance only; in case of any discrepancy, the Romanian version prevails.',
+        'legal.note': 'This document is drafted in Romanian. Translations are for guidance only; in case of any discrepancy, the Romanian version prevails.',
+
+        'legal.updated': 'Last updated: September 2026',
+
+        'privacy.subtitle': 'How we collect, use, store and protect your personal data.',
+
+        'privacy.lead1': 'Welcome to the FeelVoyage website. We are committed to protecting your privacy and personal data. This Privacy Policy explains how we collect, use, store and protect your information when you visit our website and use our travel services.',
+
+        'privacy.lead2': 'By using the website and our services, you agree to the practices described in this policy.',
+
+        'privacy.s1.title': 'What personal data do we collect?',
+
+        'privacy.s2.title': 'How do we use your data?',
+
+        'privacy.s3.title': 'Who do we share your data with?',
+
+        'privacy.s4.title': 'How long do we keep your data?',
+
+        'privacy.s5.title': 'Your rights (under the GDPR)',
+
+        'privacy.s6.title': 'Contact details and non-stop support',
+
+        'privacy.s1.intro': 'To offer you the best travel experiences, we collect the following types of information:',
+
+        'privacy.s1.b1.lead': 'Identification and contact data',
+
+        'privacy.s1.b1.text': 'First and last name, e-mail address, telephone number and home / billing address.',
+
+        'privacy.s1.b2.lead': 'Data needed for travel',
+
+        'privacy.s1.b2.text': 'Passenger information (including date of birth or identity document / passport details, where airlines or hotels strictly require it for a booking), travel preferences and booking history.',
+
+        'privacy.s1.b3.lead': 'Billing data',
+
+        'privacy.s1.b3.text': 'The details needed to issue invoices.',
+
+        'privacy.s1.b4.lead': 'Technical data',
+
+        'privacy.s1.b4.text': 'IP address, browser type, operating system and how you browse our website, collected through cookies and similar technologies.',
+
+        'privacy.s1.b5.lead': 'Account and chat',
+
+        'privacy.s1.b5.text': 'If you create an account, we keep your name, telephone number and e-mail address; your password is handled by the authentication service and we cannot see it. Chat messages are processed by the virtual assistant: please do not write personal data in the chat, use the forms instead.',
+
+        'privacy.s2.intro': 'The information we collect is used exclusively for the following purposes:',
+
+        'privacy.s2.l1': 'processing, confirming and managing your bookings (flights, accommodation, holiday packages);',
+
+        'privacy.s2.l2': 'providing customer assistance and non-stop (24/7) support for any issue related to your trip;',
+
+        'privacy.s2.l3': 'sending important notifications about flight changes, check-in or travel rules;',
+
+        'privacy.s2.l4': 'issuing invoices and meeting the financial and accounting obligations set by Romanian law;',
+
+        'privacy.s2.l5': 'improving our services and, only with your prior consent, sending special offers or newsletters.',
+
+        'privacy.s3.intro': 'We do not sell or trade your personal data. However, to honour your bookings we must share part of your data with trusted partners:',
+
+        'privacy.s3.b1.lead': 'Travel service providers',
+
+        'privacy.s3.b1.text': 'Airlines, hotels, transfer companies or local tour operators (who need your name to validate the booking).',
+
+        'privacy.s3.b2.lead': 'Public authorities',
+
+        'privacy.s3.b2.text': 'Customs or border police, only where the legislation of the destination countries requires it.',
+
+        'privacy.s3.b3.lead': 'Technical partners',
+
+        'privacy.s3.b3.text': 'Web hosting and infrastructure providers (including Google / Firebase, for accounts, booking requests and the virtual assistant), who are contractually required to protect your data.',
+
+        'privacy.s4.p1': 'We keep your personal data only for as long as necessary for the purposes above or for the period required by applicable law (for example, financial and accounting documents must be kept by law for several years).',
+
+        'privacy.s5.intro': 'Under the General Data Protection Regulation (GDPR), you have the following rights:',
+
+        'privacy.s5.b1.lead': 'Right of access',
+
+        'privacy.s5.b1.text': 'To find out what personal data we process about you.',
+
+        'privacy.s5.b2.lead': 'Right to rectification',
+
+        'privacy.s5.b2.text': 'To ask for incorrect or incomplete data to be corrected.',
+
+        'privacy.s5.b3.lead': 'Right to erasure (“right to be forgotten”)',
+
+        'privacy.s5.b3.text': 'To ask for your data to be deleted from our records if there is no longer a legal basis for keeping it.',
+
+        'privacy.s5.b4.lead': 'Right to restriction of processing and data portability',
+
+        'privacy.s5.b4.text': 'To ask us to limit how we process your data and to receive it in a structured format.',
+
+        'privacy.s5.b5.lead': 'Right to object to direct marketing',
+
+        'privacy.s5.b5.text': 'To refuse marketing communications at any time.',
+
+        'privacy.s5.b6.lead': 'Right to lodge a complaint',
+
+        'privacy.s5.b6.text': 'You can contact the National Supervisory Authority for Personal Data Processing (ANSPDCP).',
+
+        'privacy.s5.exercise': 'To exercise your rights, write to us at the e-mail address in the contact section; we reply within one month at most.',
+
+        'privacy.s6.intro': 'The FeelVoyage team is at your service 24/7 for any question about the privacy of your data or for planning your next holiday. You can contact us using the details below:',
+
+        'privacy.ct.name': 'Agency name',
+
+        'privacy.s6.p2': 'We reserve the right to change this Privacy Policy. Any update will be published on this page.',
+
+        'anpc.subtitle': 'Alternative dispute resolution: what SAL is and where to turn if you have a complaint.',
+
+        'anpc.s1.title': 'Contact us first',
+
+        'anpc.s2.title': 'What is SAL?',
+
+        'anpc.s3.title': 'How to request SAL resolution',
+
+        'anpc.s4.title': 'Other ways to resolve a dispute',
+
+        'anpc.s5.title': 'Official sources',
+
+        'anpc.s1.p1': 'If you are unhappy with a booking or with FeelVoyage\'s services, write or call us: often the problem can be solved directly and quickly. Keep your evidence (the offer, confirmations, e-mails, invoices).',
+
+        'anpc.s1.p2': 'See also the section on complaints in the',
+
+        'anpc.s2.p1': 'Alternative dispute resolution (SAL, from the Romanian “soluționarea alternativă a litigiilor”) is a legal procedure that lets consumers settle disagreements with traders amicably, without going to court. The procedure is regulated and coordinated by ANPC (the National Authority for Consumer Protection).',
+
+        'anpc.s2.p2': 'SAL is voluntary and, as a rule, free of charge or low-cost. It applies to disputes arising from sales or service contracts between consumers and traders, in the sectors where ANPC is competent. Your right to go to court always remains valid.',
+
+        'anpc.s2.tip': 'The European online dispute resolution platform (ODR) has been abolished by Regulation (EU) 2024/3228 and is no longer available.',
+
+        'anpc.s3.l1': 'Contact the trader (FeelVoyage) first and try to solve the problem directly; keep your evidence.',
+
+        'anpc.s3.l2': 'If you have not reached a solution, fill in the SAL request online on the ANPC portal (reclamatiisal.anpc.ro) or download the form from anpc.ro.',
+
+        'anpc.s3.l3': 'Attach the relevant documents (the contract or offer, proof of payment, correspondence) and proof that you contacted the trader.',
+
+        'anpc.s3.l4': 'The SAL entity examines the request and communicates the proposed solution; the court route remains open.',
+
+        'anpc.s3.tip': 'As a general rule, the request must be submitted within 1 year of the date you contacted the trader or of the event complained about (Government Ordinance No. 38/2015). The exact conditions are those published on the ANPC website.',
+
+        'anpc.s4.b1.lead': 'Complaint to ANPC',
+
+        'anpc.s4.b1.text': 'You can file a complaint with the National Authority for Consumer Protection, using your real details (not anonymously), the name of the trader, a description of the situation and supporting documents. Head office: Bulevardul Aviatorilor no. 72, sector 1, Bucharest.',
+
+        'anpc.s4.b2.lead': 'European Consumer Centre Romania (ECC Romania)',
+
+        'anpc.s4.b2.text': 'If the dispute involves a trader from another EU country (for example, an airline or a hotel abroad), ECC Romania provides free information and support with an amicable settlement.',
+
+        'anpc.s4.b3.lead': 'Court',
+
+        'anpc.s4.b3.text': 'You can always take the matter to the competent courts, under the conditions set by law.',
+
+        'anpc.s5.p1': 'The information above is general and for guidance only; it does not replace legal advice. The official and most up-to-date source is the ANPC website.',
+
+        'accept.label': 'Acceptance',
+
+        'accept.terms': 'I have read and accept the Terms and Conditions',
+
+        'accept.privacy': 'I have read and accept the Privacy Policy',
+
+        'accept.anpc': 'I have read and taken note of the ANPC / SAL information',
+
+        'accept.btn': 'Accept',
+
+        'accept.done': 'Accepted on {date}',
+
+        'accept.withdraw': 'Withdraw acceptance',
+
+        'accept.note': 'Your acceptance is saved only on this device (in the browser); it is not sent to FeelVoyage.',
+
+        'accept.status': 'Acceptance status',
+
+        'accept.toast': 'Thank you! Your acceptance has been saved.',
+
+        'accept.toastOff': 'Acceptance withdrawn.',
+
+        'hero.statAccounts': 'Accounts Created',
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Auth System
         'auth.loginBtn': 'My Account',
         'auth.modalTitle': 'Welcome to FeelVoyage',
@@ -782,15 +1019,13 @@ const i18n = {
 
         'about.close': 'Chiudi',
 
-        // Termeni și Condiții
+        // Documente legale, acceptare, contor conturi
 
-        'terms.badge': 'Documenti legali',
-
-        'terms.title': 'Termini e Condizioni',
+        'legal.badge': 'Documenti legali',
 
         'terms.subtitle': 'Le regole d\'uso del sito e le condizioni di prenotazione, pagamento e annullamento dei servizi FeelVoyage.',
 
-        'terms.toc': 'Indice',
+        'legal.toc': 'Indice',
 
         'terms.co.label': 'Gestore del sito',
 
@@ -856,7 +1091,7 @@ const i18n = {
 
         'terms.s3.b4.lead': 'Modalità di pagamento',
 
-        'terms.s3.b4.text': 'Accettiamo il pagamento online con carta bancaria (tramite il processore sicuro Stripe / Netopia Payments), il bonifico bancario oppure contanti / carta presso la sede dell\'agenzia, nel rispetto dei limiti di legge per gli incassi.',
+        'terms.s3.b4.text': 'Sul sito non si effettuano pagamenti. Il pagamento avviene esclusivamente dopo aver parlato con un agente FeelVoyage e aver ricevuto l\'offerta confermata. La modalità di pagamento (ad esempio, bonifico bancario o contanti presso la sede dell\'agenzia) viene concordata con l\'agente, nel rispetto dei limiti di legge per gli incassi.',
 
         'terms.s4.b1.lead': 'Annullamento da parte del cliente',
 
@@ -900,17 +1135,256 @@ const i18n = {
 
         'terms.s11.intro': 'Per assistenza, prenotazioni o ulteriori informazioni, il nostro team è a vostra disposizione:',
 
-        'terms.ct.address': 'Indirizzo',
+        'legal.ct.address': 'Indirizzo',
 
-        'terms.ct.phone': 'Telefono assistenza e urgenze',
+        'legal.ct.phone': 'Telefono assistenza e urgenze',
 
-        'terms.ct.email': 'E-mail',
+        'legal.ct.email': 'E-mail',
 
-        'terms.ct.hours': 'Orario',
+        'legal.ct.hours': 'Orario',
 
-        'terms.ct.hoursVal': 'Non-stop (24/7)',
+        'legal.ct.hoursVal': 'Non-stop (24/7)',
 
-        'terms.note': 'Il presente documento è redatto in lingua rumena. Le traduzioni hanno valore puramente indicativo; in caso di discrepanze prevale la versione in lingua rumena.',
+        'legal.note': 'Il presente documento è redatto in lingua rumena. Le traduzioni hanno valore puramente indicativo; in caso di discrepanze prevale la versione in lingua rumena.',
+
+        'legal.updated': 'Ultimo aggiornamento: settembre 2026',
+
+        'privacy.subtitle': 'Come raccogliamo, utilizziamo, conserviamo e proteggiamo i tuoi dati personali.',
+
+        'privacy.lead1': 'Benvenuto sul sito FeelVoyage. Ci impegniamo a proteggere la tua privacy e i tuoi dati personali. La presente Informativa sulla Privacy spiega come raccogliamo, utilizziamo, conserviamo e proteggiamo le tue informazioni quando visiti il nostro sito e utilizzi i nostri servizi turistici.',
+
+        'privacy.lead2': 'Utilizzando il sito e i nostri servizi, accetti le pratiche descritte in questa informativa.',
+
+        'privacy.s1.title': 'Quali dati personali raccogliamo?',
+
+        'privacy.s2.title': 'Come utilizziamo i tuoi dati?',
+
+        'privacy.s3.title': 'A chi trasmettiamo i tuoi dati?',
+
+        'privacy.s4.title': 'Per quanto tempo conserviamo i dati?',
+
+        'privacy.s5.title': 'I tuoi diritti (ai sensi del GDPR)',
+
+        'privacy.s6.title': 'Recapiti e assistenza non-stop',
+
+        'privacy.s1.intro': 'Per offrirti le migliori esperienze di viaggio, raccogliamo le seguenti tipologie di informazioni:',
+
+        'privacy.s1.b1.lead': 'Dati identificativi e di contatto',
+
+        'privacy.s1.b1.text': 'Nome, cognome, indirizzo e-mail, numero di telefono e indirizzo di residenza / fatturazione.',
+
+        'privacy.s1.b2.lead': 'Dati necessari per il viaggio',
+
+        'privacy.s1.b2.text': 'Informazioni sui passeggeri (inclusi data di nascita o dati del documento d\'identità / passaporto, quando le compagnie aeree o gli alberghi li richiedono strettamente per la prenotazione), preferenze di viaggio e storico delle prenotazioni.',
+
+        'privacy.s1.b3.lead': 'Dati di fatturazione',
+
+        'privacy.s1.b3.text': 'I dettagli necessari per emettere le fatture.',
+
+        'privacy.s1.b4.lead': 'Dati tecnici',
+
+        'privacy.s1.b4.text': 'Indirizzo IP, tipo di browser, sistema operativo e modalità di navigazione sul nostro sito, raccolti tramite cookie e tecnologie simili.',
+
+        'privacy.s1.b5.lead': 'Account e chat',
+
+        'privacy.s1.b5.text': 'Se crei un account, conserviamo nome, telefono e indirizzo e-mail; la password è gestita dal servizio di autenticazione e non possiamo vederla. I messaggi della chat sono elaborati dall\'assistente virtuale: ti preghiamo di non scrivere dati personali nella chat, ma di usare i moduli.',
+
+        'privacy.s2.intro': 'Le informazioni che raccogliamo sono utilizzate esclusivamente per le seguenti finalità:',
+
+        'privacy.s2.l1': 'elaborare, confermare e gestire le tue prenotazioni (voli, alloggi, pacchetti turistici);',
+
+        'privacy.s2.l2': 'offrire assistenza clienti e supporto non-stop (24/7) per qualsiasi problema legata al tuo viaggio;',
+
+        'privacy.s2.l3': 'inviare notifiche importanti su modifiche dei voli, check-in o regole di viaggio;',
+
+        'privacy.s2.l4': 'emettere le fatture e rispettare gli obblighi finanziari e contabili previsti dalla legislazione rumena;',
+
+        'privacy.s2.l5': 'migliorare i nostri servizi e, solo con il tuo consenso preventivo, inviare offerte speciali o newsletter.',
+
+        'privacy.s3.intro': 'Non vendiamo né commercializziamo i tuoi dati personali. Tuttavia, per onorare le tue prenotazioni, dobbiamo trasmettere una parte dei dati a partner di fiducia:',
+
+        'privacy.s3.b1.lead': 'Fornitori di servizi turistici',
+
+        'privacy.s3.b1.text': 'Compagnie aeree, alberghi, società di trasferimento o tour operator locali (che hanno bisogno del tuo nome per convalidare la prenotazione).',
+
+        'privacy.s3.b2.lead': 'Autorità pubbliche',
+
+        'privacy.s3.b2.text': 'Dogane o polizia di frontiera, esclusivamente se la legislazione dei paesi di destinazione lo impone.',
+
+        'privacy.s3.b3.lead': 'Partner tecnici',
+
+        'privacy.s3.b3.text': 'Fornitori di servizi di hosting e infrastruttura (inclusi Google / Firebase, per account, richieste di prenotazione e assistente virtuale), contrattualmente obbligati a proteggere i tuoi dati.',
+
+        'privacy.s4.p1': 'Conserviamo i tuoi dati personali solo per il tempo necessario alle finalità sopra indicate o per il periodo imposto dalle leggi applicabili (ad esempio, i documenti finanziari e contabili devono essere conservati per legge per diversi anni).',
+
+        'privacy.s5.intro': 'Ai sensi del Regolamento generale sulla protezione dei dati (GDPR), hai i seguenti diritti:',
+
+        'privacy.s5.b1.lead': 'Diritto di accesso',
+
+        'privacy.s5.b1.text': 'Sapere quali dati personali trattiamo su di te.',
+
+        'privacy.s5.b2.lead': 'Diritto di rettifica',
+
+        'privacy.s5.b2.text': 'Chiedere la correzione di dati errati o incompleti.',
+
+        'privacy.s5.b3.lead': 'Diritto alla cancellazione («diritto all\'oblio»)',
+
+        'privacy.s5.b3.text': 'Chiedere la cancellazione dei tuoi dati dai nostri archivi, se non esiste più una base giuridica per conservarli.',
+
+        'privacy.s5.b4.lead': 'Diritto di limitazione del trattamento e alla portabilità dei dati',
+
+        'privacy.s5.b4.text': 'Chiedere di limitare il trattamento dei tuoi dati e di riceverli in un formato strutturato.',
+
+        'privacy.s5.b5.lead': 'Diritto di opposizione al marketing diretto',
+
+        'privacy.s5.b5.text': 'Rifiutare in qualsiasi momento le comunicazioni di marketing.',
+
+        'privacy.s5.b6.lead': 'Diritto di proporre reclamo',
+
+        'privacy.s5.b6.text': 'Puoi rivolgerti all\'Autorità nazionale di controllo per il trattamento dei dati personali (ANSPDCP).',
+
+        'privacy.s5.exercise': 'Per esercitare i tuoi diritti, scrivici all\'indirizzo e-mail indicato nella sezione dei recapiti; rispondiamo entro un mese al massimo.',
+
+        'privacy.s6.intro': 'Il team FeelVoyage è a tua disposizione 24 ore su 24 per qualsiasi domanda sulla privacy dei tuoi dati o per pianificare la tua prossima vacanza. Puoi contattarci usando i recapiti qui sotto:',
+
+        'privacy.ct.name': 'Denominazione agenzia',
+
+        'privacy.s6.p2': 'Ci riserviamo il diritto di modificare la presente Informativa sulla Privacy. Ogni aggiornamento sarà pubblicato in questa pagina.',
+
+        'anpc.subtitle': 'Risoluzione alternativa delle controversie: cos\'è il SAL e a chi rivolgersi in caso di reclamo.',
+
+        'anpc.s1.title': 'Contattaci per primo',
+
+        'anpc.s2.title': 'Che cos\'è il SAL?',
+
+        'anpc.s3.title': 'Come richiedere la risoluzione tramite SAL',
+
+        'anpc.s4.title': 'Altre vie di risoluzione',
+
+        'anpc.s5.title': 'Fonti ufficiali',
+
+        'anpc.s1.p1': 'Se hai un problema con una prenotazione o con i servizi FeelVoyage, scrivici o chiamaci: spesso la questione si risolve direttamente e in fretta. Conserva le prove (offerta, conferme, e-mail, fatture).',
+
+        'anpc.s1.p2': 'Vedi anche la sezione sui reclami nei',
+
+        'anpc.s2.p1': 'La soluzione alternativa delle controversie (SAL, dal rumeno «soluționarea alternativă a litigiilor») è una procedura legale con cui i consumatori possono risolvere in via amichevole le controversie con i professionisti, senza ricorrere al giudice. La procedura è disciplinata e coordinata dall\'ANPC (Autorità nazionale per la protezione dei consumatori).',
+
+        'anpc.s2.p2': 'Il SAL è volontario e, di regola, gratuito o a costi minimi. Si applica alle controversie derivanti da contratti di vendita o di prestazione di servizi tra consumatori e professionisti, nei settori in cui l\'ANPC è competente. Il diritto di rivolgersi all\'autorità giudiziaria resta sempre valido.',
+
+        'anpc.s2.tip': 'La piattaforma europea di risoluzione online delle controversie (ODR) è stata abrogata dal Regolamento (UE) 2024/3228 e non è più disponibile.',
+
+        'anpc.s3.l1': 'Contatta prima il professionista (FeelVoyage) e cerca di risolvere il problema direttamente; conserva le prove.',
+
+        'anpc.s3.l2': 'Se non avete trovato una soluzione, compila la richiesta SAL online sul portale ANPC (reclamatiisal.anpc.ro) oppure scarica il modulo da anpc.ro.',
+
+        'anpc.s3.l3': 'Allega i documenti pertinenti (contratto o offerta, prova di pagamento, corrispondenza) e la prova di aver contattato il professionista.',
+
+        'anpc.s3.l4': 'L\'entità SAL esamina la richiesta e comunica la soluzione proposta; resta aperta la via giudiziaria.',
+
+        'anpc.s3.tip': 'In linea generale, la richiesta deve essere presentata entro 1 anno dalla data in cui hai contattato il professionista o dal fatto contestato (Ordinanza del Governo n. 38/2015). Le condizioni esatte sono quelle pubblicate sul sito dell\'ANPC.',
+
+        'anpc.s4.b1.lead': 'Reclamo all\'ANPC',
+
+        'anpc.s4.b1.text': 'Puoi presentare un reclamo all\'Autorità nazionale per la protezione dei consumatori, con i tuoi dati reali (non in forma anonima), la denominazione del professionista, la descrizione della situazione e i documenti a supporto. Sede centrale: Bulevardul Aviatorilor n. 72, settore 1, Bucarest.',
+
+        'anpc.s4.b2.lead': 'Centro europeo dei consumatori Romania (ECC Romania)',
+
+        'anpc.s4.b2.text': 'Se la controversia riguarda un professionista di un altro Stato UE (ad esempio una compagnia aerea o un albergo all\'estero), l\'ECC Romania offre gratuitamente informazioni e assistenza per una soluzione amichevole.',
+
+        'anpc.s4.b3.lead': 'Autorità giudiziaria',
+
+        'anpc.s4.b3.text': 'Puoi sempre rivolgerti ai tribunali competenti, alle condizioni previste dalla legge.',
+
+        'anpc.s5.p1': 'Le informazioni sopra riportate sono di carattere generale e informativo; non sostituiscono la consulenza legale. La fonte ufficiale e più aggiornata è il sito dell\'ANPC.',
+
+        'accept.label': 'Accettazione',
+
+        'accept.terms': 'Ho letto e accetto i Termini e Condizioni',
+
+        'accept.privacy': 'Ho letto e accetto l\'Informativa sulla Privacy',
+
+        'accept.anpc': 'Ho letto e preso atto delle informazioni su ANPC / SAL',
+
+        'accept.btn': 'Accetta',
+
+        'accept.done': 'Accettato il {date}',
+
+        'accept.withdraw': 'Revoca l\'accettazione',
+
+        'accept.note': 'L\'accettazione viene salvata solo su questo dispositivo (nel browser); non viene inviata a FeelVoyage.',
+
+        'accept.status': 'Stato delle accettazioni',
+
+        'accept.toast': 'Grazie! L\'accettazione è stata salvata.',
+
+        'accept.toastOff': 'Accettazione revocata.',
+
+        'hero.statAccounts': 'Account Creati',
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Auth System
         'auth.loginBtn': 'Il Mio Account',
         'auth.modalTitle': 'Benvenuto su FeelVoyage',

@@ -234,7 +234,7 @@
             </div>
 
             <!-- Stats Bar -->
-            <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto pt-6 border-t border-white/10 text-center">
+            <div class="hero-stats mt-12 gap-6 max-w-4xl mx-auto pt-6 border-t border-white/10 text-center">
                 <!-- Contor: +1 la fiecare click (vezi js/counter.js) -->
                 <button type="button" data-happy-counter class="happy-counter block w-full cursor-pointer rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
                     <span class="relative block">
@@ -245,6 +245,16 @@
                         <span class="text-xs text-slate-300 font-medium" data-i18n="hero.stat1">Călători Fericiți</span>
                     </span>
                 </button>
+                <!-- Conturi create: număr live (vezi js/accounts.js) -->
+                <div data-accounts-stat>
+                    <span class="relative block">
+                        <span data-accounts-count class="block text-2xl sm:text-3xl font-extrabold text-amber-300">0</span>
+                    </span>
+                    <span class="flex items-center justify-center gap-1.5">
+                        <span class="live-dot hidden" data-live-dot aria-hidden="true"></span>
+                        <span class="text-xs text-slate-300 font-medium" data-i18n="hero.statAccounts">Conturi Create</span>
+                    </span>
+                </div>
                 <div>
                     <p class="text-2xl sm:text-3xl font-extrabold text-amber-300">29</p>
                     <p class="text-xs text-slate-300 font-medium" data-i18n="hero.stat2">Destinații Active</p>
@@ -534,8 +544,8 @@
                 <p data-i18n="footer.copyright">&copy; 2026 FeelVoyage Romania. Toate drepturile rezervate.</p>
                 <div class="flex flex-wrap items-center justify-center gap-4">
                     <a href="#termeni" class="hover:text-slate-400" data-i18n="footer.terms">Termeni și Condiții</a>
-                    <a href="#" class="hover:text-slate-400" data-i18n="footer.privacy">Politica de Confidențialitate</a>
-                    <a href="#" class="hover:text-slate-400" data-i18n="footer.anpc">ANPC / SAL</a>
+                    <a href="#confidentialitate" class="hover:text-slate-400" data-i18n="footer.privacy">Politica de Confidențialitate</a>
+                    <a href="#anpc" class="hover:text-slate-400" data-i18n="footer.anpc">ANPC / SAL</a>
                     <span class="text-slate-700">•</span>
                     <span class="text-slate-500">Made by <span class="font-semibold text-slate-300">DeDe</span></span>
                 </div>
@@ -950,44 +960,45 @@
         </div>
     </div>
 
-    <!-- Termeni și Condiții (fereastră): se deschide din „Termeni și Condiții" din subsol; logica e în js/infomodal.js -->
+    <!-- Termeni și Condiții (fereastră): se deschide din subsol; logica e în js/infomodal.js -->
     <div id="termsModal" class="fixed inset-0 z-[90] hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="termsModalTitle">
-        <div id="termsModalContainer" class="terms-panel relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94svh] sm:max-h-[92vh] flex flex-col transform transition-all scale-95 opacity-0">
-            <button id="closeTermsBtn" type="button" aria-label="Închide" data-i18n-aria="about.close" class="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/30 text-white hover:bg-black/60 flex items-center justify-center transition">
+        <div id="termsModalContainer" class="doc-panel relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94svh] sm:max-h-[92vh] flex flex-col transform transition-all scale-95 opacity-0">
+            <button id="closeTermsBtn" type="button" aria-label="Închide" data-i18n-aria="about.close" class="doc-close absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/30 text-white hover:bg-black/60 flex items-center justify-center transition">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <div id="termsScroll" class="relative overflow-y-auto">
+            <div id="termsScroll" class="doc-scroll relative overflow-y-auto">
                 <div class="text-center max-w-2xl mx-auto space-y-3">
-                    <span class="px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-700 text-xs font-bold uppercase tracking-wider" data-i18n="terms.badge">Documente legale</span>
-                    <h2 id="termsModalTitle" class="text-2xl sm:text-4xl font-extrabold font-serif text-slate-900" data-i18n="terms.title">Termeni și Condiții</h2>
+                    <span class="px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-700 text-xs font-bold uppercase tracking-wider" data-i18n="legal.badge">Documente legale</span>
+                    <h2 id="termsModalTitle" class="text-2xl sm:text-4xl font-extrabold font-serif text-slate-900" data-i18n="footer.terms">Termeni și Condiții</h2>
                     <p class="text-slate-600 text-sm sm:text-base" data-i18n="terms.subtitle">Regulile de utilizare a site-ului și condițiile de rezervare, plată și anulare a serviciilor FeelVoyage.</p>
+                    <p class="doc-updated text-slate-500" data-i18n="legal.updated">Ultima actualizare: septembrie 2026</p>
                 </div>
 
-                <p class="terms-toc-title text-slate-500" data-i18n="terms.toc">Cuprins</p>
-                <nav class="terms-toc" aria-label="Cuprins" data-i18n-aria="terms.toc">
-                    <a href="#terms-s1" data-terms-go="terms-s1"><span class="terms-num terms-num-sm">I</span><span data-i18n="terms.s1.title">Introducere</span></a>
-                    <a href="#terms-s2" data-terms-go="terms-s2"><span class="terms-num terms-num-sm">II</span><span data-i18n="terms.s2.title">Serviciile oferite și rolul agenției</span></a>
-                    <a href="#terms-s3" data-terms-go="terms-s3"><span class="terms-num terms-num-sm">III</span><span data-i18n="terms.s3.title">Rezervări, tarife și modalități de plată</span></a>
-                    <a href="#terms-s4" data-terms-go="terms-s4"><span class="terms-num terms-num-sm">IV</span><span data-i18n="terms.s4.title">Anulări, modificări și penalizări</span></a>
-                    <a href="#terms-s5" data-terms-go="terms-s5"><span class="terms-num terms-num-sm">V</span><span data-i18n="terms.s5.title">Documente de călătorie, vize și condiții de sănătate</span></a>
-                    <a href="#terms-s6" data-terms-go="terms-s6"><span class="terms-num terms-num-sm">VI</span><span data-i18n="terms.s6.title">Limitarea răspunderii</span></a>
-                    <a href="#terms-s7" data-terms-go="terms-s7"><span class="terms-num terms-num-sm">VII</span><span data-i18n="terms.s7.title">Forță majoră</span></a>
-                    <a href="#terms-s8" data-terms-go="terms-s8"><span class="terms-num terms-num-sm">VIII</span><span data-i18n="terms.s8.title">Proprietate intelectuală</span></a>
-                    <a href="#terms-s9" data-terms-go="terms-s9"><span class="terms-num terms-num-sm">IX</span><span data-i18n="terms.s9.title">Protecția datelor cu caracter personal (GDPR)</span></a>
-                    <a href="#terms-s10" data-terms-go="terms-s10"><span class="terms-num terms-num-sm">X</span><span data-i18n="terms.s10.title">Reclamații, legislație și litigii</span></a>
-                    <a href="#terms-s11" data-terms-go="terms-s11"><span class="terms-num terms-num-sm">XI</span><span data-i18n="terms.s11.title">Date de contact</span></a>
+                <p class="doc-toc-title text-slate-500" data-i18n="legal.toc">Cuprins</p>
+                <nav class="doc-toc" aria-label="Cuprins" data-i18n-aria="legal.toc">
+                    <a href="#terms-s1" data-doc-go="terms-s1"><span class="doc-num doc-num-sm">I</span><span data-i18n="terms.s1.title">Introducere</span></a>
+                    <a href="#terms-s2" data-doc-go="terms-s2"><span class="doc-num doc-num-sm">II</span><span data-i18n="terms.s2.title">Serviciile oferite și rolul agenției</span></a>
+                    <a href="#terms-s3" data-doc-go="terms-s3"><span class="doc-num doc-num-sm">III</span><span data-i18n="terms.s3.title">Rezervări, tarife și modalități de plată</span></a>
+                    <a href="#terms-s4" data-doc-go="terms-s4"><span class="doc-num doc-num-sm">IV</span><span data-i18n="terms.s4.title">Anulări, modificări și penalizări</span></a>
+                    <a href="#terms-s5" data-doc-go="terms-s5"><span class="doc-num doc-num-sm">V</span><span data-i18n="terms.s5.title">Documente de călătorie, vize și condiții de sănătate</span></a>
+                    <a href="#terms-s6" data-doc-go="terms-s6"><span class="doc-num doc-num-sm">VI</span><span data-i18n="terms.s6.title">Limitarea răspunderii</span></a>
+                    <a href="#terms-s7" data-doc-go="terms-s7"><span class="doc-num doc-num-sm">VII</span><span data-i18n="terms.s7.title">Forță majoră</span></a>
+                    <a href="#terms-s8" data-doc-go="terms-s8"><span class="doc-num doc-num-sm">VIII</span><span data-i18n="terms.s8.title">Proprietate intelectuală</span></a>
+                    <a href="#terms-s9" data-doc-go="terms-s9"><span class="doc-num doc-num-sm">IX</span><span data-i18n="terms.s9.title">Protecția datelor cu caracter personal (GDPR)</span></a>
+                    <a href="#terms-s10" data-doc-go="terms-s10"><span class="doc-num doc-num-sm">X</span><span data-i18n="terms.s10.title">Reclamații, legislație și litigii</span></a>
+                    <a href="#terms-s11" data-doc-go="terms-s11"><span class="doc-num doc-num-sm">XI</span><span data-i18n="terms.s11.title">Date de contact</span></a>
                 </nav>
 
-                    <section id="terms-s1" class="terms-section" aria-labelledby="terms-h1">
-                        <h3 id="terms-h1" class="terms-h"><span class="terms-num">I</span><span class="terms-title text-slate-900" data-i18n="terms.s1.title">Introducere</span></h3>
-                        <div class="terms-body text-slate-600">
+                    <section id="terms-s1" class="doc-section" aria-labelledby="terms-h1">
+                        <h3 id="terms-h1" class="doc-h"><span class="doc-num">I</span><span class="doc-title text-slate-900" data-i18n="terms.s1.title">Introducere</span></h3>
+                        <div class="doc-body text-slate-600">
                         <p data-i18n="terms.s1.p1">Prezentul document („Termenii și Condițiile”) stabilește regulile de utilizare a platformei web www.feelvoyage.ro, precum și condițiile de rezervare, achiziționare și plată a serviciilor și pachetelor turistice oferite prin intermediul acesteia.</p>
                         <p data-i18n="terms.s1.p2">Prin accesarea, navigarea și utilizarea site-ului, precum și prin efectuarea oricărei rezervări, confirmați că ați citit, ați înțeles și ați acceptat integral și necondiționat prezenții Termeni și Condiții.</p>
                         <p data-i18n="terms.s1.p3">Site-ul este administrat de:</p>
-                        <div class="terms-card">
-                            <p class="terms-card-label text-slate-500" data-i18n="terms.co.label">Operatorul site-ului</p>
-                            <p class="terms-company text-slate-900">FeelVoyage S.R.L.</p>
-                            <dl class="terms-kv-list">
+                        <div class="doc-card">
+                            <p class="doc-card-label text-slate-500" data-i18n="terms.co.label">Operatorul site-ului</p>
+                            <p class="doc-company text-slate-900">FeelVoyage S.R.L.</p>
+                            <dl class="doc-kv-list">
                                 <div><dt data-i18n="terms.co.address">Sediu</dt><dd>Strada Tudor Vladimirescu, nr. 124, Târgu Jiu, România</dd></div>
                                 <div><dt data-i18n="terms.co.trade">Registrul Comerțului</dt><dd>J18/123/2026</dd></div>
                                 <div><dt data-i18n="terms.co.cui">CUI (cod unic de identificare)</dt><dd>RO12345678</dd></div>
@@ -997,50 +1008,50 @@
                         </div>
                     </section>
 
-                    <section id="terms-s2" class="terms-section" aria-labelledby="terms-h2">
-                        <h3 id="terms-h2" class="terms-h"><span class="terms-num">II</span><span class="terms-title text-slate-900" data-i18n="terms.s2.title">Serviciile oferite și rolul agenției</span></h3>
-                        <div class="terms-body text-slate-600">
+                    <section id="terms-s2" class="doc-section" aria-labelledby="terms-h2">
+                        <h3 id="terms-h2" class="doc-h"><span class="doc-num">II</span><span class="doc-title text-slate-900" data-i18n="terms.s2.title">Serviciile oferite și rolul agenției</span></h3>
+                        <div class="doc-body text-slate-600">
                         <p data-i18n="terms.s2.intro">FeelVoyage acționează, după caz, în una dintre următoarele calități:</p>
-                        <div class="terms-roles">
-                            <div class="terms-card"><h4 class="terms-card-title text-slate-900" data-i18n="terms.s2.r1.title">Organizator (touroperator)</h4><p data-i18n="terms.s2.r1.text">Când creează și vinde propriile pachete de servicii de călătorie.</p></div>
-                            <div class="terms-card"><h4 class="terms-card-title text-slate-900" data-i18n="terms.s2.r2.title">Intermediar (agenție detailistă)</h4><p data-i18n="terms.s2.r2.text">Când comercializează servicii turistice, pachete de vacanță, bilete de avion sau cazări furnizate de alți touroperatori, companii aeriene sau sisteme de rezervări. În acest caz, responsabilitatea pentru prestarea efectivă a serviciilor revine exclusiv furnizorilor finali.</p></div>
+                        <div class="doc-roles">
+                            <div class="doc-card"><h4 class="doc-card-title text-slate-900" data-i18n="terms.s2.r1.title">Organizator (touroperator)</h4><p data-i18n="terms.s2.r1.text">Când creează și vinde propriile pachete de servicii de călătorie.</p></div>
+                            <div class="doc-card"><h4 class="doc-card-title text-slate-900" data-i18n="terms.s2.r2.title">Intermediar (agenție detailistă)</h4><p data-i18n="terms.s2.r2.text">Când comercializează servicii turistice, pachete de vacanță, bilete de avion sau cazări furnizate de alți touroperatori, companii aeriene sau sisteme de rezervări. În acest caz, responsabilitatea pentru prestarea efectivă a serviciilor revine exclusiv furnizorilor finali.</p></div>
                         </div>
                         </div>
                     </section>
 
-                    <section id="terms-s3" class="terms-section" aria-labelledby="terms-h3">
-                        <h3 id="terms-h3" class="terms-h"><span class="terms-num">III</span><span class="terms-title text-slate-900" data-i18n="terms.s3.title">Rezervări, tarife și modalități de plată</span></h3>
-                        <div class="terms-body text-slate-600">
-                        <div class="terms-block terms-note"><strong class="terms-lead text-slate-900" data-i18n="terms.s3.b1.lead">Procesul de rezervare</strong><span data-i18n="terms.s3.b1.text">Orice solicitare de rezervare trimisă prin site este considerată fermă doar după ce un agent FeelVoyage confirmă disponibilitatea și tariful. E-mailul generat automat la preluarea cererii nu reprezintă o confirmare fermă a rezervării.</span></div>
-                        <div class="terms-block"><strong class="terms-lead text-slate-900" data-i18n="terms.s3.b2.lead">Tarife</strong><span data-i18n="terms.s3.b2.text">Prețurile sunt exprimate în EUR și RON și includ TVA, conform legislației în vigoare. Tarifele biletelor de avion, taxele de aeroport sau cotațiile hotelierilor se pot modifica, independent de voința agenției, până la emiterea biletelor sau a voucherelor.</span></div>
-                        <div class="terms-block"><strong class="terms-lead text-slate-900" data-i18n="terms.s3.b3.lead">Plata</strong><span data-i18n="terms.s3.b3.text">În funcție de tipul serviciului și de cât de aproape este data plecării, plata se poate face integral la rezervare sau în tranșe (un avans, urmat de restul sumei). Avansul necesar și termenele de plată se comunică clar în momentul ofertei.</span></div>
-                        <div class="terms-block"><strong class="terms-lead text-slate-900" data-i18n="terms.s3.b4.lead">Modalități de plată</strong><span data-i18n="terms.s3.b4.text">Acceptăm plata cu cardul bancar online (prin procesatorul securizat Stripe / Netopia Payments), transferul bancar sau numerarul / cardul la sediul agenției, cu respectarea plafoanelor legale de încasare.</span></div>
+                    <section id="terms-s3" class="doc-section" aria-labelledby="terms-h3">
+                        <h3 id="terms-h3" class="doc-h"><span class="doc-num">III</span><span class="doc-title text-slate-900" data-i18n="terms.s3.title">Rezervări, tarife și modalități de plată</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <div class="doc-block doc-note"><strong class="doc-lead-in text-slate-900" data-i18n="terms.s3.b1.lead">Procesul de rezervare</strong><span data-i18n="terms.s3.b1.text">Orice solicitare de rezervare trimisă prin site este considerată fermă doar după ce un agent FeelVoyage confirmă disponibilitatea și tariful. E-mailul generat automat la preluarea cererii nu reprezintă o confirmare fermă a rezervării.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="terms.s3.b2.lead">Tarife</strong><span data-i18n="terms.s3.b2.text">Prețurile sunt exprimate în EUR și RON și includ TVA, conform legislației în vigoare. Tarifele biletelor de avion, taxele de aeroport sau cotațiile hotelierilor se pot modifica, independent de voința agenției, până la emiterea biletelor sau a voucherelor.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="terms.s3.b3.lead">Plata</strong><span data-i18n="terms.s3.b3.text">În funcție de tipul serviciului și de cât de aproape este data plecării, plata se poate face integral la rezervare sau în tranșe (un avans, urmat de restul sumei). Avansul necesar și termenele de plată se comunică clar în momentul ofertei.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="terms.s3.b4.lead">Modalități de plată</strong><span data-i18n="terms.s3.b4.text">Nu se efectuează plăți pe site. Plata se face exclusiv după ce ai discutat cu un agent FeelVoyage și ai primit oferta confirmată. Modalitatea de plată (de exemplu, transfer bancar sau numerar la sediul agenției) se stabilește împreună cu agentul, cu respectarea plafoanelor legale de încasare.</span></div>
                         </div>
                     </section>
 
-                    <section id="terms-s4" class="terms-section" aria-labelledby="terms-h4">
-                        <h3 id="terms-h4" class="terms-h"><span class="terms-num">IV</span><span class="terms-title text-slate-900" data-i18n="terms.s4.title">Anulări, modificări și penalizări</span></h3>
-                        <div class="terms-body text-slate-600">
-                        <div class="terms-block terms-note"><strong class="terms-lead text-slate-900" data-i18n="terms.s4.b1.lead">Anularea de către client</strong><span data-i18n="terms.s4.b1.text">Dacă clientul dorește să anuleze sau să modifice o rezervare confirmată, acesta suportă penalizările impuse de furnizorii de servicii. În funcție de momentul anulării, penalizările pot ajunge până la 100% din valoarea pachetului sau a serviciului (de exemplu, la biletele de avion non-refundable sau la ofertele Early Booking).</span></div>
-                        <div class="terms-block terms-tip"><strong class="terms-lead text-slate-900" data-i18n="terms.s4.b2.lead">Asigurarea storno</strong><span data-i18n="terms.s4.b2.text">Pentru a evita pierderile financiare în cazul unei anulări din motive obiective (de exemplu, o îmbolnăvire bruscă), agenția recomandă insistent încheierea unei polițe de asigurare storno la semnarea contractului sau la plata avansului.</span></div>
-                        <div class="terms-block"><strong class="terms-lead text-slate-900" data-i18n="terms.s4.b3.lead">Anularea de către agenție sau furnizor</strong><span data-i18n="terms.s4.b3.text">Dacă furnizorul anulează serviciul sau agenția este nevoită să anuleze din lipsa numărului minim de participanți (în cazul grupurilor), clientul are dreptul fie la rambursarea integrală a sumelor plătite, fie la acceptarea unui pachet alternativ de calitate echivalentă sau superioară.</span></div>
+                    <section id="terms-s4" class="doc-section" aria-labelledby="terms-h4">
+                        <h3 id="terms-h4" class="doc-h"><span class="doc-num">IV</span><span class="doc-title text-slate-900" data-i18n="terms.s4.title">Anulări, modificări și penalizări</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <div class="doc-block doc-note"><strong class="doc-lead-in text-slate-900" data-i18n="terms.s4.b1.lead">Anularea de către client</strong><span data-i18n="terms.s4.b1.text">Dacă clientul dorește să anuleze sau să modifice o rezervare confirmată, acesta suportă penalizările impuse de furnizorii de servicii. În funcție de momentul anulării, penalizările pot ajunge până la 100% din valoarea pachetului sau a serviciului (de exemplu, la biletele de avion non-refundable sau la ofertele Early Booking).</span></div>
+                        <div class="doc-block doc-tip"><strong class="doc-lead-in text-slate-900" data-i18n="terms.s4.b2.lead">Asigurarea storno</strong><span data-i18n="terms.s4.b2.text">Pentru a evita pierderile financiare în cazul unei anulări din motive obiective (de exemplu, o îmbolnăvire bruscă), agenția recomandă insistent încheierea unei polițe de asigurare storno la semnarea contractului sau la plata avansului.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="terms.s4.b3.lead">Anularea de către agenție sau furnizor</strong><span data-i18n="terms.s4.b3.text">Dacă furnizorul anulează serviciul sau agenția este nevoită să anuleze din lipsa numărului minim de participanți (în cazul grupurilor), clientul are dreptul fie la rambursarea integrală a sumelor plătite, fie la acceptarea unui pachet alternativ de calitate echivalentă sau superioară.</span></div>
                         </div>
                     </section>
 
-                    <section id="terms-s5" class="terms-section" aria-labelledby="terms-h5">
-                        <h3 id="terms-h5" class="terms-h"><span class="terms-num">V</span><span class="terms-title text-slate-900" data-i18n="terms.s5.title">Documente de călătorie, vize și condiții de sănătate</span></h3>
-                        <div class="terms-body text-slate-600">
+                    <section id="terms-s5" class="doc-section" aria-labelledby="terms-h5">
+                        <h3 id="terms-h5" class="doc-h"><span class="doc-num">V</span><span class="doc-title text-slate-900" data-i18n="terms.s5.title">Documente de călătorie, vize și condiții de sănătate</span></h3>
+                        <div class="doc-body text-slate-600">
                         <p data-i18n="terms.s5.p1">Este responsabilitatea exclusivă a turistului să se asigure că deține documente de călătorie valabile: carte de identitate, pașaport valabil cel puțin 6 luni de la data întoarcerii, viză de tranzit sau de destinație, după caz.</p>
                         <p data-i18n="terms.s5.p2">Turistul răspunde de respectarea condițiilor vamale, de frontieră și de sănătate (vaccinuri obligatorii, certificate medicale) impuse de țara de destinație sau de tranzit. FeelVoyage nu poate fi trasă la răspundere și nu restituie contravaloarea serviciilor dacă turistului i se refuză îmbarcarea sau intrarea în țara de destinație.</p>
                         <p data-i18n="terms.s5.p3">Pentru minorii (sub 18 ani) care călătoresc singuri sau însoțiți de un singur părinte, se aplică reglementările specifice ale Poliției de Frontieră Române.</p>
                         </div>
                     </section>
 
-                    <section id="terms-s6" class="terms-section" aria-labelledby="terms-h6">
-                        <h3 id="terms-h6" class="terms-h"><span class="terms-num">VI</span><span class="terms-title text-slate-900" data-i18n="terms.s6.title">Limitarea răspunderii</span></h3>
-                        <div class="terms-body text-slate-600">
+                    <section id="terms-s6" class="doc-section" aria-labelledby="terms-h6">
+                        <h3 id="terms-h6" class="doc-h"><span class="doc-num">VI</span><span class="doc-title text-slate-900" data-i18n="terms.s6.title">Limitarea răspunderii</span></h3>
+                        <div class="doc-body text-slate-600">
                         <p data-i18n="terms.s6.intro">FeelVoyage nu este responsabilă pentru:</p>
-                        <ul class="terms-list">
+                        <ul class="doc-list">
                             <li data-i18n="terms.s6.l1">întârzieri, modificări de orar sau de rută, suprarezervări ori anulări ale zborurilor operate de companiile aeriene;</li>
                             <li data-i18n="terms.s6.l2">pierderea sau deteriorarea bagajelor pe parcursul zborurilor sau al transferurilor;</li>
                             <li data-i18n="terms.s6.l3">nemulțumirile legate de calitatea serviciilor prestate efectiv de hotel (curățenie, zgomot, poziția camerei), agenția acționând doar ca intermediar în preluarea cererilor.</li>
@@ -1048,51 +1059,306 @@
                         </div>
                     </section>
 
-                    <section id="terms-s7" class="terms-section" aria-labelledby="terms-h7">
-                        <h3 id="terms-h7" class="terms-h"><span class="terms-num">VII</span><span class="terms-title text-slate-900" data-i18n="terms.s7.title">Forță majoră</span></h3>
-                        <div class="terms-body text-slate-600">
+                    <section id="terms-s7" class="doc-section" aria-labelledby="terms-h7">
+                        <h3 id="terms-h7" class="doc-h"><span class="doc-num">VII</span><span class="doc-title text-slate-900" data-i18n="terms.s7.title">Forță majoră</span></h3>
+                        <div class="doc-body text-slate-600">
                         <p data-i18n="terms.s7.p1">Niciuna dintre părți nu răspunde pentru neexecutarea obligațiilor sale dacă aceasta este cauzată de un eveniment de forță majoră, conform legii (de exemplu: războaie, pandemii, greve, condiții meteo extreme, catastrofe naturale, decizii ale autorităților guvernamentale). În aceste situații se aplică politicile de rambursare sau de reprogramare ale furnizorilor finali de servicii.</p>
                         </div>
                     </section>
 
-                    <section id="terms-s8" class="terms-section" aria-labelledby="terms-h8">
-                        <h3 id="terms-h8" class="terms-h"><span class="terms-num">VIII</span><span class="terms-title text-slate-900" data-i18n="terms.s8.title">Proprietate intelectuală</span></h3>
-                        <div class="terms-body text-slate-600">
+                    <section id="terms-s8" class="doc-section" aria-labelledby="terms-h8">
+                        <h3 id="terms-h8" class="doc-h"><span class="doc-num">VIII</span><span class="doc-title text-slate-900" data-i18n="terms.s8.title">Proprietate intelectuală</span></h3>
+                        <div class="doc-body text-slate-600">
                         <p data-i18n="terms.s8.p1">Întregul conținut al site-ului (texte, imagini, logo-uri, elemente grafice, design) aparține FeelVoyage sau partenerilor săi și este protejat de legea dreptului de autor. Preluarea, copierea sau utilizarea lui fără acordul scris al agenției este strict interzisă.</p>
                         </div>
                     </section>
 
-                    <section id="terms-s9" class="terms-section" aria-labelledby="terms-h9">
-                        <h3 id="terms-h9" class="terms-h"><span class="terms-num">IX</span><span class="terms-title text-slate-900" data-i18n="terms.s9.title">Protecția datelor cu caracter personal (GDPR)</span></h3>
-                        <div class="terms-body text-slate-600">
+                    <section id="terms-s9" class="doc-section" aria-labelledby="terms-h9">
+                        <h3 id="terms-h9" class="doc-h"><span class="doc-num">IX</span><span class="doc-title text-slate-900" data-i18n="terms.s9.title">Protecția datelor cu caracter personal (GDPR)</span></h3>
+                        <div class="doc-body text-slate-600">
                         <p data-i18n="terms.s9.p1">Colectarea și prelucrarea datelor cu caracter personal (nume, adresă, e-mail, telefon, date din actul de identitate) se fac în conformitate cu Regulamentul (UE) 2016/679 (GDPR). Datele dumneavoastră sunt folosite strict în scopul procesării rezervărilor, al emiterii documentelor de călătorie și al facturării.</p>
                         </div>
                     </section>
 
-                    <section id="terms-s10" class="terms-section" aria-labelledby="terms-h10">
-                        <h3 id="terms-h10" class="terms-h"><span class="terms-num">X</span><span class="terms-title text-slate-900" data-i18n="terms.s10.title">Reclamații, legislație și litigii</span></h3>
-                        <div class="terms-body text-slate-600">
-                        <div class="terms-block"><strong class="terms-lead text-slate-900" data-i18n="terms.s10.b1.lead">Reclamații</strong><span data-i18n="terms.s10.b1.text">Eventualele nemulțumiri apărute la fața locului trebuie semnalate prompt și în scris prestatorului local și reprezentantului agenției, pentru a putea fi remediate pe loc. Reclamațiile ulterioare se formulează în scris, în cel mult 14 zile de la încheierea călătoriei.</span></div>
-                        <div class="terms-block"><strong class="terms-lead text-slate-900" data-i18n="terms.s10.b2.lead">Legea aplicabilă și litigii</strong><span data-i18n="terms.s10.b2.text">Prezenții Termeni și Condiții sunt guvernați de legea română. Orice dispută se soluționează, în primul rând, pe cale amiabilă. Dacă acest lucru nu este posibil, litigiul este supus instanțelor judecătorești competente de la sediul FeelVoyage, iar consumatorul se poate adresa și ANPC (Autoritatea Națională pentru Protecția Consumatorilor).</span></div>
+                    <section id="terms-s10" class="doc-section" aria-labelledby="terms-h10">
+                        <h3 id="terms-h10" class="doc-h"><span class="doc-num">X</span><span class="doc-title text-slate-900" data-i18n="terms.s10.title">Reclamații, legislație și litigii</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="terms.s10.b1.lead">Reclamații</strong><span data-i18n="terms.s10.b1.text">Eventualele nemulțumiri apărute la fața locului trebuie semnalate prompt și în scris prestatorului local și reprezentantului agenției, pentru a putea fi remediate pe loc. Reclamațiile ulterioare se formulează în scris, în cel mult 14 zile de la încheierea călătoriei.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="terms.s10.b2.lead">Legea aplicabilă și litigii</strong><span data-i18n="terms.s10.b2.text">Prezenții Termeni și Condiții sunt guvernați de legea română. Orice dispută se soluționează, în primul rând, pe cale amiabilă. Dacă acest lucru nu este posibil, litigiul este supus instanțelor judecătorești competente de la sediul FeelVoyage, iar consumatorul se poate adresa și ANPC (Autoritatea Națională pentru Protecția Consumatorilor).</span></div>
                         </div>
                     </section>
 
-                    <section id="terms-s11" class="terms-section" aria-labelledby="terms-h11">
-                        <h3 id="terms-h11" class="terms-h"><span class="terms-num">XI</span><span class="terms-title text-slate-900" data-i18n="terms.s11.title">Date de contact</span></h3>
-                        <div class="terms-body text-slate-600">
+                    <section id="terms-s11" class="doc-section" aria-labelledby="terms-h11">
+                        <h3 id="terms-h11" class="doc-h"><span class="doc-num">XI</span><span class="doc-title text-slate-900" data-i18n="terms.s11.title">Date de contact</span></h3>
+                        <div class="doc-body text-slate-600">
                         <p data-i18n="terms.s11.intro">Pentru asistență, rezervări sau informații suplimentare, echipa noastră vă stă la dispoziție:</p>
-                        <ul class="terms-contact">
-                            <li><span class="terms-ic"><i class="fa-solid fa-location-dot"></i></span><div><p class="terms-k text-slate-500" data-i18n="terms.ct.address">Adresă</p><p class="terms-v text-slate-900">Strada Tudor Vladimirescu, nr. 124, Târgu Jiu, România</p></div></li>
-                            <li><span class="terms-ic"><i class="fa-solid fa-phone"></i></span><div><p class="terms-k text-slate-500" data-i18n="terms.ct.phone">Telefon asistență și urgențe</p><p class="terms-v"><a href="tel:+40799927590" class="terms-link">0799 927 590</a></p></div></li>
-                            <li><span class="terms-ic"><i class="fa-solid fa-envelope"></i></span><div><p class="terms-k text-slate-500" data-i18n="terms.ct.email">E-mail</p><p class="terms-v"><a href="mailto:crucrudenis@gmail.com" class="terms-link">crucrudenis@gmail.com</a></p></div></li>
-                            <li><span class="terms-ic"><i class="fa-solid fa-clock"></i></span><div><p class="terms-k text-slate-500" data-i18n="terms.ct.hours">Program de lucru</p><p class="terms-v text-slate-900" data-i18n="terms.ct.hoursVal">Non-stop (24/7)</p></div></li>
+                        <ul class="doc-contact">
+                            <li><span class="doc-ic"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.address">Adresă</p><p class="doc-v text-slate-900">Strada Tudor Vladimirescu, nr. 124, Târgu Jiu, România</p></div></li>
+                            <li><span class="doc-ic"><i class="fa-solid fa-phone" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.phone">Telefon asistență și urgențe</p><p class="doc-v"><a href="tel:+40799927590" class="doc-link">0799 927 590</a></p></div></li>
+                            <li><span class="doc-ic"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.email">E-mail</p><p class="doc-v"><a href="mailto:crucrudenis@gmail.com" class="doc-link">crucrudenis@gmail.com</a></p></div></li>
+                            <li><span class="doc-ic"><i class="fa-solid fa-clock" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.hours">Program de lucru</p><p class="doc-v text-slate-900" data-i18n="legal.ct.hoursVal">Non-stop (24/7)</p></div></li>
                         </ul>
                         </div>
                     </section>
 
-                <p class="terms-foot text-slate-500" data-i18n="terms.note">Acest document este redactat în limba română. Traducerile sunt orientative; în caz de diferențe, prevalează versiunea în limba română.</p>
+                <div class="doc-accept" data-doc="terms" data-doc-version="2026-09">
+                    <p class="doc-accept-label text-slate-500" data-i18n="accept.label">Acceptare</p>
+                    <label class="doc-accept-row text-slate-800">
+                        <input type="checkbox" class="doc-accept-check" data-accept-check>
+                        <span data-i18n="accept.terms">Am citit și accept Termenii și Condițiile</span>
+                    </label>
+                    <div class="doc-accept-actions">
+                        <button type="button" class="doc-accept-btn inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md" data-accept-btn disabled data-i18n="accept.btn">Acceptă</button>
+                        <p class="doc-accept-done" data-accept-done hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-accept-done-text></span></p>
+                        <button type="button" class="doc-accept-withdraw" data-accept-withdraw hidden data-i18n="accept.withdraw">Retrage acceptul</button>
+                    </div>
+                    <p class="doc-accept-label text-slate-500" data-i18n="accept.status">Starea acceptărilor</p>
+                    <div class="doc-chips">
+                        <a href="#termeni" class="doc-chip" data-chip="terms"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="footer.terms">Termeni și Condiții</span></a>
+                        <a href="#confidentialitate" class="doc-chip" data-chip="privacy"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="footer.privacy">Politica de Confidențialitate</span></a>
+                        <a href="#anpc" class="doc-chip" data-chip="anpc"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="footer.anpc">ANPC / SAL</span></a>
+                    </div>
+                    <p class="doc-accept-note text-slate-500" data-i18n="accept.note">Acceptul se salvează doar pe acest dispozitiv (în browser); nu este trimis către FeelVoyage.</p>
+                </div>
+
+                <p class="doc-foot text-slate-500" data-i18n="legal.note">Acest document este redactat în limba română. Traducerile sunt orientative; în caz de diferențe, prevalează versiunea în limba română.</p>
                 <div class="text-center mt-6">
                     <button id="termsDoneBtn" type="button" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all" data-i18n="about.close">Închide</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Politica de Confidențialitate (fereastră): se deschide din subsol; logica e în js/infomodal.js -->
+    <div id="privacyModal" class="fixed inset-0 z-[90] hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="privacyModalTitle">
+        <div id="privacyModalContainer" class="doc-panel relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94svh] sm:max-h-[92vh] flex flex-col transform transition-all scale-95 opacity-0">
+            <button id="closePrivacyBtn" type="button" aria-label="Închide" data-i18n-aria="about.close" class="doc-close absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/30 text-white hover:bg-black/60 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="privacyScroll" class="doc-scroll relative overflow-y-auto">
+                <div class="text-center max-w-2xl mx-auto space-y-3">
+                    <span class="px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-700 text-xs font-bold uppercase tracking-wider" data-i18n="legal.badge">Documente legale</span>
+                    <h2 id="privacyModalTitle" class="text-2xl sm:text-4xl font-extrabold font-serif text-slate-900" data-i18n="footer.privacy">Politica de Confidențialitate</h2>
+                    <p class="text-slate-600 text-sm sm:text-base" data-i18n="privacy.subtitle">Cum colectăm, folosim, stocăm și protejăm datele tale personale.</p>
+                    <p class="doc-updated text-slate-500" data-i18n="legal.updated">Ultima actualizare: septembrie 2026</p>
+                </div>
+                <div class="doc-lead text-slate-600">
+                    <p data-i18n="privacy.lead1">Bine ai venit pe site-ul FeelVoyage. Ne angajăm să îți protejăm confidențialitatea și datele cu caracter personal. Această Politică de Confidențialitate explică modul în care colectăm, utilizăm, stocăm și protejăm informațiile tale atunci când vizitezi site-ul nostru și când folosești serviciile noastre turistice.</p>
+                    <p data-i18n="privacy.lead2">Prin utilizarea site-ului și a serviciilor noastre, ești de acord cu practicile descrise în această politică.</p>
+                </div>
+                <p class="doc-toc-title text-slate-500" data-i18n="legal.toc">Cuprins</p>
+                <nav class="doc-toc" aria-label="Cuprins" data-i18n-aria="legal.toc">
+                    <a href="#privacy-s1" data-doc-go="privacy-s1"><span class="doc-num doc-num-sm">I</span><span data-i18n="privacy.s1.title">Ce date personale colectăm?</span></a>
+                    <a href="#privacy-s2" data-doc-go="privacy-s2"><span class="doc-num doc-num-sm">II</span><span data-i18n="privacy.s2.title">Cum folosim datele tale?</span></a>
+                    <a href="#privacy-s3" data-doc-go="privacy-s3"><span class="doc-num doc-num-sm">III</span><span data-i18n="privacy.s3.title">Cui transmitem datele tale?</span></a>
+                    <a href="#privacy-s4" data-doc-go="privacy-s4"><span class="doc-num doc-num-sm">IV</span><span data-i18n="privacy.s4.title">Cât timp păstrăm datele?</span></a>
+                    <a href="#privacy-s5" data-doc-go="privacy-s5"><span class="doc-num doc-num-sm">V</span><span data-i18n="privacy.s5.title">Drepturile tale (conform GDPR)</span></a>
+                    <a href="#privacy-s6" data-doc-go="privacy-s6"><span class="doc-num doc-num-sm">VI</span><span data-i18n="privacy.s6.title">Date de contact și asistență non-stop</span></a>
+                </nav>
+
+                    <section id="privacy-s1" class="doc-section" aria-labelledby="privacy-h1">
+                        <h3 id="privacy-h1" class="doc-h"><span class="doc-num">I</span><span class="doc-title text-slate-900" data-i18n="privacy.s1.title">Ce date personale colectăm?</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <p data-i18n="privacy.s1.intro">Pentru a-ți putea oferi cele mai bune experiențe de călătorie, colectăm următoarele tipuri de informații:</p>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s1.b1.lead">Date de identificare și contact</strong><span data-i18n="privacy.s1.b1.text">Nume, prenume, adresa de e-mail, număr de telefon și adresa de domiciliu / facturare.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s1.b2.lead">Date necesare pentru călătorie</strong><span data-i18n="privacy.s1.b2.text">Informații despre pasageri (inclusiv data nașterii sau date din actul de identitate / pașaport, atunci când companiile aeriene sau hotelurile le solicită strict pentru rezervare), preferințe de călătorie și istoricul rezervărilor.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s1.b3.lead">Date de facturare</strong><span data-i18n="privacy.s1.b3.text">Detaliile necesare pentru emiterea facturilor.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s1.b4.lead">Date tehnice</strong><span data-i18n="privacy.s1.b4.text">Adresa IP, tipul de browser, sistemul de operare și modul în care navighezi pe site, colectate prin cookie-uri și tehnologii similare.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s1.b5.lead">Cont și chat</strong><span data-i18n="privacy.s1.b5.text">Dacă îți creezi un cont, păstrăm numele, telefonul și adresa de e-mail; parola este gestionată de serviciul de autentificare și nu o vedem. Mesajele din chat sunt prelucrate de asistentul virtual: te rugăm să nu scrii date personale în chat, ci să folosești formularele.</span></div>
+                        </div>
+                    </section>
+
+                    <section id="privacy-s2" class="doc-section" aria-labelledby="privacy-h2">
+                        <h3 id="privacy-h2" class="doc-h"><span class="doc-num">II</span><span class="doc-title text-slate-900" data-i18n="privacy.s2.title">Cum folosim datele tale?</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <p data-i18n="privacy.s2.intro">Informațiile pe care le colectăm sunt utilizate exclusiv pentru următoarele scopuri:</p>
+                        <ul class="doc-list">
+                            <li data-i18n="privacy.s2.l1">procesarea, confirmarea și gestionarea rezervărilor tale (zboruri, cazări, pachete turistice);</li>
+                            <li data-i18n="privacy.s2.l2">oferirea de asistență pentru clienți și suport non-stop (24/7) pentru orice problemă legată de călătoria ta;</li>
+                            <li data-i18n="privacy.s2.l3">transmiterea de notificări importante privind modificări de zbor, check-in sau reguli de călătorie;</li>
+                            <li data-i18n="privacy.s2.l4">emiterea facturilor și respectarea obligațiilor financiar-contabile prevăzute de legislația din România;</li>
+                            <li data-i18n="privacy.s2.l5">îmbunătățirea serviciilor noastre și, doar cu acordul tău prealabil, trimiterea de oferte speciale sau newslettere.</li>
+                        </ul>
+                        </div>
+                    </section>
+
+                    <section id="privacy-s3" class="doc-section" aria-labelledby="privacy-h3">
+                        <h3 id="privacy-h3" class="doc-h"><span class="doc-num">III</span><span class="doc-title text-slate-900" data-i18n="privacy.s3.title">Cui transmitem datele tale?</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <p data-i18n="privacy.s3.intro">Nu vindem și nu comercializăm datele tale personale. Totuși, pentru a-ți onora rezervările, trebuie să transmitem o parte din date către parteneri de încredere:</p>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s3.b1.lead">Furnizori de servicii turistice</strong><span data-i18n="privacy.s3.b1.text">Companii aeriene, hoteluri, companii de transfer sau touroperatori locali (care au nevoie de numele tău pentru a valida rezervarea).</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s3.b2.lead">Autorități publice</strong><span data-i18n="privacy.s3.b2.text">Instituții vamale sau poliția de frontieră, exclusiv dacă legislația țărilor de destinație o impune.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s3.b3.lead">Parteneri tehnici</strong><span data-i18n="privacy.s3.b3.text">Furnizori de servicii de găzduire web și de infrastructură (inclusiv Google / Firebase, pentru conturi, cereri de rezervare și asistentul virtual), care sunt obligați contractual să îți protejeze datele.</span></div>
+                        </div>
+                    </section>
+
+                    <section id="privacy-s4" class="doc-section" aria-labelledby="privacy-h4">
+                        <h3 id="privacy-h4" class="doc-h"><span class="doc-num">IV</span><span class="doc-title text-slate-900" data-i18n="privacy.s4.title">Cât timp păstrăm datele?</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <p data-i18n="privacy.s4.p1">Păstrăm datele tale personale doar cât timp este necesar pentru scopurile menționate mai sus sau pentru perioada impusă de legile aplicabile (de exemplu, documentele financiar-contabile trebuie păstrate, conform legii, timp de mai mulți ani).</p>
+                        </div>
+                    </section>
+
+                    <section id="privacy-s5" class="doc-section" aria-labelledby="privacy-h5">
+                        <h3 id="privacy-h5" class="doc-h"><span class="doc-num">V</span><span class="doc-title text-slate-900" data-i18n="privacy.s5.title">Drepturile tale (conform GDPR)</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <p data-i18n="privacy.s5.intro">Conform Regulamentului General privind Protecția Datelor (GDPR), ai următoarele drepturi:</p>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s5.b1.lead">Dreptul de acces</strong><span data-i18n="privacy.s5.b1.text">Să afli ce date personale prelucrăm despre tine.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s5.b2.lead">Dreptul la rectificare</strong><span data-i18n="privacy.s5.b2.text">Să soliciți corectarea datelor greșite sau incomplete.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s5.b3.lead">Dreptul la ștergere („dreptul de a fi uitat”)</strong><span data-i18n="privacy.s5.b3.text">Să ceri ștergerea datelor tale din baza noastră, dacă nu mai există un temei legal pentru păstrarea lor.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s5.b4.lead">Dreptul la restricționarea prelucrării și la portabilitatea datelor</strong><span data-i18n="privacy.s5.b4.text">Să ceri limitarea prelucrării datelor tale și să le primești într-un format structurat.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s5.b5.lead">Dreptul de a te opune prelucrării în scopuri de marketing direct</strong><span data-i18n="privacy.s5.b5.text">Poți refuza oricând comunicările de marketing.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s5.b6.lead">Dreptul de a depune o plângere</strong><span data-i18n="privacy.s5.b6.text">Te poți adresa Autorității Naționale de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP).</span> <a class="doc-link" href="https://www.dataprotection.ro" target="_blank" rel="noopener noreferrer"><span>dataprotection.ro</span> <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a></div>
+                        <div class="doc-block doc-tip"><span data-i18n="privacy.s5.exercise">Pentru a-ți exercita drepturile, scrie-ne la adresa de e-mail din secțiunea de contact; îți răspundem în cel mult o lună.</span></div>
+                        </div>
+                    </section>
+
+                    <section id="privacy-s6" class="doc-section" aria-labelledby="privacy-h6">
+                        <h3 id="privacy-h6" class="doc-h"><span class="doc-num">VI</span><span class="doc-title text-slate-900" data-i18n="privacy.s6.title">Date de contact și asistență non-stop</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <p data-i18n="privacy.s6.intro">Echipa FeelVoyage îți stă la dispoziție 24/7 pentru orice întrebare privind confidențialitatea datelor tale sau pentru planificarea următoarei vacanțe. Ne poți contacta folosind detaliile de mai jos:</p>
+                        <div class="doc-card">
+                            <p class="doc-card-label text-slate-500" data-i18n="privacy.ct.name">Denumire agenție</p>
+                            <p class="doc-company text-slate-900">FeelVoyage S.R.L.</p>
+                        </div>
+                        <ul class="doc-contact">
+                            <li><span class="doc-ic"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.address">Adresă</p><p class="doc-v text-slate-900">Strada Tudor Vladimirescu, nr. 124, Târgu Jiu, România</p></div></li>
+                            <li><span class="doc-ic"><i class="fa-solid fa-phone" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.phone">Telefon asistență și urgențe</p><p class="doc-v"><a href="tel:+40799927590" class="doc-link">0799 927 590</a></p></div></li>
+                            <li><span class="doc-ic"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.email">E-mail</p><p class="doc-v"><a href="mailto:crucrudenis@gmail.com" class="doc-link">crucrudenis@gmail.com</a></p></div></li>
+                            <li><span class="doc-ic"><i class="fa-solid fa-clock" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.hours">Program de lucru</p><p class="doc-v text-slate-900" data-i18n="legal.ct.hoursVal">Non-stop (24/7)</p></div></li>
+                        </ul>
+                        <p class="doc-after" data-i18n="privacy.s6.p2">Ne rezervăm dreptul de a modifica această Politică de Confidențialitate. Orice actualizare va fi publicată pe această pagină.</p>
+                        </div>
+                    </section>
+
+                <div class="doc-accept" data-doc="privacy" data-doc-version="2026-09">
+                    <p class="doc-accept-label text-slate-500" data-i18n="accept.label">Acceptare</p>
+                    <label class="doc-accept-row text-slate-800">
+                        <input type="checkbox" class="doc-accept-check" data-accept-check>
+                        <span data-i18n="accept.privacy">Am citit și accept Politica de Confidențialitate</span>
+                    </label>
+                    <div class="doc-accept-actions">
+                        <button type="button" class="doc-accept-btn inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md" data-accept-btn disabled data-i18n="accept.btn">Acceptă</button>
+                        <p class="doc-accept-done" data-accept-done hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-accept-done-text></span></p>
+                        <button type="button" class="doc-accept-withdraw" data-accept-withdraw hidden data-i18n="accept.withdraw">Retrage acceptul</button>
+                    </div>
+                    <p class="doc-accept-label text-slate-500" data-i18n="accept.status">Starea acceptărilor</p>
+                    <div class="doc-chips">
+                        <a href="#termeni" class="doc-chip" data-chip="terms"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="footer.terms">Termeni și Condiții</span></a>
+                        <a href="#confidentialitate" class="doc-chip" data-chip="privacy"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="footer.privacy">Politica de Confidențialitate</span></a>
+                        <a href="#anpc" class="doc-chip" data-chip="anpc"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="footer.anpc">ANPC / SAL</span></a>
+                    </div>
+                    <p class="doc-accept-note text-slate-500" data-i18n="accept.note">Acceptul se salvează doar pe acest dispozitiv (în browser); nu este trimis către FeelVoyage.</p>
+                </div>
+
+                <p class="doc-foot text-slate-500" data-i18n="legal.note">Acest document este redactat în limba română. Traducerile sunt orientative; în caz de diferențe, prevalează versiunea în limba română.</p>
+                <div class="text-center mt-6">
+                    <button id="privacyDoneBtn" type="button" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all" data-i18n="about.close">Închide</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANPC / SAL (fereastră): se deschide din subsol; logica e în js/infomodal.js -->
+    <div id="anpcModal" class="fixed inset-0 z-[90] hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="anpcModalTitle">
+        <div id="anpcModalContainer" class="doc-panel relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94svh] sm:max-h-[92vh] flex flex-col transform transition-all scale-95 opacity-0">
+            <button id="closeAnpcBtn" type="button" aria-label="Închide" data-i18n-aria="about.close" class="doc-close absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/30 text-white hover:bg-black/60 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="anpcScroll" class="doc-scroll relative overflow-y-auto">
+                <div class="text-center max-w-2xl mx-auto space-y-3">
+                    <span class="px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-700 text-xs font-bold uppercase tracking-wider" data-i18n="legal.badge">Documente legale</span>
+                    <h2 id="anpcModalTitle" class="text-2xl sm:text-4xl font-extrabold font-serif text-slate-900" data-i18n="footer.anpc">ANPC / SAL</h2>
+                    <p class="text-slate-600 text-sm sm:text-base" data-i18n="anpc.subtitle">Soluționarea alternativă a litigiilor: ce este SAL și unde te poți adresa dacă ai o reclamație.</p>
+                    <p class="doc-updated text-slate-500" data-i18n="legal.updated">Ultima actualizare: septembrie 2026</p>
+                </div>
+
+                <p class="doc-toc-title text-slate-500" data-i18n="legal.toc">Cuprins</p>
+                <nav class="doc-toc" aria-label="Cuprins" data-i18n-aria="legal.toc">
+                    <a href="#anpc-s1" data-doc-go="anpc-s1"><span class="doc-num doc-num-sm">I</span><span data-i18n="anpc.s1.title">Contactează-ne mai întâi</span></a>
+                    <a href="#anpc-s2" data-doc-go="anpc-s2"><span class="doc-num doc-num-sm">II</span><span data-i18n="anpc.s2.title">Ce este SAL?</span></a>
+                    <a href="#anpc-s3" data-doc-go="anpc-s3"><span class="doc-num doc-num-sm">III</span><span data-i18n="anpc.s3.title">Cum ceri soluționarea prin SAL</span></a>
+                    <a href="#anpc-s4" data-doc-go="anpc-s4"><span class="doc-num doc-num-sm">IV</span><span data-i18n="anpc.s4.title">Alte căi de soluționare</span></a>
+                    <a href="#anpc-s5" data-doc-go="anpc-s5"><span class="doc-num doc-num-sm">V</span><span data-i18n="anpc.s5.title">Surse oficiale</span></a>
+                </nav>
+
+                    <section id="anpc-s1" class="doc-section" aria-labelledby="anpc-h1">
+                        <h3 id="anpc-h1" class="doc-h"><span class="doc-num">I</span><span class="doc-title text-slate-900" data-i18n="anpc.s1.title">Contactează-ne mai întâi</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <p data-i18n="anpc.s1.p1">Dacă ai o nemulțumire legată de o rezervare sau de serviciile FeelVoyage, scrie-ne sau sună-ne: de multe ori problema se poate rezolva direct și rapid. Păstrează dovezile (oferta, confirmările, e-mailurile, facturile).</p>
+                        <ul class="doc-contact">
+                            <li><span class="doc-ic"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.address">Adresă</p><p class="doc-v text-slate-900">Strada Tudor Vladimirescu, nr. 124, Târgu Jiu, România</p></div></li>
+                            <li><span class="doc-ic"><i class="fa-solid fa-phone" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.phone">Telefon asistență și urgențe</p><p class="doc-v"><a href="tel:+40799927590" class="doc-link">0799 927 590</a></p></div></li>
+                            <li><span class="doc-ic"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.email">E-mail</p><p class="doc-v"><a href="mailto:crucrudenis@gmail.com" class="doc-link">crucrudenis@gmail.com</a></p></div></li>
+                            <li><span class="doc-ic"><i class="fa-solid fa-clock" aria-hidden="true"></i></span><div><p class="doc-k text-slate-500" data-i18n="legal.ct.hours">Program de lucru</p><p class="doc-v text-slate-900" data-i18n="legal.ct.hoursVal">Non-stop (24/7)</p></div></li>
+                        </ul>
+                        <p class="doc-after"><span data-i18n="anpc.s1.p2">Vezi și secțiunea despre reclamații din</span> <a href="#termeni" class="doc-link" data-i18n="footer.terms">Termeni și Condiții</a>.</p>
+                        </div>
+                    </section>
+
+                    <section id="anpc-s2" class="doc-section" aria-labelledby="anpc-h2">
+                        <h3 id="anpc-h2" class="doc-h"><span class="doc-num">II</span><span class="doc-title text-slate-900" data-i18n="anpc.s2.title">Ce este SAL?</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <p data-i18n="anpc.s2.p1">Soluționarea alternativă a litigiilor (SAL) este o procedură legală prin care consumatorii pot rezolva pe cale amiabilă neînțelegerile cu comercianții, fără a merge în instanță. Procedura este reglementată și coordonată de ANPC (Autoritatea Națională pentru Protecția Consumatorilor).</p>
+                        <p data-i18n="anpc.s2.p2">SAL este voluntară și, de regulă, gratuită sau cu costuri minime. Se aplică litigiilor izvorâte din contracte de vânzare sau de prestări de servicii încheiate între consumatori și comercianți, în sectoarele în care ANPC este competentă. Dreptul de a te adresa instanțelor judecătorești rămâne valabil oricând.</p>
+                        <div class="doc-block doc-tip"><span data-i18n="anpc.s2.tip">Platforma europeană de soluționare online a litigiilor (SOL) a fost desființată prin Regulamentul (UE) 2024/3228 și nu mai este disponibilă.</span></div>
+                        </div>
+                    </section>
+
+                    <section id="anpc-s3" class="doc-section" aria-labelledby="anpc-h3">
+                        <h3 id="anpc-h3" class="doc-h"><span class="doc-num">III</span><span class="doc-title text-slate-900" data-i18n="anpc.s3.title">Cum ceri soluționarea prin SAL</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <ol class="doc-steps">
+                            <li data-i18n="anpc.s3.l1">Contactează mai întâi comerciantul (FeelVoyage) și încearcă să rezolvați problema direct; păstrează dovezile.</li>
+                            <li data-i18n="anpc.s3.l2">Dacă nu ați ajuns la o soluție, completează cererea SAL online pe portalul ANPC (reclamatiisal.anpc.ro) sau descarcă formularul de pe anpc.ro.</li>
+                            <li data-i18n="anpc.s3.l3">Atașează documentele relevante (contractul sau oferta, dovada plății, corespondența) și dovada că ai sesizat comerciantul.</li>
+                            <li data-i18n="anpc.s3.l4">Entitatea SAL analizează cererea și comunică soluția propusă; calea instanței judecătorești rămâne deschisă.</li>
+                        </ol>
+                        <div class="doc-linkrow"><a class="doc-link" href="https://reclamatiisal.anpc.ro" target="_blank" rel="noopener noreferrer"><span>reclamatiisal.anpc.ro</span> <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a><a class="doc-link" href="https://anpc.ro/sal/" target="_blank" rel="noopener noreferrer"><span>anpc.ro/sal</span> <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a></div>
+                        <div class="doc-block doc-tip"><span data-i18n="anpc.s3.tip">În general, cererea trebuie depusă în cel mult 1 an de la data la care ai sesizat comerciantul sau de la data faptei reclamate (OG nr. 38/2015). Condițiile exacte sunt cele publicate pe site-ul ANPC.</span></div>
+                        </div>
+                    </section>
+
+                    <section id="anpc-s4" class="doc-section" aria-labelledby="anpc-h4">
+                        <h3 id="anpc-h4" class="doc-h"><span class="doc-num">IV</span><span class="doc-title text-slate-900" data-i18n="anpc.s4.title">Alte căi de soluționare</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="anpc.s4.b1.lead">Reclamație la ANPC</strong><span data-i18n="anpc.s4.b1.text">Poți depune o reclamație la Autoritatea Națională pentru Protecția Consumatorilor, cu datele tale reale (nu anonim), denumirea comerciantului, descrierea situației și documentele doveditoare. Sediul central: Bulevardul Aviatorilor nr. 72, sector 1, București.</span> <a class="doc-link" href="https://anpc.ro" target="_blank" rel="noopener noreferrer"><span>anpc.ro</span> <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="anpc.s4.b2.lead">Centrul European al Consumatorilor România (ECC România)</strong><span data-i18n="anpc.s4.b2.text">Dacă litigiul privește un comerciant dintr-un alt stat UE (de exemplu, o companie aeriană sau un hotel din străinătate), ECC România oferă gratuit informare și sprijin pentru soluționarea amiabilă.</span> <a class="doc-link" href="https://eccromania.ro" target="_blank" rel="noopener noreferrer"><span>eccromania.ro</span> <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="anpc.s4.b3.lead">Instanța de judecată</strong><span data-i18n="anpc.s4.b3.text">Te poți adresa oricând instanțelor competente, în condițiile legii.</span></div>
+                        </div>
+                    </section>
+
+                    <section id="anpc-s5" class="doc-section" aria-labelledby="anpc-h5">
+                        <h3 id="anpc-h5" class="doc-h"><span class="doc-num">V</span><span class="doc-title text-slate-900" data-i18n="anpc.s5.title">Surse oficiale</span></h3>
+                        <div class="doc-body text-slate-600">
+                        <p data-i18n="anpc.s5.p1">Informațiile de mai sus sunt generale și au caracter informativ; ele nu înlocuiesc consultanța juridică. Sursa oficială și cea mai actuală este site-ul ANPC.</p>
+                        <div class="doc-linkrow"><a class="doc-link" href="https://anpc.ro/sal/" target="_blank" rel="noopener noreferrer"><span>anpc.ro/sal</span> <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a><a class="doc-link" href="https://reclamatiisal.anpc.ro" target="_blank" rel="noopener noreferrer"><span>reclamatiisal.anpc.ro</span> <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a><a class="doc-link" href="https://eccromania.ro" target="_blank" rel="noopener noreferrer"><span>eccromania.ro</span> <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a></div>
+                        </div>
+                    </section>
+
+                <div class="doc-accept" data-doc="anpc" data-doc-version="2026-09">
+                    <p class="doc-accept-label text-slate-500" data-i18n="accept.label">Acceptare</p>
+                    <label class="doc-accept-row text-slate-800">
+                        <input type="checkbox" class="doc-accept-check" data-accept-check>
+                        <span data-i18n="accept.anpc">Am citit și am luat la cunoștință informațiile despre ANPC / SAL</span>
+                    </label>
+                    <div class="doc-accept-actions">
+                        <button type="button" class="doc-accept-btn inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md" data-accept-btn disabled data-i18n="accept.btn">Acceptă</button>
+                        <p class="doc-accept-done" data-accept-done hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-accept-done-text></span></p>
+                        <button type="button" class="doc-accept-withdraw" data-accept-withdraw hidden data-i18n="accept.withdraw">Retrage acceptul</button>
+                    </div>
+                    <p class="doc-accept-label text-slate-500" data-i18n="accept.status">Starea acceptărilor</p>
+                    <div class="doc-chips">
+                        <a href="#termeni" class="doc-chip" data-chip="terms"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="footer.terms">Termeni și Condiții</span></a>
+                        <a href="#confidentialitate" class="doc-chip" data-chip="privacy"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="footer.privacy">Politica de Confidențialitate</span></a>
+                        <a href="#anpc" class="doc-chip" data-chip="anpc"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="footer.anpc">ANPC / SAL</span></a>
+                    </div>
+                    <p class="doc-accept-note text-slate-500" data-i18n="accept.note">Acceptul se salvează doar pe acest dispozitiv (în browser); nu este trimis către FeelVoyage.</p>
+                </div>
+
+                <p class="doc-foot text-slate-500" data-i18n="legal.note">Acest document este redactat în limba română. Traducerile sunt orientative; în caz de diferențe, prevalează versiunea în limba română.</p>
+                <div class="text-center mt-6">
+                    <button id="anpcDoneBtn" type="button" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all" data-i18n="about.close">Închide</button>
                 </div>
             </div>
         </div>
@@ -1245,7 +1511,9 @@
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/infomodal.js"></script>
+    <script src="js/consent.js"></script>
     <script src="js/counter.js"></script>
+    <script src="js/accounts.js"></script>
 
 </body>
 </html>

@@ -11,10 +11,12 @@
 
     const SDK_BASE = 'https://www.gstatic.com/firebasejs/12.19.0/';
     const COUNTER_PATH = 'happyTravelers';
+    const ACCOUNTS_PATH = 'accountIds';   // câte un marcaj anonim (uid → true) per cont creat; numărul lor = „Conturi Create"
     const ORDERS_PATH = 'orders';
     const KEY_ORDERS_LOCAL = 'fv_orders_local';
     const KEY_COUNTER_LOCAL = 'fv_happy_travelers';
     const KEY_COUNTER_CACHE = 'fv_happy_cache';
+    const KEY_ACCOUNTS_CACHE = 'fv_accounts_cache';
     const KEY_SESSION_LOCAL = 'fv_session';
     const KEY_USERS_LOCAL = 'fv_users';
     const KEY_SESSION_HINT = 'fv_session_hint';
@@ -35,12 +37,14 @@
         return typeof cfg[k] === 'string' && cfg[k].trim() !== '' && !/^PASTE/i.test(cfg[k].trim());
     });
 
+    function cachedAccounts() { const n = parseInt(kv.get(KEY_ACCOUNTS_CACHE), 10); return Number.isFinite(n) && n > 0 ? n : 0; }
     function cachedCount() { const n = parseInt(kv.get(KEY_COUNTER_CACHE), 10); return Number.isFinite(n) && n > 0 ? n : 0; }
 
     /* ------------------------------------------------------------------ MOD LOCAL */
     function createLocalBackend() {
         const counterSubs = new Set();
         const authSubs = new Set();
+        const accountSubs = new Set();
 
         function hash(str) { let h = 5381; for (let i = 0; i < str.length; i++) { h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; } return 'h' + h.toString(16); }
         function readCount() { const n = parseInt(kv.get(KEY_COUNTER_LOCAL), 10); return Number.isFinite(n) && n > 0 ? n : 0; }
@@ -55,6 +59,7 @@
         window.addEventListener('storage', function (e) {
             if (e.key === KEY_COUNTER_LOCAL) { const n = readCount(); counterSubs.forEach(function (cb) { cb(n); }); }
             if (e.key === KEY_SESSION_LOCAL) { const s = readSession(); authSubs.forEach(function (cb) { cb(s); }); }
+            if (e.key === KEY_USERS_LOCAL) { const n = users().length; accountSubs.forEach(function (cb) { cb(n); }); }
         });
 
         return {
@@ -72,6 +77,11 @@
                 return Promise.resolve(n);
             },
             onConnection: function (cb) { cb(false); return noop; },
+            onAccounts: function (cb) {
+                accountSubs.add(cb);
+                Promise.resolve().then(function () { cb(users().length); });
+                return function () { accountSubs.delete(cb); };
+            },
             onAuth: function (cb) {
                 authSubs.add(cb);
                 Promise.resolve().then(function () { cb(readSession()); });
@@ -85,6 +95,7 @@
                 const list = users();
                 list.push({ name: d.name, phone: d.phone || '', email: email, pw: hash(d.password), created: new Date().toISOString() });
                 kv.set(KEY_USERS_LOCAL, JSON.stringify(list));
+                accountSubs.forEach(function (cb) { cb(list.length); });
                 const s = { name: d.name, email: email, phone: d.phone || '' };
                 publishSession(s);
                 return Promise.resolve(s);
@@ -121,6 +132,7 @@
             onCounter: function (cb) { Promise.resolve().then(function () { cb(cachedCount()); }); return noop; },
             incrementCounter: fail,
             onConnection: function (cb) { cb(false); return noop; },
+            onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
             register: fail, login: fail, resetPassword: fail, submitOrder: fail, listUsers: fail,
             logout: function () { return Promise.resolve(); }
@@ -140,6 +152,7 @@
         const auth = authM.getAuth(app);
         const db = dbM.getDatabase(app);
         const counterRef = dbM.ref(db, COUNTER_PATH);
+        const accountsRef = dbM.ref(db, ACCOUNTS_PATH);
 
         // Starea conexiunii: nu încercăm să scriem o comandă când nu suntem conectați
         // (Firebase ar ține scrierea în coadă și ar putea-o trimite mai târziu, dublând comanda dacă omul retrimite)
@@ -189,8 +202,22 @@
             }
         }
 
+        // Marcajul public „acest cont există": creat o singură dată per cont (regulile nu permit rescrierea sau marcaje pentru alții).
+        // Se încearcă la fiecare autentificare, deci și conturile mai vechi se numără la prima lor conectare, iar un eșec de rețea se repară singur.
+        const markerTried = new Set();
+        function ensureAccountMarker(uid) {
+            if (markerTried.has(uid)) return;
+            markerTried.add(uid);
+            const r = dbM.ref(db, ACCOUNTS_PATH + '/' + uid);
+            dbM.get(r).then(function (s) { if (s.val() === true) return; return dbM.set(r, true); }).catch(function (e) {
+                markerTried.delete(uid);
+                console.warn('[FeelVoyage] Contul nu a putut fi trecut în contorul „Conturi Create". Ai publicat regulile noi din firebase-rules.json?', e);
+            });
+        }
+
         async function buildSession(user) {
             let profile = {}, admin = false;
+            ensureAccountMarker(user.uid);
             // Profilul și rolul se citesc separat: dacă unul eșuează (ex. regulile noi nu sunt publicate încă), celălalt rămâne valabil
             const reads = await Promise.all([
                 dbM.get(dbM.ref(db, 'users/' + user.uid)).then(function (s) { return s.val() || {}; }, function () { return {}; }),
@@ -250,6 +277,14 @@
             },
             onConnection: function (cb) {
                 return dbM.onValue(dbM.ref(db, '.info/connected'), function (snap) { cb(snap.val() === true); });
+            },
+            onAccounts: function (cb) {
+                return dbM.onValue(accountsRef, function (snap) {
+                    const v = snap.val();
+                    cb(v && typeof v === 'object' ? Object.keys(v).length : 0);
+                }, function (err) {
+                    console.error('[FeelVoyage] Nu pot citi numărul de conturi. Ai publicat regulile din firebase-rules.json?', err);
+                });
             },
 
             onAuth: function (cb) {
@@ -344,6 +379,10 @@
         incrementCounter: function () { return ready.then(function (b) { return b.incrementCounter(); }); },
         onConnection: whenReady('onConnection'),
         cachedCount: cachedCount,
+        onAccounts: function (cb) {
+            return whenReady('onAccounts')(function (v) { kv.set(KEY_ACCOUNTS_CACHE, String(v)); cb(v); });
+        },
+        cachedAccounts: cachedAccounts,
 
         onAuth: whenReady('onAuth'),
         register: function (d) { return ready.then(function (b) { return b.register(d); }); },

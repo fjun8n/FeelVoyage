@@ -14,7 +14,8 @@ js/destinations.js   ← lista destinațiilor și prețul de bază al fiecărui 
 js/pricing.js        ← calculatorul de preț (adulți, copii, sezon, durată, servicii extra)
 js/daterange.js      ← calendarul pentru intervalul de date (plecare → întoarcere, format zz/ll/aaaa)
 js/app.js            ← filtre, rezervări, limbi
-js/infomodal.js      ← ferestrele „Despre noi” și „Termeni și Condiții” (se deschid din antet, meniul de telefon și subsol)
+js/infomodal.js      ← ferestrele „Despre noi”, „Termeni și Condiții”, „Politica de Confidențialitate” și „ANPC / SAL” (antet, meniul de telefon, subsol)
+js/consent.js        ← acceptarea documentelor (bifă + buton „Acceptă”, salvat în browser)
 js/chat.js           ← fereastra de chat (butoane rapide, întrebări libere, „Vezi pachetul”)
 js/ai.js             ← asistentul AI: Gemini prin Firebase AI Logic (prompt, instrumentul de preț, limite)
 js/faq.js            ← motorul răspunsurilor preprogramate (potrivire pe cuvinte-cheie, 5 limbi)
@@ -29,6 +30,7 @@ js/backend.js        ← contorul comun, conturile și comenzile (Firebase sau l
 js/theme.js          ← comutatorul luminos / întunecat
 js/auth.js           ← autentificare, înregistrare, profil
 js/counter.js        ← contorul „Călători Fericiți"
+js/accounts.js       ← cutia „Conturi Create” din prima pagină (număr live)
 js/admin.js          ← panoul de administrator (se încarcă doar pentru admin)
 firebase-rules.json  ← regulile bazei de date (le lipești în Firebase)
 ```
@@ -51,6 +53,16 @@ Note:
 - Cheile din `firebase-config.js` **nu sunt secrete**; securitatea o fac regulile din pasul 3.
 - Planul gratuit permite ~100 de vizitatori conectați simultan și 10 GB trafic/lună.
 - Oricine poate da click pe contor de câte ori vrea (regulile permit doar +1 pe rând, nu salturi mari).
+
+## Cutia „Conturi Create” (prima pagină)
+
+Între „Călători Fericiți” și „Destinații Active” se vede câte persoane au cont pe site, iar numărul se schimbă **live** la toți vizitatorii când cineva își face un cont (cu animație „+1” și indicatorul „în direct”).
+
+- **Cum se numără:** la crearea contului, site-ul scrie un marcaj anonim `accountIds/<uid> = true`; numărul afișat este numărul marcajelor. Nu se salvează niciun nume, e-mail sau telefon acolo, dar identificatorii de cont sunt citibili public (fără ei nu se poate număra).
+- **Nu poate fi umflat:** regulile permit doar crearea propriului marcaj, o singură dată; nu îl poți rescrie, șterge sau crea pentru altcineva. Numărul nu este o valoare pe care o scrie cineva.
+- **Conturile mai vechi** (create înainte de această funcție) se numără la **prima lor autentificare**, deci numărul pornește mic și crește. Dacă un marcaj nu s-a putut scrie (rețea, reguli nepublicate), se reîncearcă singur la următoarea autentificare.
+- **Trebuie să publici din nou `firebase-rules.json`** (regula `accountIds`). Fără ea contul se creează normal, dar contorul nu numără (în consolă apare un avertisment).
+- Fără Firebase (mod de testare) se numără conturile din acel browser; fără internet se afișează ultima valoare cunoscută.
 
 ## Comenzile clienților
 
@@ -96,15 +108,25 @@ Povestea agenției, cifrele (29 destinații, contorul „Călători fericiți”
 - Logica (deschidere, Escape, focus, blocarea derulării paginii din spate) e în `js/infomodal.js`, comună cu fereastra „Termeni și Condiții”.
 - **Dacă adaugi clase Tailwind noi** în fereastră, fișierul `css/tailwind.css` este precompilat și nu le cunoaște: rulează `npm run build:css` (cu Node instalat) sau pune stilul în `css/styles.css`.
 
-## Termeni și Condiții (fereastră)
+## Documente legale: Termeni și Condiții, Politica de Confidențialitate, ANPC / SAL
 
-Din subsol, **„Termeni și Condiții”** deschide documentul într-o fereastră (ca „Despre noi”). Are un **cuprins** cu cifre romane (I–XI) care duce direct la fiecare secțiune, casete de atenționare la punctele importante (confirmarea fermă a rezervării, penalizările de până la 100%, asigurarea storno) și carduri pentru datele firmei și de contact. Se închide cu ✕, Escape, click pe fundal sau butonul „Închide”; o adresă `…/index.html#termeni` o deschide direct.
+Din subsol, cele trei link-uri deschid documentele în ferestre (ca „Despre noi”). Fiecare are **cuprins** cu cifre romane care duce direct la secțiune, casete de atenționare la punctele importante, carduri pentru datele firmei și de contact, mod luminos/întunecat și 5 limbi. Se închid cu ✕, Escape, click pe fundal sau „Închide”; adresele `…/index.html#termeni`, `#confidentialitate` și `#anpc` le deschid direct. Între documente se poate trece direct (link-ul „Termeni și Condiții” din ANPC / SAL, stările din blocul de acceptare); se vede mereu o singură fereastră.
 
-- **Unde se editează textul:** româna în `index.html` (blocul `id="termsModal"`), celelalte limbi în `js/translations.js` (EN, IT), `js/translations-fr.js` și `js/translations-es.js`, toate cu cheile `terms.*` (64 de chei). Traducerile sunt orientative: la final documentul spune că, în caz de diferențe, prevalează versiunea în română.
-- **Datele firmei** (denumire, sediu, Registrul Comerțului, CUI, licență) și **datele de contact** (telefon, e-mail, program) sunt scrise direct în HTML, în cardul din secțiunea I și în lista din secțiunea XI, ca să le poți schimba într-un singur loc.
-- Când adaugi o secțiune, copiezi una existentă (`id="terms-sN"`), îi pui numărul roman în ecuson și o adaugi și în cuprins (`data-terms-go`).
-- Documentul nu ține loc de consultanță juridică: cere unui jurist să verifice textul, mai ales secțiunile despre anulări, plată și date personale.
-- „Politica de Confidențialitate” și „ANPC / SAL” din subsol sunt încă link-uri goale (`#`).
+- **Plata:** Termenii spun că **nu se plătește pe site** și că plata se face doar după discuția cu un agent și oferta confirmată. Nu mai există nicio mențiune despre Stripe, Netopia sau plata cu cardul online. Dacă mai există texte despre card în răspunsurile chatului (`js/faq-data-*.js`, `faq-fr.js`, `faq-es.js`, intrările despre plată), ele trebuie aduse la zi separat.
+- **Unde se editează textul:** româna în `index.html` (blocurile `id="termsModal"`, `id="privacyModal"`, `id="anpcModal"`), celelalte limbi în `js/translations.js` (EN, IT), `js/translations-fr.js` și `js/translations-es.js`, cu cheile `terms.*`, `privacy.*`, `anpc.*`, `accept.*` și cele partajate `legal.*` (cuprins, notă, contact, data actualizării). Titlurile vin din `footer.terms`, `footer.privacy`, `footer.anpc`. Traducerile sunt orientative: la final documentele spun că, în caz de diferențe, prevalează versiunea în română.
+- **Datele firmei** (denumire, sediu, Registrul Comerțului, CUI, licență) și **datele de contact** (telefon, e-mail, program) sunt scrise direct în HTML (cardul din Termeni, secțiunea I, și listele de contact din fiecare document), ca să le poți schimba într-un singur loc.
+- **Data actualizării:** „Ultima actualizare: septembrie 2026” (`legal.updated`). Când schimbi un document, schimbă și versiunea acceptării (mai jos).
+- **ANPC / SAL** trimite doar la surse oficiale: `anpc.ro/sal`, `reclamatiisal.anpc.ro`, `eccromania.ro`. Platforma europeană SOL nu mai există (Regulamentul (UE) 2024/3228), deci nu e menționată. Linkurile trebuie verificate din când în când.
+- Când adaugi o secțiune, copiezi una existentă (`id="<doc>-sN"`), îi pui numărul roman în ecuson și o adaugi și în cuprins (`data-doc-go`).
+- Documentele nu țin loc de consultanță juridică: cere unui jurist să le verifice, mai ales anulările, plata și datele personale.
+
+### Acceptarea documentelor
+
+La finalul fiecărui document: o **bifă** și butonul **„Acceptă”** (activ doar după bifare). După acceptare apare „Acceptat pe <data>”, iar „Retrage acceptul” anulează. Blocul arată și starea celor trei documente.
+
+- **Se salvează doar în browserul utilizatorului** (`fv_consents`, cu data și versiunea documentului). **Nu se trimite către FeelVoyage și nu e dovadă legală.** Pentru dovadă pe server, acceptul ar trebui salvat în contul utilizatorului sau în comandă (asta cere câmpuri noi în `firebase-rules.json`).
+- **Versiunea:** fiecare bloc are `data-doc-version="2026-09"`. Dacă îl schimbi (după ce modifici un document), acceptele vechi nu mai contează și se cere din nou acceptul.
+- Textul „Prin înregistrare accepți Termenii…” din formularul de cont nu e legat de aceste ferestre.
 
 ## Cont nou: telefonul este obligatoriu
 
