@@ -1,4 +1,4 @@
-/* FeelVoyage — ferestrele informative: „Despre noi", „Termeni și Condiții", „Politica de Confidențialitate" și „ANPC / SAL".
+/* FeelVoyage — ferestrele informative: „Despre noi", „Termeni și Condiții", „Politica de Confidențialitate", „ANPC / SAL" și lista de destinații pe categorii.
    Conținutul lor nu mai stă pe pagina principală: se deschide într-o fereastră din link-urile din antet / meniul de telefon / subsol.
    Textele rămân în index.html, cu chei de traducere (despre.*, terms.*, privacy.*, anpc.*), deci limba se schimbă și cât timp fereastra e închisă.
    O singură logică pentru toate: blocarea derulării paginii, Escape, click pe fundal, focus prins în fereastră și revenit la închidere.
@@ -19,6 +19,8 @@
         let hideTimer = null;
 
         const isOpen = () => !modal.classList.contains('hidden');
+        // altă fereastră deschisă deasupra (ex. fereastra pachetului peste lista de destinații): Escape și Tab sunt ale ei, nu ale acestei ferestre
+        const covered = () => { const b = cfg.blockedBy && document.getElementById(cfg.blockedBy); return !!(b && !b.classList.contains('hidden')); };
 
         function open(viaHash) {
             if (isOpen()) return;
@@ -78,7 +80,7 @@
         });
 
         document.addEventListener('keydown', function (e) {
-            if (!isOpen()) return;
+            if (!isOpen() || covered()) return;
             if (e.key === 'Escape') { close(); return; }
             if (e.key !== 'Tab') return;   // focusul rămâne în fereastră cât timp e deschisă
             const f = Array.prototype.filter.call(modal.querySelectorAll('a[href], button:not([disabled]), input:not([disabled])'), function (el) { return el.offsetParent !== null; });
@@ -110,6 +112,10 @@
         window.fvOpenAbout = function () { about.open(false); };
         window.fvCloseAbout = function () { about.close(); };
     }
+
+    /* ---------- Destinații pe categorii (conținutul e generat de js/app.js: openCatalog) ---------- */
+    const cat = attach({ modal: 'catModal', panel: 'catModalContainer', scroll: 'catScroll', close: 'closeCatBtn', hash: '#__destinatii', blockedBy: 'bookingModal' });
+    if (cat) window.fvCatModal = cat;
 
     /* ---------- Documentele legale ---------- */
     [

@@ -299,8 +299,8 @@
     // Pre-completează formularul de rezervare pentru utilizatorii logați
     const _origOpenModal = window.openModal;
     if (typeof _origOpenModal === 'function') {
-        window.openModal = function (id) {
-            _origOpenModal(id);
+        window.openModal = function (id, photoIndex) {
+            _origOpenModal(id, photoIndex);   // photoIndex: deschide galeria direct la o anumită poză (din sertarul cardului)
             if (session) {
                 const bn = document.getElementById('bookingName');
                 const be = document.getElementById('bookingEmail');

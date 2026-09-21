@@ -51,38 +51,37 @@ function lockScroll(on) {
     document.body.classList.toggle('overflow-hidden', scrollLocks > 0);
 }
 
-// Render Destinations Function with RON conversion support & Rating Stars
-function renderDestinations() {
-    // numărul de destinații din pagină (statisticile din prima pagină și „Despre noi”) vine din listă
-    document.querySelectorAll('[data-dest-count]').forEach(el => { el.textContent = String(destinations.length); });
-    destinationsGrid.innerHTML = '';
-    
-    const filtered = destinations.filter(item => {
-        const matchesCategory = (currentFilter === 'all') || (item.category === currentFilter) || (Array.isArray(item.extraCategories) && item.extraCategories.includes(currentFilter));
-        const t = getDestinationText(item);
-        const query = searchQuery.toLowerCase();
-        const matchesSearch = item.title.toLowerCase().includes(query) || 
-                              item.description.toLowerCase().includes(query) ||
-                              t.title.toLowerCase().includes(query) ||
-                              t.description.toLowerCase().includes(query);
-        const matchesBudget = (maxBudget === 'all') || (item.price <= parseInt(maxBudget));
-        
-        return matchesCategory && matchesSearch && matchesBudget;
-    });
+// ----- Destinații
+// Prima pagină arată doar cele 6 destinații marcate „featured: true” în js/destinations.js.
+// Restul se deschid într-o fereastră (ca „Termeni și Condiții”), pe categorii, din butoanele de categorie sau din căutarea de sus.
 
-    if (filtered.length === 0) {
-        noResultsMsg.classList.remove('hidden');
-    } else {
-        noResultsMsg.classList.add('hidden');
-        
-        filtered.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl border border-slate-100 transition-all duration-300 flex flex-col group transform hover:-translate-y-1';
-            const coverImg = item.images && item.images.length > 0 ? item.images[0] : '';
-            const t = getDestinationText(item);
-            
-            card.innerHTML = `
-                <div class="relative h-48 sm:h-60 overflow-hidden">
+// număr + „destinații” cu acordul corect în română („59 de destinații”, dar „11 destinații”); în celelalte limbi: textul tradus cu {n}
+function nDest(key, roText, n) {
+    if (typeof currentLang !== 'undefined' && currentLang !== 'ro') return tr(key, roText).replace('{n}', n);
+    const de = (n % 100 === 0 || n % 100 >= 20) ? ' de' : '';
+    return roText.replace('{n}', n + de);
+}
+
+// o destinație se potrivește dacă are categoria cerută (principală sau în extraCategories), textul căutat și se încadrează în buget
+function destinationMatches(item, f) {
+    const t = getDestinationText(item);
+    const q = (f.query || '').trim().toLowerCase();
+    const inCategory = f.filter === 'all' || item.category === f.filter || (Array.isArray(item.extraCategories) && item.extraCategories.includes(f.filter));
+    const inText = !q || item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q) || t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
+    const inBudget = f.budget === 'all' || item.price <= parseInt(f.budget);
+    return inCategory && inText && inBudget;
+}
+
+// Cardul unei destinații: doar poza de copertă; celelalte poze stau într-un sertar care se trage de un mâner (doar pe ecrane late, ≥ 1024 px);
+// pe ecrane mici insigna „N Foto” deschide direct galeria mare (nu se descarcă nimic în plus până nu o deschizi)
+function buildCard(item) {
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl border border-slate-100 transition-all duration-300 flex flex-col group transform hover:-translate-y-1';
+    card.dataset.dest = item.id;
+    const coverImg = item.images && item.images.length > 0 ? item.images[0] : '';
+    const t = getDestinationText(item);
+    card.innerHTML = `
+                <div class="fv-cover relative h-48 sm:h-60 overflow-hidden">
                     <img src="${imgSized(coverImg, 700)}" alt="${t.title}" loading="lazy" decoding="async" width="700" height="480" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                     
@@ -98,9 +97,19 @@ function renderDestinations() {
                         <span class="text-xs font-medium bg-black/50 px-2.5 py-1 rounded-lg backdrop-blur-sm">
                             <i class="fa-regular fa-clock mr-1"></i> ${t.period}
                         </span>
-                        <span class="text-xs bg-brand-600/90 px-2 py-0.5 rounded backdrop-blur-sm font-semibold">
+                        <button type="button" class="fv-photos-pill text-xs bg-brand-600/90 px-2 py-0.5 rounded backdrop-blur-sm font-semibold" data-photos aria-label="${tr('card.seePhotos', 'Vezi toate pozele pachetului')}">
                             <i class="fa-solid fa-images mr-1"></i> ${tr('dest.fotoN', '{n} Foto').replace('{n}', (item.images || []).length)}
-                        </span>
+                        </button>
+                    </div>
+
+                    <div class="fv-drawer" data-drawer aria-hidden="true">
+                        <button type="button" class="fv-pull" data-pull aria-expanded="false" aria-label="${tr('card.pullOpen', 'Deschide galeria foto')}" title="${tr('card.pullOpen', 'Deschide galeria foto')}">
+                            <i class="fa-solid fa-chevron-left"></i><i class="fa-solid fa-images"></i>
+                        </button>
+                        <div class="fv-drawer-body">
+                            <div class="fv-drawer-title">${tr('card.drawerTitle', '{n} poze').replace('{n}', (item.images || []).length)}</div>
+                            <div class="fv-drawer-grid" data-drawer-grid></div>
+                        </div>
                     </div>
                 </div>
                 
@@ -126,44 +135,159 @@ function renderDestinations() {
                     </div>
                 </div>
             `;
-            destinationsGrid.appendChild(card);
-        });
-    }
+    initCardGallery(card, item);
+    return card;
 }
 
-// Filter Buttons Handler
-filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        filterBtns.forEach(b => {
-            b.classList.remove('bg-brand-600', 'text-white', 'shadow-md');
-            b.classList.add('bg-white', 'text-slate-700', 'hover:bg-slate-100');
+// Mânerul din dreapta pozei: click sau tragere spre stânga deschide sertarul cu miniaturi; miniaturile se creează abia la prima deschidere
+function initCardGallery(card, item) {
+    const pill = card.querySelector('[data-photos]');
+    if (pill) pill.addEventListener('click', () => openModal(item.id, 0));
+    const drawer = card.querySelector('[data-drawer]'), tab = card.querySelector('[data-pull]'), grid = card.querySelector('[data-drawer-grid]');
+    if (!drawer || !tab || !grid) return;
+    let open = false, built = false;
+    function build() {
+        if (built) return;
+        built = true;
+        (item.images || []).forEach((url, i) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.setAttribute('aria-label', tr('card.openPhoto', 'Deschide poza {n}').replace('{n}', i + 1));
+            const im = document.createElement('img');
+            im.src = imgSized(url, 250); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+            im.addEventListener('error', () => { if (isCommonsUrl(url)) b.remove(); });   // poză care nu se încarcă: dispare și din sertar
+            b.appendChild(im);
+            b.addEventListener('click', () => openModal(item.id, i));
+            grid.appendChild(b);
         });
-        btn.classList.remove('bg-white', 'text-slate-700', 'hover:bg-slate-100');
-        btn.classList.add('bg-brand-600', 'text-white', 'shadow-md');
-
-        currentFilter = btn.getAttribute('data-filter');
-        renderDestinations();
-        if (btn.scrollIntoView) btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    }
+    function setOpen(v) {
+        open = v;
+        if (v) build();
+        drawer.classList.toggle('is-open', v);
+        drawer.style.transform = '';
+        drawer.setAttribute('aria-hidden', v ? 'false' : 'true');
+        tab.setAttribute('aria-expanded', v ? 'true' : 'false');
+        const label = tr(v ? 'card.pullClose' : 'card.pullOpen', v ? 'Închide galeria foto' : 'Deschide galeria foto');
+        tab.setAttribute('aria-label', label); tab.title = label;
+    }
+    let startX = 0, startOpen = false, moved = false, dragging = false, width = 0;
+    tab.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        dragging = true; moved = false; startX = e.clientX; startOpen = open; width = drawer.offsetWidth;
+        build();
+        try { tab.setPointerCapture(e.pointerId); } catch (err) { }
+        drawer.classList.add('is-dragging');
     });
+    tab.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        const dx = e.clientX - startX;
+        if (Math.abs(dx) > 4) moved = true;
+        if (!moved) return;
+        const x = Math.min(width, Math.max(0, (startOpen ? 0 : width) + dx));
+        drawer.style.transform = `translateX(${x}px)`;
+    });
+    function endDrag(e, cancelled) {
+        if (!dragging) return;
+        dragging = false;
+        drawer.classList.remove('is-dragging');
+        const dx = e.clientX - startX;
+        if (cancelled) setOpen(startOpen);
+        else if (!moved) setOpen(!startOpen);                                  // simplu click pe mâner
+        else setOpen(startOpen ? !(dx > 40) : dx < -40);                       // tragere: peste 40 px într-o parte
+    }
+    tab.addEventListener('pointerup', (e) => endDrag(e, false));
+    tab.addEventListener('pointercancel', (e) => endDrag(e, true));
+    tab.addEventListener('click', (e) => { if (e.detail === 0) setOpen(!open); });   // tastatură (Enter / Space)
+    drawer.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false); tab.focus(); }
+    });
+}
+
+// Prima pagină: doar destinațiile „featured” + butonul „Vezi toate”
+function renderDestinations() {
+    // numărul de destinații din pagină (statisticile din prima pagină și „Despre noi”) vine din listă
+    document.querySelectorAll('[data-dest-count]').forEach(el => { el.textContent = String(destinations.length); });
+    destinationsGrid.innerHTML = '';
+    noResultsMsg.classList.add('hidden');
+    destinations.filter(d => d.featured).forEach(item => destinationsGrid.appendChild(buildCard(item)));
+    const label = document.getElementById('viewAllLabel');
+    if (label) label.textContent = nDest('catwin.viewAll', 'Vezi toate cele {n} destinații', destinations.length);
+    refreshCatalog();   // dacă fereastra cu destinații e deschisă, își reface cardurile în limba curentă
+}
+
+// ----- Fereastra cu destinații (pe categorii / rezultatele căutării)
+const catState = { filter: 'all', query: '', budget: 'all', results: false };
+const catModalEl = document.getElementById('catModal');
+function renderCatalog() {
+    const grid = document.getElementById('catGrid');
+    if (!grid) return;
+    const items = destinations.filter(d => destinationMatches(d, catState));
+    grid.innerHTML = '';
+    items.forEach(item => grid.appendChild(buildCard(item)));
+    const btn = document.querySelector('.filter-btn[data-filter="' + catState.filter + '"] span');
+    document.getElementById('catModalTitle').textContent = catState.results ? tr('catwin.results', 'Rezultatele căutării') : (btn ? btn.textContent.trim() : '');
+    document.getElementById('catModalCount').textContent = items.length === 1 ? tr('catwin.count1', '1 destinație') : nDest('catwin.count', '{n} destinații', items.length);
+    const note = document.getElementById('catModalNote');
+    const hasBudget = catState.budget !== 'all';
+    note.classList.toggle('hidden', !hasBudget);
+    note.textContent = hasBudget ? tr('catwin.budget', 'Buget maxim: {b} €').replace('{b}', catState.budget) : '';
+    document.getElementById('catEmpty').classList.toggle('hidden', items.length > 0);
+    grid.classList.toggle('hidden', items.length === 0);
+    document.getElementById('catShowAll').textContent = nDest('catwin.viewAll', 'Vezi toate cele {n} destinații', destinations.length);
+}
+function refreshCatalog() {
+    if (catModalEl && !catModalEl.classList.contains('hidden')) renderCatalog();
+}
+function openCatalog(filter, opts) {
+    opts = opts || {};
+    catState.filter = filter || 'all';
+    catState.query = opts.query || '';
+    catState.budget = opts.budget || 'all';
+    catState.results = !!opts.results;
+    const s = document.getElementById('catSearch');
+    if (s) s.value = catState.query;
+    renderCatalog();
+    if (window.fvCatModal) {
+        window.fvCatModal.open(false);
+        window.fvCatModal.scroller.scrollTop = 0;   // deja deschisă și s-a schimbat lista: revenim sus
+    }
+}
+window.openCatalog = openCatalog;
+(function initCatalog() {
+    const s = document.getElementById('catSearch');
+    let timer = null;
+    if (s) s.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { catState.query = s.value; renderCatalog(); }, 120);
+    });
+    const showAll = document.getElementById('catShowAll');
+    if (showAll) showAll.addEventListener('click', () => {
+        catState.filter = 'all'; catState.query = ''; catState.budget = 'all'; catState.results = false;
+        if (s) s.value = '';
+        renderCatalog();
+    });
+    const viewAll = document.getElementById('viewAllBtn');
+    if (viewAll) viewAll.addEventListener('click', () => openCatalog('all'));
+})();
+
+// Butoanele de categorie deschid fereastra cu destinațiile categoriei
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => openCatalog(btn.getAttribute('data-filter')));
 });
 
 function filterCategory(cat) {
-    currentFilter = cat;
-    filterBtns.forEach(b => {
-        if (b.getAttribute('data-filter') === cat) {
-            b.click();
-        }
-    });
+    openCatalog(cat);
 }
 
-// Search Form Submission
+// Căutarea de sus: deschide fereastra cu rezultatele (din toate destinațiile)
 heroSearchForm.addEventListener('submit', (e) => {
     e.preventDefault();
     searchQuery = searchInput.value;
     currentFilter = categorySelect.value;
     maxBudget = budgetSelect.value;
-    renderDestinations();
-    document.getElementById('destinatii').scrollIntoView({ behavior: 'smooth' });
+    const custom = searchQuery.trim() !== '' || maxBudget !== 'all';
+    openCatalog(currentFilter, { query: searchQuery, budget: maxBudget, results: custom });
 });
 
 document.getElementById('resetFiltersBtn').addEventListener('click', () => {
@@ -274,7 +398,7 @@ function dropPhoto(url) {
 
 // Open Modal Function with Multi-Image Support & Dynamic Gallery
 let currentBookingDest = null;   // destinația pentru care e deschisă fereastra de rezervare
-function openModal(id) {
+function openModal(id, photoIndex) {
     const item = destinations.find(d => d.id === id);
     if (!item) return;
     currentBookingDest = item;
@@ -303,7 +427,7 @@ function openModal(id) {
         thumb.addEventListener('error', () => dropPhoto(imgUrl));
         modalGalleryThumbnails.appendChild(thumb);
     });
-    showPhoto(0);
+    showPhoto(Number.isInteger(photoIndex) && photoIndex > 0 && photoIndex < galleryImages.length ? photoIndex : 0);   // din sertarul cardului se poate deschide direct la o anumită poză
 
     // Render Amenities
     modalAmenities.innerHTML = t.amenities.map(a => `
@@ -317,7 +441,13 @@ function openModal(id) {
     // dacă fereastra a fost închisă cu câteva zeci de milisecunde înainte, anulăm ascunderea întârziată (și reblocăm derularea)
     if (bookingModal.classList.contains('hidden') || modalCloseTimer) lockScroll(true);
     clearTimeout(modalCloseTimer); modalCloseTimer = null;
+    if (bookingModal.classList.contains('hidden')) {
+        // focusul pleacă din pagină / din lista de destinații în fereastra pachetului; lista din spate devine inertă (nici tastatura, nici cititorul de ecran nu o ating)
+        bookingReturnFocus = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
+        if (catModalEl && !catModalEl.classList.contains('hidden')) { catModalEl.inert = true; catInertByBooking = true; }
+    }
     bookingModal.classList.remove('hidden');
+    requestAnimationFrame(() => { try { closeModalBtn.focus({ preventScroll: true }); } catch (e) { closeModalBtn.focus(); } });
     setTimeout(() => {
         modalContainer.classList.remove('scale-95', 'opacity-0');
         modalContainer.classList.add('scale-100', 'opacity-100');
@@ -325,15 +455,28 @@ function openModal(id) {
 }
 
 let modalCloseTimer = null;
+let bookingReturnFocus = null, catInertByBooking = false;
+// Tab rămâne în fereastra pachetului (de la ultimul element revine la primul și invers)
+bookingModal.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const f = Array.prototype.filter.call(bookingModal.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'), el => el.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
 function closeModal() {
     if (bookingModal.classList.contains('hidden') || modalCloseTimer) return;
     if (bookingRange) bookingRange.close();
     lockScroll(false);
+    if (catInertByBooking && catModalEl) { catModalEl.inert = false; catInertByBooking = false; }   // lista de destinații din spate redevine activă
     modalContainer.classList.remove('scale-100', 'opacity-100');
     modalContainer.classList.add('scale-95', 'opacity-0');
     modalCloseTimer = setTimeout(() => {
         modalCloseTimer = null;
         bookingModal.classList.add('hidden');
+        const back = bookingReturnFocus; bookingReturnFocus = null;
+        if (back && document.contains(back) && back.offsetParent !== null) { try { back.focus({ preventScroll: true }); } catch (err) { } }
     }, 200);
 }
 
@@ -857,7 +1000,11 @@ function initLanguageSwitcher() {
 }
 
 // Initialize App
-window.onload = function() {
+// Pornește imediat ce pagina e gata (DOMContentLoaded), nu la window.onload: „load” așteaptă toate pozele și fonturile, iar pe o conexiune lentă
+// cardurile ar apărea târziu, iar o listă de destinații deschisă între timp ar fi refăcută sub degetul vizitatorului.
+function initApp() {
     initLanguageSwitcher();
     renderDestinations();
-};
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initApp);
+else initApp();

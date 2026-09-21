@@ -329,3 +329,53 @@ html.dark .doc-accept-login { color: var(--fv-accent-strong); }
 .modal-photo-credit { margin: 0; padding: .4rem 1rem; background: #020617; border-bottom: 1px solid #1e293b; color: #94a3b8; font-size: .7rem; line-height: 1.4; }
 .modal-photo-credit.hidden { display: none; }
 .modal-photo-credit a { color: #7dd3fc; font-weight: 700; text-decoration: underline; }
+
+/* ------------------------------------------------------------------ Destinații: prima pagină (6 pachete), ferestre pe categorii, galeria „cu mâner” din carduri */
+/* ordinea ferestrelor: pagina < lista de destinații < fereastra pachetului < ferestre legale / cont (z-[90]) */
+.cat-modal { z-index: 60; }
+.fv-z-booking { z-index: 70; }
+.cat-panel { width: 100%; max-width: 80rem; border: 1px solid rgba(148, 163, 184, 0.28); }
+.cat-scroll { overscroll-behavior: contain; }
+.cat-search-wrap { position: relative; max-width: 26rem; margin: 1.5rem auto 0; }
+.cat-search-icon { position: absolute; left: .95rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: .85rem; pointer-events: none; }
+.cat-search { width: 100%; padding: .7rem 1rem .7rem 2.4rem; border-radius: .9rem; border: 1px solid #cbd5e1; background: #fff; color: #0f172a; font-size: .9rem; font-weight: 600; }
+.cat-search:focus { outline: 2px solid #0284c7; outline-offset: 1px; border-color: transparent; }
+html.dark .cat-search { background: var(--fv-input); border-color: var(--fv-line); color: var(--fv-text-strong); }
+.cat-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 1.75rem; }
+@media (min-width: 640px) { .cat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .cat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem; } }
+.cat-grid.hidden { display: none; }
+.view-all-btn:hover, .view-all-btn:focus-visible { background-color: #075985; outline: none; }
+.view-all-btn { cursor: pointer; }
+
+/* coperta cardului: poza + insignele + sertarul cu poze */
+.fv-cover { position: relative; overflow: hidden; }
+
+/* insigna „N Foto” de pe copertă e buton (pe ecrane mici deschide galeria mare) */
+.fv-photos-pill { border: 0; color: #fff; cursor: pointer; }
+.fv-photos-pill:hover, .fv-photos-pill:focus-visible { background-color: #075985; outline: none; }
+
+/* sertarul cu poze: doar pe ecrane late (calculator, tabletă mare); pe ecrane mici nu există și nu se descarcă nimic */
+.fv-drawer { display: none; }
+@media (min-width: 1024px) {
+    .fv-drawer { display: block; position: absolute; top: 0; right: 0; bottom: 0; width: 62%; z-index: 8; transform: translateX(100%); transition: transform .34s cubic-bezier(.2, .8, .2, 1); }
+    .fv-drawer.is-open { transform: translateX(0); }
+    .fv-drawer.is-dragging { transition: none; }
+    .fv-pull { position: absolute; left: -1.7rem; top: 50%; margin-top: -2.5rem; width: 1.7rem; height: 5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; border: 0; border-radius: .95rem 0 0 .95rem; background: #0369a1; color: #fff; font-size: .72rem; cursor: grab; touch-action: none; box-shadow: -3px 2px 10px rgba(0, 0, 0, 0.3); }
+    .fv-pull:active { cursor: grabbing; }
+    .fv-pull:hover, .fv-pull:focus-visible { background: #075985; outline: none; }
+    .fv-pull .fa-chevron-left { transition: transform .3s; }
+    .fv-drawer.is-open .fv-pull .fa-chevron-left { transform: rotate(180deg); }
+    .fv-drawer-body { position: absolute; inset: 0; display: flex; flex-direction: column; background: rgba(15, 23, 42, 0.92); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border-left: 1px solid rgba(255, 255, 255, 0.14); visibility: hidden; transition: visibility 0s linear .34s; }
+    .fv-drawer.is-open .fv-drawer-body, .fv-drawer.is-dragging .fv-drawer-body { visibility: visible; transition-delay: 0s; }
+    .fv-drawer-title { flex: none; padding: .6rem .75rem .35rem; color: #e2e8f0; font-size: .68rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+    .fv-drawer-grid { flex: 1; overflow-y: auto; padding: .15rem .6rem .6rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem; align-content: start; overscroll-behavior: contain; }
+    .fv-drawer-grid button { padding: 0; border: 0; border-radius: .5rem; overflow: hidden; cursor: pointer; background: #1e293b; height: 4.5rem; }
+    .fv-drawer-grid img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
+    .fv-drawer-grid button:hover img, .fv-drawer-grid button:focus-visible img { transform: scale(1.08); }
+    .fv-drawer-grid button:focus-visible { outline: 2px solid #7dd3fc; outline-offset: -2px; }
+}
+@media (prefers-reduced-motion: reduce) { .fv-drawer, .fv-pull .fa-chevron-left, .fv-drawer-grid img { transition: none; } }
+
+/* textul din subsol, sub iconițele sociale */
+.footer-edu { margin: .85rem 0 0; font-size: .68rem; line-height: 1.45; font-weight: 700; color: #94a3b8; }
