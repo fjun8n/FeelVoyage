@@ -27,7 +27,7 @@
         root.classList.toggle('dark', theme === 'dark');
         root.style.colorScheme = theme;
         if (metaTheme) metaTheme.setAttribute('content', theme === 'dark' ? '#0b1220' : '#f8fafc');
-        if (persist) { try { localStorage.setItem(KEY, theme); } catch (e) { /* ignorat */ } }
+        if (persist) { try { localStorage.setItem(KEY, theme); } catch (e) { /* ignorat */ } if (window.FVLog) FVLog.info('app', 'theme', { theme: theme }); }
         updateButtons();
     }
 

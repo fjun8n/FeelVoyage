@@ -82,7 +82,7 @@ function buildCard(item) {
     const t = getDestinationText(item);
     card.innerHTML = `
                 <div class="fv-cover relative h-48 sm:h-60 overflow-hidden">
-                    <img src="${imgSized(coverImg, 700)}" alt="${t.title}" loading="lazy" decoding="async" width="700" height="480" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <img src="${imgSized(coverImg, (window.FVPerf ? FVPerf.coverWidth() : 700))}" alt="${t.title}" loading="lazy" decoding="async" width="700" height="480" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                     
                     <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-brand-900 font-extrabold text-xs shadow-md">
@@ -142,7 +142,7 @@ function buildCard(item) {
 // Mânerul din dreapta pozei: click sau tragere spre stânga deschide sertarul cu miniaturi; miniaturile se creează abia la prima deschidere
 function initCardGallery(card, item) {
     const pill = card.querySelector('[data-photos]');
-    if (pill) pill.addEventListener('click', () => openModal(item.id, 0));
+    if (pill) pill.addEventListener('click', () => { if (window.FVLog) FVLog.info('card', 'photos', { id: item.id }); openModal(item.id, 0); });
     const drawer = card.querySelector('[data-drawer]'), tab = card.querySelector('[data-pull]'), grid = card.querySelector('[data-drawer-grid]');
     if (!drawer || !tab || !grid) return;
     let open = false, built = false;
@@ -155,13 +155,14 @@ function initCardGallery(card, item) {
             b.setAttribute('aria-label', tr('card.openPhoto', 'Deschide poza {n}').replace('{n}', i + 1));
             const im = document.createElement('img');
             im.src = imgSized(url, 250); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
-            im.addEventListener('error', () => { if (isCommonsUrl(url)) b.remove(); });   // poză care nu se încarcă: dispare și din sertar
+            im.addEventListener('error', () => { if (isCommonsUrl(url)) { b.remove(); if (window.FVLog) FVLog.warn('media', 'thumb.fail', { id: item.id, n: i + 1 }); } });   // poză care nu se încarcă: dispare și din sertar
             b.appendChild(im);
             b.addEventListener('click', () => openModal(item.id, i));
             grid.appendChild(b);
         });
     }
     function setOpen(v) {
+        if (v && !open && window.FVLog) FVLog.info('card', 'drawer', { id: item.id });
         open = v;
         if (v) build();
         drawer.classList.toggle('is-open', v);
@@ -219,12 +220,36 @@ function renderDestinations() {
 // ----- Fereastra cu destinații (pe categorii / rezultatele căutării)
 const catState = { filter: 'all', query: '', budget: 'all', results: false };
 const catModalEl = document.getElementById('catModal');
+let catRenderToken = 0;
+// Cardurile apar în loturi: primul lot (un ecran) imediat, restul câte un lot pe cadru — pe un telefon slab fereastra se deschide fără să înghețe,
+// iar dacă alegi altă categorie în timpul randării, lotul vechi se oprește (token)
 function renderCatalog() {
     const grid = document.getElementById('catGrid');
     if (!grid) return;
     const items = destinations.filter(d => destinationMatches(d, catState));
+    const token = ++catRenderToken;
+    const size = (window.FVPerf && FVPerf.chunk()) || 8;
+    const done = window.FVLog ? FVLog.time('catalog', 'render', 400) : null;
     grid.innerHTML = '';
-    items.forEach(item => grid.appendChild(buildCard(item)));
+    delete grid.dataset.ready;
+    let i = 0;
+    function step() {
+        if (token !== catRenderToken) return;
+        const frag = document.createDocumentFragment();
+        for (let k = 0; k < size && i < items.length; k++, i++) {
+            const card = buildCard(items[i]);
+            card.style.setProperty('--i', k);
+            frag.appendChild(card);
+        }
+        grid.appendChild(frag);
+        if (i < items.length) {
+            if (document.hidden) setTimeout(step, 30); else requestAnimationFrame(step);
+        } else {
+            grid.dataset.ready = '1';
+            if (done) done({ n: items.length, chunk: size, filter: catState.filter });
+        }
+    }
+    step();
     const btn = document.querySelector('.filter-btn[data-filter="' + catState.filter + '"] span');
     document.getElementById('catModalTitle').textContent = catState.results ? tr('catwin.results', 'Rezultatele căutării') : (btn ? btn.textContent.trim() : '');
     document.getElementById('catModalCount').textContent = items.length === 1 ? tr('catwin.count1', '1 destinație') : nDest('catwin.count', '{n} destinații', items.length);
@@ -235,6 +260,7 @@ function renderCatalog() {
     document.getElementById('catEmpty').classList.toggle('hidden', items.length > 0);
     grid.classList.toggle('hidden', items.length === 0);
     document.getElementById('catShowAll').textContent = nDest('catwin.viewAll', 'Vezi toate cele {n} destinații', destinations.length);
+    return items.length;
 }
 function refreshCatalog() {
     if (catModalEl && !catModalEl.classList.contains('hidden')) renderCatalog();
@@ -247,7 +273,8 @@ function openCatalog(filter, opts) {
     catState.results = !!opts.results;
     const s = document.getElementById('catSearch');
     if (s) s.value = catState.query;
-    renderCatalog();
+    const n = renderCatalog();
+    if (window.FVLog) FVLog.info('catalog', 'open', { filter: catState.filter, results: catState.results, n: n, qLen: (catState.query || '').trim().length, budget: catState.budget !== 'all' });
     if (window.fvCatModal) {
         window.fvCatModal.open(false);
         window.fvCatModal.scroller.scrollTop = 0;   // deja deschisă și s-a schimbat lista: revenim sus
@@ -259,7 +286,7 @@ window.openCatalog = openCatalog;
     let timer = null;
     if (s) s.addEventListener('input', () => {
         clearTimeout(timer);
-        timer = setTimeout(() => { catState.query = s.value; renderCatalog(); }, 120);
+        timer = setTimeout(() => { catState.query = s.value; const n = renderCatalog(); if (window.FVLog) FVLog.info('catalog', 'search', { filter: catState.filter, qLen: s.value.trim().length, n: n }); }, 120);
     });
     const showAll = document.getElementById('catShowAll');
     if (showAll) showAll.addEventListener('click', () => {
@@ -287,6 +314,7 @@ heroSearchForm.addEventListener('submit', (e) => {
     currentFilter = categorySelect.value;
     maxBudget = budgetSelect.value;
     const custom = searchQuery.trim() !== '' || maxBudget !== 'all';
+    if (window.FVLog) FVLog.info('search', 'submit', { filter: currentFilter, qLen: searchQuery.trim().length, budget: maxBudget, n: destinations.filter(d => destinationMatches(d, { filter: currentFilter, query: searchQuery, budget: maxBudget })).length });
     openCatalog(currentFilter, { query: searchQuery, budget: maxBudget, results: custom });
 });
 
@@ -338,6 +366,7 @@ function showPhoto(i) {
     const url = galleryImages[galleryIndex];
     modalImg.dataset.url = url;   // adresa din listă (pentru a scoate poza dacă nu se încarcă)
     modalImg.src = mainPhotoUrl(url);
+    if (!window.FVPerf || FVPerf.motionOn()) { modalImg.classList.remove('fv-swap'); void modalImg.offsetWidth; modalImg.classList.add('fv-swap'); }   // fade scurt la schimbarea pozei
     modalImg.alt = `${galleryTitle} foto ${galleryIndex + 1}`;
     const thumbs = modalGalleryThumbnails.querySelectorAll('img');
     thumbs.forEach((th, k) => {
@@ -366,6 +395,7 @@ function dropPhoto(url) {
     const i = galleryImages.indexOf(url);
     if (i < 0 || galleryImages.length < 2 || !isCommonsUrl(url)) return;
     galleryImages.splice(i, 1);
+    if (window.FVLog) FVLog.warn('media', 'photo.dropped', { file: decodeURIComponent((url.split('/').slice(-2)[0] || '')).slice(0, 80), left: galleryImages.length });
     const th = modalGalleryThumbnails.querySelectorAll('img')[i];
     if (th) th.remove();
     // rămânem pe aceeași poză (sau pe următoarea, dacă tocmai a dispărut cea afișată)
@@ -400,7 +430,8 @@ function dropPhoto(url) {
 let currentBookingDest = null;   // destinația pentru care e deschisă fereastra de rezervare
 function openModal(id, photoIndex) {
     const item = destinations.find(d => d.id === id);
-    if (!item) return;
+    if (!item) { if (window.FVLog) FVLog.warn('package', 'unknown', { id: String(id).slice(0, 40) }); return; }
+    if (window.FVLog) FVLog.info('package', 'open', { id: id, photo: Number.isInteger(photoIndex) ? photoIndex : 0 });
     currentBookingDest = item;
 
     const t = getDestinationText(item);
@@ -668,10 +699,14 @@ function notify(message, kind) {
     if (typeof window.fvToast === 'function') window.fvToast(message, kind);
 }
 function sendOrder(order) {
-    if (!window.FVBackend) return Promise.reject(new Error('backend indisponibil'));
+    if (!window.FVBackend) { if (window.FVLog) FVLog.error('order', 'no-backend', { type: order.type }); return Promise.reject(new Error('backend indisponibil')); }
     order.lang = currentLang;
     order.dateText = new Date().toLocaleString('ro-RO');
-    return window.FVBackend.submitOrder(order);
+    const done = window.FVLog ? FVLog.time('order', 'send', 1500) : null;
+    return window.FVBackend.submitOrder(order).then(
+        (r) => { if (done) done({ ok: true, type: order.type }); return r; },
+        (err) => { if (done) done({ ok: false, type: order.type }); if (window.FVLog) FVLog.error('order', 'failed', { type: order.type, code: (err && err.code) || 'necunoscut' }); throw err; }
+    );
 }
 const ORDER_ERROR_RO = 'Nu am putut trimite solicitarea. Încearcă din nou sau sună-ne la 0799 927 590.';
 
@@ -686,6 +721,7 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
     // Regex: at least 2 words, each 2+ chars, supports RO diacritics, hyphens, apostrophes
     const nameRegex = /^[A-Za-zĂÂÎȘȚăâîșțÀ-ÿ'\-]{2,}(?:\s+[A-Za-zĂÂÎȘȚăâîșțÀ-ÿ'\-]{2,})+$/;
     if (!nameRegex.test(nameVal)) {
+        if (window.FVLog) FVLog.info('booking', 'invalid', { field: 'nume' });
         nameInput.classList.add('border-red-500', 'ring-2', 'ring-red-400');
         nameError.classList.remove('hidden');
         nameInput.focus();
@@ -701,6 +737,7 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
     const phoneVal = phoneInput.value.trim();
     const phoneValid = fvPhoneValid(phoneVal);
     if (!phoneValid) {
+        if (window.FVLog) FVLog.info('booking', 'invalid', { field: 'telefon' });
         phoneInput.classList.add('border-red-500', 'ring-2', 'ring-red-400');
         phoneError.classList.remove('hidden');
         phoneInput.focus();
@@ -718,6 +755,7 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
     const emailValid = allowedDomains.some(d => emailVal.endsWith(d));
 
     if (!emailValid) {
+        if (window.FVLog) FVLog.info('booking', 'invalid', { field: 'email' });
         emailInput.classList.add('border-red-500', 'ring-2', 'ring-red-400');
         emailError.classList.remove('hidden');
         emailInput.focus();
@@ -729,6 +767,7 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
 
     // --- Validate Dates (plecare + întoarcere, în limitele pachetului, nu în trecut) ---
     if (!bookingRange || bookingRange.validate()) {
+        if (window.FVLog) FVLog.info('booking', 'invalid', { field: 'date' });
         if (bookingRange) {
             bookingRange.showError(tr('modal.dateRequired', 'Alege data plecării și data întoarcerii.'));
             bookingRange.open(bookingRange.getRange().start ? 'end' : 'start');
@@ -773,6 +812,7 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
         return;
     }
     setFormBusy(form, false);
+    if (window.FVLog) FVLog.info('booking', 'submitted', { id: dest ? dest.id : '', adults: quote.adults, kids04: quote.kids04, kids512: quote.kids512, nights: quote.nights, total: quote.total });
 
     // --- Close the booking modal ---
     closeModal();
@@ -944,6 +984,7 @@ function updateLangSwitcherUI() {
 // Master language switch function
 function setLanguage(lang) {
     if (!['ro', 'en', 'it', 'fr', 'es'].includes(lang)) lang = 'ro';
+    if (lang !== currentLang && window.FVLog) FVLog.info('app', 'lang', { from: currentLang, to: lang });
     currentLang = lang;
     fvStore.set('feelvoyage_lang', lang);
     document.documentElement.setAttribute('lang', lang);

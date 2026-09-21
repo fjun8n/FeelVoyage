@@ -18,16 +18,50 @@
         })();
     </script>
 
+    <!-- Mod rapid pentru dispozitive slabe: se decide ÎNAINTE de prima afișare (fără „clipire”). Reguli în js/perf.js; ?lite=1 / ?lite=0 sau butonul din subsol îl schimbă -->
+    <script>
+        (function () {
+            var h = document.documentElement, pref = null, why = '', low = false;
+            try { pref = localStorage.getItem('fv_perf'); } catch (e) { }
+            var q = (location.search.match(/[?&]lite=([01])\b/) || [])[1];
+            var mode = window.__FV_PERF || (q === '1' ? 'lite' : q === '0' ? 'full' : (pref === 'lite' || pref === 'full') ? pref : 'auto');
+            var c = navigator.connection || {};
+            if (mode === 'lite') { low = true; why = 'ales'; }
+            else if (mode === 'auto') {
+                if (navigator.deviceMemory && navigator.deviceMemory <= 2) { low = true; why = 'memorie'; }
+                else if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) { low = true; why = 'procesor'; }
+                else if (c.saveData) { low = true; why = 'economisire date'; }
+                else if (/^(slow-)?2g$/.test(c.effectiveType || '')) { low = true; why = 'rețea lentă'; }
+            }
+            var rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (low) h.classList.add('perf-low');
+            if (low || rm) h.classList.add('motion-off');
+            h.setAttribute('data-perf', low ? 'lite' : 'full');
+            h.setAttribute('data-perf-mode', mode);
+            if (why) h.setAttribute('data-perf-why', why);
+            // poza din hero (LCP): cerută devreme, la dimensiunea potrivită (în modul rapid mereu cea mică)
+            var w = window.innerWidth, id = 'photo-1507525428034-b723cf961d3e', big = !low && w >= 1280, mid = !low && !big && w >= 640;
+            var l = document.createElement('link');
+            l.rel = 'preload'; l.as = 'image'; l.setAttribute('fetchpriority', 'high');
+            l.href = 'https://images.unsplash.com/' + id + '?auto=format&fit=crop&w=' + (big ? '2000&q=80' : mid ? '1400&q=80' : '900&q=75');
+            document.head.appendChild(l);
+        })();
+    </script>
+
     <!-- Conexiuni timpurii către serviciile externe (încărcare mai rapidă pe telefon) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com">
+    <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
     <!-- Google Fonts (Plus Jakarta Sans & Volkhov) -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Volkhov:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Încărcate fără să blocheze prima afișare (media="print" → „all” la încărcare); fără JavaScript, <noscript> le încarcă normal -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Volkhov:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Volkhov:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"></noscript>
     <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 
     <!-- Stiluri: Tailwind precompilat (rapid pe telefon) + stiluri proprii + modul întunecat -->
     <link rel="stylesheet" href="css/tailwind.css">
@@ -571,6 +605,7 @@
                     <a href="#termeni" class="hover:text-slate-400" data-i18n="footer.terms">Termeni și Condiții</a>
                     <a href="#confidentialitate" class="hover:text-slate-400" data-i18n="footer.privacy">Politica de Confidențialitate</a>
                     <a href="#anpc" class="hover:text-slate-400" data-i18n="footer.anpc">ANPC / SAL</a>
+                    <button type="button" data-perf-toggle class="perf-toggle" aria-pressed="false" title="Reduce efectele și animațiile pentru un site mai fluid pe telefoane mai vechi"><i class="fa-solid fa-gauge-high"></i> <span data-perf-label>Mod rapid: oprit</span></button>
                     <span class="text-slate-700">•</span>
                     <span class="text-slate-500">Made by <span class="font-semibold text-slate-300">DeDe</span></span>
                 </div>
@@ -1560,6 +1595,8 @@
     </div>
 
     <!-- Scripturi (ordinea contează: app.js definește fvStore, folosit de backend.js, auth.js și counter.js) -->
+    <script src="js/logger.js"></script>
+    <script src="js/perf.js"></script>
     <script src="js/translations.js"></script>
     <script src="js/translations-fr.js"></script>
     <script src="js/translations-es.js"></script>
@@ -1577,6 +1614,8 @@
     <script src="js/consent.js"></script>
     <script src="js/counter.js"></script>
     <script src="js/accounts.js"></script>
+    <script src="js/motion.js"></script>
+    <script src="js/logviewer.js"></script>
 
 </body>
 </html>

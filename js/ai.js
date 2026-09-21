@@ -369,6 +369,7 @@
         const clean = String(userText || '').replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, admin ? c.adminMaxInputChars : c.maxInputChars);
         if (!clean) throw AIError('empty');
 
+        const doneAI = window.FVLog ? FVLog.time('ai', 'ask', 8000) : null;   // jurnal: durata răspunsului (nu se scrie niciodată textul)
         st.pending = true;
         if (!admin) bumpCount();
         try {
@@ -401,10 +402,12 @@
             if (!parsed.offTopic && !parsed.text) throw AIError('empty-answer');
             st.turns.push({ role: 'user', text: clean }, { role: 'model', text: parsed.offTopic ? OFF_TOPIC : parsed.text });
             st.failures = 0;
+            if (doneAI) doneAI({ ok: true, admin: !!admin });
             return parsed;
         } catch (e) {
             st.lastError = e;
             st.failures++;
+            if (doneAI) doneAI({ ok: false, code: (e && e.code) || 'necunoscut', failures: st.failures });
             const hint = explain(e);
             console.error('[FeelVoyage AI] ' + (hint || 'Răspunsul AI nu a putut fi obținut.'), e);
             if (st.failures >= 2) { st.disabled = true; console.warn('[FeelVoyage AI] Două erori la rând: pentru restul sesiunii chatul folosește răspunsurile clasice.'); }

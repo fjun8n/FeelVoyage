@@ -364,6 +364,7 @@ function toggleChat() {
     if (isChatOpen) {
         chatWindow.classList.remove('hidden');
         if (chatBadge) chatBadge.style.display = 'none';
+        if (window.FVLog) FVLog.info('chat', 'open');
         loadFAQ();   // pregătește răspunsurile preprogramate în fundal
         setTimeout(() => {
             chatWindow.classList.remove('scale-95', 'opacity-0');
@@ -409,6 +410,7 @@ chatForm.addEventListener('submit', (e) => {
     const text = chatInput.value.trim();
     if (text) {
         chatInput.value = '';
+        if (window.FVLog) FVLog.info('chat', 'message', { len: text.length, kind: 'text' });   // jurnal: doar lungimea, niciodată textul
         handleFreeText(text);
     }
 });
@@ -417,6 +419,7 @@ chatForm.addEventListener('submit', (e) => {
 // `displayText` is what's shown in the chat bubble (translated label);
 // `text` is the canonical value used for keyword/category matching.
 function handleUserMessage(text, displayText) {
+    if (window.FVLog && (displayText !== undefined || (typeof text === 'string' && text.indexOf('faq:') === 0))) FVLog.info('chat', 'message', { kind: 'quick' });   // butoane de răspuns rapid (textul liber se scrie la trimitere)
     addUserMessage(displayText !== undefined ? displayText : text);
     // butoanele generate de baza de răspunsuri au valoarea „faq:<id>"
     if (typeof text === 'string' && text.indexOf('faq:') === 0) {

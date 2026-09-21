@@ -466,4 +466,27 @@
         // Ultima sesiune cunoscută, ca antetul să nu „clipească" între „Contul meu" și numele utilizatorului
         sessionHint: function () { return configured ? readJSON(KEY_SESSION_HINT, null) : null; }
     };
+
+    /* Jurnal (js/logger.js): rezultatul operațiilor importante, FĂRĂ date personale — doar numele operației, durata și codul erorii */
+    (function instrument() {
+        const L = window.FVLog;
+        if (!L) return;
+        ready.then(function (b) { L.info('backend', 'ready', { mode: b && b.mode }); }, function (e) { L.error('backend', 'init-failed', { code: e && e.code }); });
+        ['register', 'login', 'logout', 'saveConsent', 'withdrawConsent', 'resetPassword', 'listUsers'].forEach(function (m) {
+            const orig = window.FVBackend[m];
+            if (typeof orig !== 'function') return;
+            window.FVBackend[m] = function () {
+                const done = L.time('backend', m, 2500);
+                const doc = (m === 'saveConsent' || m === 'withdrawConsent') ? String(arguments[0] || '').slice(0, 20) : undefined;
+                return Promise.resolve(orig.apply(window.FVBackend, arguments)).then(function (r) {
+                    done({ ok: true, doc: doc });
+                    return r;
+                }, function (err) {
+                    done({ ok: false, doc: doc, code: (err && err.code) || 'necunoscut' });
+                    L.warn('backend', m + '.fail', { code: (err && err.code) || 'necunoscut' });
+                    throw err;
+                });
+            };
+        });
+    })();
 })();
