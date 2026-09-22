@@ -85,6 +85,26 @@
         if (changed) write(local);
     }
 
+    // Acceptă un document (folosită de bifele de mai jos și de FVConsent.accept, apelată din formularul de rezervare — aceeași
+    // regulă peste tot: pe cont dacă ești autentificat, altfel pe acest dispozitiv). withToast: arată sau nu mesajul „Mulțumim!”.
+    function acceptDoc(doc, withToast) {
+        if (isAccepted(doc) || pending[doc]) return Promise.resolve();
+        if (account) {
+            pending[doc] = true; render();
+            return backend.saveConsent(doc, versionOf(doc)).then(function () {
+                if (withToast) toast('accept.toast', 'Mulțumim! Acceptul a fost salvat.');
+            }, function () {
+                toast('accept.error', 'Nu am putut salva acceptul pe contul tău. Verifică internetul și încearcă din nou.', 'error');
+            }).then(function () { pending[doc] = false; render(); });
+        }
+        const all = read();
+        all[doc] = { v: versionOf(doc), at: Date.now() };
+        write(all);
+        render();
+        if (withToast) toast('accept.toast', 'Mulțumim! Acceptul a fost salvat.');
+        return Promise.resolve();
+    }
+
     blocks.forEach(function (b) {
         const doc = b.getAttribute('data-doc');
         const check = b.querySelector('[data-accept-check]');
@@ -94,20 +114,7 @@
 
         btn.addEventListener('click', function () {
             if (!check.checked || pending[doc]) return;
-            if (account) {
-                pending[doc] = true; render();
-                backend.saveConsent(doc, versionOf(doc)).then(function () {
-                    toast('accept.toast', 'Mulțumim! Acceptul a fost salvat.');
-                }, function () {
-                    toast('accept.error', 'Nu am putut salva acceptul pe contul tău. Verifică internetul și încearcă din nou.', 'error');
-                }).then(function () { pending[doc] = false; render(); });
-                return;
-            }
-            const all = read();
-            all[doc] = { v: versionOf(doc), at: Date.now() };
-            write(all);
-            render();
-            toast('accept.toast', 'Mulțumim! Acceptul a fost salvat.');
+            acceptDoc(doc, true);
         });
 
         b.querySelector('[data-accept-withdraw]').addEventListener('click', function () {
@@ -144,6 +151,6 @@
     document.addEventListener('fv:doc-open', render);
     if (backend) backend.onAuth(function (s) { account = s || null; migrate(); render(); });
 
-    window.FVConsent = { isAccepted: isAccepted, all: function () { return account ? (account.consents || {}) : read(); }, version: versionOf };
+    window.FVConsent = { isAccepted: isAccepted, all: function () { return account ? (account.consents || {}) : read(); }, version: versionOf, accept: acceptDoc, DOCS: DOCS };
     render();
 })();

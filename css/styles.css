@@ -577,3 +577,9 @@ html.dark .lv-acct { background: rgba(45, 212, 191, .18); color: #5eead4; }
 html.dark .lv-acc { background: var(--fv-surface-2); border-color: var(--fv-line-soft); }
 html.dark .lv-acc-email { color: var(--fv-text-strong); }
 html.dark .lv-acc-meta, html.dark .lv-acc-pw { color: var(--fv-text-muted); }
+
+/* linkurile „citește” din checklist-ul de acceptare, în formularul de rezervare */
+.booking-doc-link { text-decoration-color: #cbd5e1; }
+.booking-doc-link:hover, .booking-doc-link:focus-visible { text-decoration-color: #64748b; }
+html.dark .booking-doc-link { text-decoration-color: var(--fv-line); }
+html.dark .booking-doc-link:hover, html.dark .booking-doc-link:focus-visible { text-decoration-color: var(--fv-text-muted); }

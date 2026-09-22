@@ -61,6 +61,7 @@
             case 'too-many': return trF('auth.errorTooMany', 'Prea multe încercări. Încearcă din nou peste câteva minute.');
             case 'popup-blocked': return trF('auth.errorPopupBlocked', 'Browserul a blocat fereastra Google. Permite ferestrele pop-up pentru acest site și încearcă din nou.');
             case 'account-exists': return trF('auth.errorAccountExists', 'Există deja un cont cu acest e-mail, creat cu parolă. Autentifică-te cu parola, apoi poți folosi și Google.');
+            case 'not-signed-in': return trF('auth.errorGeneric', 'A apărut o eroare. Încearcă din nou.');
             default: return trF('auth.errorGeneric', 'A apărut o eroare. Încearcă din nou.');
         }
     }
@@ -107,6 +108,8 @@
         document.getElementById('profileName').textContent = session.name || '';
         document.getElementById('profileEmail').textContent = session.email || '';
         applyProfileRole();
+        applyVerifyBanner();
+        autoCheckVerification();
         // panoul de administrator (js/admin.js, se încarcă doar pentru administrator) își pune butonul lângă nume
         document.dispatchEvent(new CustomEvent('fv:profile', { detail: { admin: !!session.admin } }));
     }
@@ -122,6 +125,51 @@
         text.textContent = trF(admin ? 'auth.adminChip' : 'auth.memberChip', admin ? 'Administrator' : 'Membru FeelVoyage');
         avatar.className = 'w-14 h-14 rounded-full bg-gradient-to-tr text-white flex items-center justify-center text-xl font-black shadow-md ' + (admin ? 'from-blue-700 to-sky-400 ring-4 ring-blue-200' : 'from-brand-600 to-sunset-500');
     }
+
+    // Bannerul „E-mail neverificat”: vizibil doar când session.emailVerified este EXACT false (nu și când e necunoscut, ca să nu clipească la încărcare)
+    function applyVerifyBanner() {
+        const banner = document.getElementById('emailVerifyBanner');
+        banner.classList.toggle('hidden', !(session && session.emailVerified === false));
+    }
+    let verifyChecking = false;
+    // La deschiderea profilului, dacă e-mailul apare neverificat, recitim o dată starea reală (poate a apăsat linkul din altă filă între timp)
+    function autoCheckVerification() {
+        if (verifyChecking || !session || session.emailVerified !== false || !window.FVBackend || FVBackend.mode !== 'firebase') return;
+        verifyChecking = true;
+        FVBackend.refreshVerification().then(function (s) {
+            verifyChecking = false;
+            if (!s) return;
+            const became = s.emailVerified === true;
+            session = s;
+            applyVerifyBanner();
+            if (became) toast(trF('auth.verifiedNow', 'E-mailul a fost verificat!'));
+        }).catch(function () { verifyChecking = false; });
+    }
+    document.getElementById('resendVerifyBtn').addEventListener('click', function () {
+        const btn = this;
+        if (btn.disabled) return;
+        btn.disabled = true;
+        FVBackend.resendVerification().then(function () {
+            toast(trF('auth.verifySent', 'Ți-am trimis din nou e-mailul de verificare.'));
+            setTimeout(function () { btn.disabled = false; }, 30000);   // Firebase oricum limitează trimiterile dese; evităm și noi clicuri repetate
+        }).catch(function (err) {
+            btn.disabled = false;
+            toast(errorMessage(err), 'error');
+        });
+    });
+    document.getElementById('refreshVerifyBtn').addEventListener('click', function () {
+        const btn = this;
+        if (btn.disabled) return;
+        btn.disabled = true;
+        FVBackend.refreshVerification().then(function (s) {
+            btn.disabled = false;
+            if (!s) return;
+            const became = s.emailVerified === true;
+            session = s;
+            applyVerifyBanner();
+            toast(became ? trF('auth.verifiedNow', 'E-mailul a fost verificat!') : trF('auth.notVerifiedYet', 'Încă nu apare verificat. Ai deschis linkul din e-mail?'));
+        }).catch(function (err) { btn.disabled = false; toast(errorMessage(err), 'error'); });
+    });
 
     /* ---------- Administrator: panoul se încarcă doar pentru contul marcat în baza de date ---------- */
     let adminLoading = null;
@@ -147,6 +195,8 @@
     }
     // starea curentă de administrator, pentru modulele încărcate după ce evenimentul fv:admin a fost deja trimis (ex. fereastra „Jurnal”)
     window.fvIsAdmin = function () { return !!(session && session.admin); };
+    // starea curentă a contului, pentru module încărcate separat (ex. js/app.js, la trimiterea unei rezervări: verifică emailVerified)
+    window.fvCurrentSession = function () { return session; };
     window.fvAdminOpen = function () {
         userDropdown.classList.add('hidden');
         loadAdminModule().then(function () { if (window.FVAdmin && session && session.admin) window.FVAdmin.openUsers(); })

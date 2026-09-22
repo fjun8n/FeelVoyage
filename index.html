@@ -921,6 +921,25 @@
                             <p class="mt-1 text-[10px] leading-relaxed text-slate-500" data-i18n="quote.disclaimer">Estimare orientativă, calculată pentru cameră dublă. Oferta finală și disponibilitatea se confirmă de un consultant. Nu includ cheltuielile personale, taxele locale de oraș și obiectivele sau excursiile opționale neselectate.</p>
                         </div>
 
+                        <!-- Acceptul documentelor legale, cerut pentru a putea trimite: aceleași 3 documente ca în subsol (js/consent.js), aici într-o formă compactă.
+                             Bifarea aici salvează acceptul la fel ca din pagina documentului (pe cont sau, fără cont, pe acest dispozitiv); dacă a acceptat deja, apare bifat și blocat. -->
+                        <div id="bookingConsent" class="space-y-2 rounded-xl border border-slate-200 p-4">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider" data-i18n="booking.consentTitle">Înainte de a trimite</p>
+                            <label class="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                                <input type="checkbox" id="bkConsentTerms" class="mt-0.5 shrink-0" data-consent-doc="terms">
+                                <button type="button" class="text-left underline booking-doc-link" data-open-doc="terms" data-i18n="accept.terms">Am citit și accept Termenii și Condițiile</button>
+                            </label>
+                            <label class="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                                <input type="checkbox" id="bkConsentPrivacy" class="mt-0.5 shrink-0" data-consent-doc="privacy">
+                                <button type="button" class="text-left underline booking-doc-link" data-open-doc="privacy" data-i18n="accept.privacy">Am citit și accept Politica de Confidențialitate</button>
+                            </label>
+                            <label class="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                                <input type="checkbox" id="bkConsentAnpc" class="mt-0.5 shrink-0" data-consent-doc="anpc">
+                                <button type="button" class="text-left underline booking-doc-link" data-open-doc="anpc" data-i18n="accept.anpc">Am citit și am luat la cunoștință informațiile despre ANPC / SAL</button>
+                            </label>
+                        </div>
+                        <p id="bookingGateError" class="hidden text-xs text-red-500 font-medium"><i class="fa-solid fa-circle-exclamation mr-1" aria-hidden="true"></i><span id="bookingGateErrorText"></span></p>
+
                         <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-600 to-sunset-500 text-white font-bold text-sm shadow-md hover:opacity-95 transition">
                             <i class="fa-solid fa-spinner fa-spin mr-1 hidden" data-spinner></i><i class="fa-solid fa-check-circle mr-1"></i> <span data-i18n="modal.submitBtn">Trimite Solicitarea de Rezervare</span>
                         </button>
@@ -1583,6 +1602,18 @@
                         </div>
                         <p id="profileEmail" class="text-xs text-slate-500 truncate">—</p>
                         <span id="profileChip" class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><i id="profileChipIcon" class="fa-solid fa-circle-check"></i> <span id="profileChipText" data-i18n="auth.memberChip">Membru FeelVoyage</span></span>
+                    </div>
+                </div>
+                <!-- Vizibil doar dacă e-mailul contului nu e verificat (session.emailVerified === false); vezi js/auth.js -->
+                <div id="emailVerifyBanner" class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-2.5">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5" aria-hidden="true"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-amber-800" data-i18n="auth.verifyTitle">E-mailul nu este verificat</p>
+                        <p class="text-[11px] text-amber-700 mt-0.5" data-i18n="auth.verifyText">Verifică-ți adresa, ca să fim siguri că poți primi confirmările rezervărilor.</p>
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+                            <button type="button" id="resendVerifyBtn" class="text-[11px] font-bold text-amber-800 underline underline-offset-2 hover:text-amber-900" data-i18n="auth.resendVerify">Retrimite e-mailul</button>
+                            <button type="button" id="refreshVerifyBtn" class="text-[11px] font-bold text-amber-800 underline underline-offset-2 hover:text-amber-900" data-i18n="auth.refreshVerify">Am verificat, actualizează</button>
+                        </div>
                     </div>
                 </div>
                 <div class="p-4 rounded-2xl bg-brand-50 border border-brand-100 space-y-2">

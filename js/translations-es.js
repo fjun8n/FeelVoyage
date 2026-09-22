@@ -673,6 +673,9 @@ i18n.es = {
     "quote.noteDate": "El precio «desde» corresponde a la temporada baja. Elige tu fecha de salida para ver el precio de temporada exacto.",
     "quote.noteLow": "La fecha elegida está en temporada baja: se aplica el precio base.",
     "quote.disclaimer": "Estimación para una habitación doble, a título informativo. La oferta final y la disponibilidad las confirma un asesor. No se incluyen los gastos personales, las tasas turísticas locales ni las visitas o excursiones opcionales que no hayas seleccionado.",
+    "booking.consentTitle": "Antes de enviar",
+    "booking.consentErrorDocs": "Debes aceptar los Términos y Condiciones, la Política de Privacidad y la información ANPC / SAL antes de enviar.",
+    "booking.consentErrorEmail": "Debes verificar tu correo antes de enviar una reserva. Ve a tu perfil y pulsa «Reenviar el correo» o «Ya lo verifiqué, actualizar».",
 
     // Rezervare
     "modal.dateFrom": "Salida",
@@ -714,6 +717,13 @@ i18n.es = {
     "auth.googleWelcome": "Bienvenido",
     "auth.errorPopupBlocked": "El navegador bloqueó la ventana de Google. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.",
     "auth.errorAccountExists": "Ya existe una cuenta con este correo, creada con contraseña. Inicia sesión con la contraseña y luego también podrás usar Google.",
+    "auth.verifyTitle": "Tu correo no está verificado",
+    "auth.verifyText": "Verifica tu dirección, para asegurarnos de que te lleguen las confirmaciones de las reservas.",
+    "auth.resendVerify": "Reenviar el correo",
+    "auth.refreshVerify": "Ya lo verifiqué, actualizar",
+    "auth.verifySent": "Hemos vuelto a enviar el correo de verificación.",
+    "auth.verifiedNow": "¡Tu correo ha sido verificado!",
+    "auth.notVerifiedYet": "Todavía no aparece verificado. ¿Abriste el enlace del correo?",
     "auth.registerSuccess": "Tu cuenta ha sido creada. Bienvenido",
     "auth.loggedOut": "Has cerrado sesión. ¡Hasta pronto!",
     "auth.dropdownHello": "Hola",

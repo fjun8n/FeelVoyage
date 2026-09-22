@@ -487,6 +487,8 @@ function openModal(id, photoIndex) {
     if (!item) { if (window.FVLog) FVLog.warn('package', 'unknown', { id: String(id).slice(0, 40) }); return; }
     if (window.FVLog) FVLog.info('package', 'open', { id: id, photo: Number.isInteger(photoIndex) ? photoIndex : 0 });
     currentBookingDest = item;
+    document.getElementById('bookingGateError').classList.add('hidden');   // pachet nou deschis: ascundem eroarea de la o încercare anterioară de trimitere
+    refreshBookingConsent();
     if (Number.isInteger(photoIndex)) galleryVisible = true;   // ai apăsat pe o poză (sertar / insignă): galeria se deschide chiar dacă o închisese
 
     const t = getDestinationText(item);
@@ -771,6 +773,48 @@ function sendOrder(order) {
 const ORDER_ERROR_RO = 'Nu am putut trimite solicitarea. Încearcă din nou sau sună-ne la 0799 927 590.';
 
 // Modal Form Booking
+// ----- Acceptul documentelor legale în formularul de rezervare (aceleași 3 documente ca în subsol, js/consent.js)
+// Bifarea de aici salvează acceptul prin ACELAȘI FVBackend.saveConsent ca pagina documentului: pe cont dacă ești autentificat,
+// altfel pe acest dispozitiv. De asta, dacă a acceptat deja (de aici sau din subsol), caseta apare bifată și blocată.
+const CONSENT_DOCS_BOOKING = ['terms', 'privacy', 'anpc'];
+const consentPending = {};
+function consentCheckbox(doc) { return document.getElementById('bkConsent' + doc.charAt(0).toUpperCase() + doc.slice(1)); }
+function refreshBookingConsent() {
+    CONSENT_DOCS_BOOKING.forEach(doc => {
+        const cb = consentCheckbox(doc);
+        if (!cb) return;
+        const done = !!(window.FVConsent && FVConsent.isAccepted(doc));
+        cb.checked = done;
+        cb.disabled = done || !!consentPending[doc];
+    });
+}
+function allConsentsAccepted() { return CONSENT_DOCS_BOOKING.every(doc => window.FVConsent && FVConsent.isAccepted(doc)); }
+CONSENT_DOCS_BOOKING.forEach(doc => {
+    const cb = consentCheckbox(doc);
+    if (!cb) return;
+    cb.addEventListener('change', () => {
+        if (!cb.checked || consentPending[doc] || !window.FVConsent) { refreshBookingConsent(); return; }
+        consentPending[doc] = true; cb.disabled = true;
+        FVConsent.accept(doc, true).then(() => { consentPending[doc] = false; refreshBookingConsent(); });   // aceeași funcție ca la pagina documentului (js/consent.js): pe cont sau pe dispozitiv
+    });
+});
+document.querySelectorAll('#bookingConsent [data-open-doc]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const doc = btn.getAttribute('data-open-doc');
+        const fn = window['fvOpen' + doc.charAt(0).toUpperCase() + doc.slice(1)];   // js/infomodal.js: fvOpenTerms / fvOpenPrivacy / fvOpenAnpc
+        if (typeof fn === 'function') fn();
+    });
+});
+document.addEventListener('fv:doc-open', refreshBookingConsent);   // dacă acceptă din subsol cât timp pachetul e deschis dedesubt
+
+function showBookingGateError(msg, focusEl) {
+    if (window.FVLog) FVLog.info('booking', 'blocked');
+    const p = document.getElementById('bookingGateError'), span = document.getElementById('bookingGateErrorText');
+    span.textContent = msg;
+    p.classList.remove('hidden');
+    if (focusEl) { focusEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); if (typeof focusEl.focus === 'function') focusEl.focus(); }
+}
+
 document.getElementById('modalBookingForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -835,6 +879,22 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
         }
         return;
     }
+
+    // --- Documentele legale: toate cele 3 trebuie acceptate (aceeași regulă ca la pagina fiecărui document) ---
+    document.getElementById('bookingGateError').classList.add('hidden');
+    if (!allConsentsAccepted()) {
+        const firstUnchecked = CONSENT_DOCS_BOOKING.map(consentCheckbox).find(cb => cb && !cb.checked);
+        showBookingGateError(tr('booking.consentErrorDocs', 'Trebuie să accepți Termenii și Condițiile, Politica de Confidențialitate și informațiile ANPC / SAL înainte de a trimite.'), firstUnchecked || document.getElementById('bookingConsent'));
+        return;
+    }
+
+    // --- E-mailul contului: dacă ești autentificat, trebuie verificat înainte să poți trimite o comandă (poți naviga site-ul oricum) ---
+    const activeSession = typeof window.fvCurrentSession === 'function' ? window.fvCurrentSession() : null;
+    if (activeSession && activeSession.emailVerified === false) {
+        showBookingGateError(tr('booking.consentErrorEmail', 'Trebuie să-ți verifici e-mailul înainte de a trimite o comandă. Mergi în profil și apasă „Retrimite e-mailul” sau „Am verificat, actualizează”.'), document.getElementById('bookingGateError'));
+        return;
+    }
+
     const range = bookingRange.getRange();
 
     // --- Trimite comanda în Firebase (fereastra rămâne deschisă dacă nu reușește, ca să nu se piardă datele) ---

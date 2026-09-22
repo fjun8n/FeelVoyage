@@ -122,7 +122,7 @@
                 list.push({ name: d.name, phone: d.phone || '', email: email, pw: hash(d.password), created: new Date().toISOString() });
                 kv.set(KEY_USERS_LOCAL, JSON.stringify(list));
                 accountSubs.forEach(function (cb) { cb(list.length); });
-                const s = { name: d.name, email: email, phone: d.phone || '' };
+                const s = { name: d.name, email: email, phone: d.phone || '', emailVerified: true };
                 publishSession(s);
                 return Promise.resolve(s);
             },
@@ -130,7 +130,7 @@
                 const email = emailRaw.trim().toLowerCase();
                 const u = users().find(function (x) { return x.email === email; });
                 if (!u || u.pw !== hash(password)) return Promise.reject(FVError('invalid-credentials'));
-                const s = { name: u.name, email: u.email, phone: u.phone || '' };
+                const s = { name: u.name, email: u.email, phone: u.phone || '', emailVerified: true };
                 publishSession(s);
                 return Promise.resolve(s);
             },
@@ -144,6 +144,8 @@
             resetPassword: function () { return Promise.reject(FVError('unsupported')); },
             listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
             loginWithGoogle: function () { return Promise.reject(FVError('unsupported')); },   // autentificarea cu Google există doar cu Firebase configurat
+            resendVerification: function () { return Promise.reject(FVError('unsupported')); },   // fără Firebase nu există un e-mail real de trimis
+            refreshVerification: function () { return Promise.resolve(readSession()); },
             submitLogs: function () { return Promise.resolve(0); },   // fără Firebase jurnalul rămâne doar pe dispozitiv
             listLogs: function () { return Promise.reject(FVError('unsupported')); },
             pruneLogs: function () { return Promise.reject(FVError('unsupported')); },
@@ -171,7 +173,7 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, loginWithGoogle: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail,
+            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail,
             logout: function () { return Promise.resolve(); }
         };
     }
@@ -282,6 +284,7 @@
                 name: profile.name || user.displayName || email.split('@')[0],
                 phone: profile.phone || '',
                 admin: admin,
+                emailVerified: !!user.emailVerified,   // de pe contul Firebase Auth, nu din baza de date; Google vine deja verificat
                 consents: cleanConsents(profile.consents)
             };
         }
@@ -358,6 +361,7 @@
                 if (!d.phone || !String(d.phone).trim()) throw FVError('invalid-phone');   // telefonul e obligatoriu la conturile noi
                 try {
                     const cred = await authM.createUserWithEmailAndPassword(auth, d.email.trim(), d.password);
+                    try { await authM.sendEmailVerification(cred.user); } catch (e) { console.warn('[FeelVoyage] E-mailul de verificare nu a putut fi trimis:', e); }
                     try { await authM.updateProfile(cred.user, { displayName: d.name }); } catch (e) { /* nu e critic */ }
                     try {
                         await dbM.set(dbM.ref(db, 'users/' + cred.user.uid), { name: d.name, phone: d.phone || '', email: d.email.trim(), createdAt: dbM.serverTimestamp() });
@@ -387,6 +391,19 @@
                     } catch (e) { console.warn('[FeelVoyage] Profilul Google nu a putut fi salvat (verifică regulile din firebase-rules.json):', e); }
                     return await refresh(auth.currentUser || user);
                 } catch (e) { throw normalize(e); }
+            },
+            // E-mailul de verificare: „Retrimite” (resendVerification) și „Am verificat, actualizează” (refreshVerification, recitește starea de pe Firebase)
+            resendVerification: async function () {
+                const u = auth.currentUser;
+                if (!u) throw FVError('not-signed-in');
+                if (u.emailVerified) return true;
+                try { await authM.sendEmailVerification(u); return true; } catch (e) { throw normalize(e); }
+            },
+            refreshVerification: async function () {
+                const u = auth.currentUser;
+                if (!u) throw FVError('not-signed-in');
+                try { await authM.reload(u); } catch (e) { /* dacă reload eșuează, tot citim starea curentă mai jos */ }
+                return await refresh(auth.currentUser || u);
             },
             logout: async function () {
                 await authM.signOut(auth);
@@ -529,6 +546,8 @@
         register: function (d) { return ready.then(function (b) { return b.register(d); }); },
         login: function (e, p) { return ready.then(function (b) { return b.login(e, p); }); },
         loginWithGoogle: function () { return ready.then(function (b) { return b.loginWithGoogle(); }); },
+        resendVerification: function () { return ready.then(function (b) { return b.resendVerification(); }); },
+        refreshVerification: function () { return ready.then(function (b) { return b.refreshVerification(); }); },
         logout: function () { return ready.then(function (b) { return b.logout(); }); },
         saveConsent: function (doc, v, at) { return ready.then(function (b) { return b.saveConsent(doc, v, at); }); },
         withdrawConsent: function (doc) { return ready.then(function (b) { return b.withdrawConsent(doc); }); },
@@ -555,7 +574,7 @@
         ready.then(function (b) { L.info('backend', 'ready', { mode: b && b.mode }); }, function (e) { L.error('backend', 'init-failed', { code: e && e.code }); });
         let lastUid = '';   // identificatorul contului (nu e e-mail): administratorul îl leagă de e-mail în fereastra „Jurnal” (vezi js/logviewer.js)
         try { window.FVBackend.onAuth(function (s) { if (s && s.uid) lastUid = s.uid; }); } catch (e) { /* ignorat */ }
-        ['register', 'login', 'loginWithGoogle', 'logout', 'saveConsent', 'withdrawConsent', 'resetPassword', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
+        ['register', 'login', 'loginWithGoogle', 'logout', 'saveConsent', 'withdrawConsent', 'resetPassword', 'resendVerification', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
             const orig = window.FVBackend[m];
             if (typeof orig !== 'function') return;
             window.FVBackend[m] = function () {

@@ -673,6 +673,9 @@ i18n.fr = {
     "quote.noteDate": "Le prix « à partir de » correspond à la basse saison. Choisissez votre date de départ pour voir le prix saisonnier exact.",
     "quote.noteLow": "La date choisie est en basse saison : le prix de base s'applique.",
     "quote.disclaimer": "Estimation pour une chambre double, à titre indicatif. L'offre finale et la disponibilité sont confirmées par un conseiller. Les dépenses personnelles, les taxes de séjour locales et les visites ou excursions facultatives que vous n'avez pas sélectionnées ne sont pas incluses.",
+    "booking.consentTitle": "Avant d'envoyer",
+    "booking.consentErrorDocs": "Vous devez accepter les Conditions Générales, la Politique de Confidentialité et les informations ANPC / SAL avant d'envoyer.",
+    "booking.consentErrorEmail": "Vous devez vérifier votre e-mail avant d'envoyer une réservation. Allez dans votre profil et cliquez sur « Renvoyer l'e-mail » ou « Je l'ai vérifié, actualiser ».",
 
     // Rezervare
     "modal.dateFrom": "Départ",
@@ -714,6 +717,13 @@ i18n.fr = {
     "auth.googleWelcome": "Bienvenue",
     "auth.errorPopupBlocked": "Votre navigateur a bloqué la fenêtre Google. Autorisez les pop-up pour ce site et réessayez.",
     "auth.errorAccountExists": "Un compte avec cet e-mail existe déjà, créé avec un mot de passe. Connectez-vous avec le mot de passe, puis vous pourrez aussi utiliser Google.",
+    "auth.verifyTitle": "Votre e-mail n'est pas vérifié",
+    "auth.verifyText": "Vérifiez votre adresse, pour que les confirmations de réservation vous parviennent bien.",
+    "auth.resendVerify": "Renvoyer l'e-mail",
+    "auth.refreshVerify": "Je l'ai vérifié, actualiser",
+    "auth.verifySent": "Nous avons renvoyé l'e-mail de vérification.",
+    "auth.verifiedNow": "Votre e-mail a été vérifié !",
+    "auth.notVerifiedYet": "Il n'apparaît toujours pas vérifié. Avez-vous ouvert le lien dans l'e-mail ?",
     "auth.registerSuccess": "Votre compte a été créé. Bienvenue",
     "auth.loggedOut": "Vous êtes déconnecté. À bientôt !",
     "auth.dropdownHello": "Bonjour",

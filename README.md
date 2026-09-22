@@ -162,6 +162,24 @@ La crearea unui cont, câmpul **Telefon** trebuie completat. Sunt acceptate nume
 - Regula din `firebase-rules.json` pentru `users/<uid>/phone` cere acum minim 6 caractere. **Publică din nou regulile** în Firebase (tab-ul **Rules** → **Publish**). Dacă nu le republici, site-ul merge oricum, dar baza de date nu verifică lungimea telefonului.
 - Obligativitatea telefonului este verificată de formular și de codul site-ului; baza de date nu poate impune ca un câmp să existe la crearea contului fără să blocheze conturile vechi.
 
+## Nu se poate trimite o comandă fără documentele acceptate și fără e-mail verificat
+
+- **Documentele legale (Termeni, Confidențialitate, ANPC):** în formularul de rezervare apar 3 casete de bifat, chiar deasupra butonului de trimitere, fiecare cu un link „citește” care deschide documentul respectiv PESTE formular (fără să pierzi ce ai completat). Bifarea aici salvează acceptul prin ACEEAȘI funcție ca la pagina documentului (`FVConsent.accept`, în `js/consent.js`): pe cont dacă ești autentificat, altfel pe acest dispozitiv. Dacă ai acceptat deja un document (de aici sau din subsol), apare bifat și blocat, nu ți se mai cere din nou. **Se aplică tuturor** — cu cont sau fără.
+- **E-mailul contului:** dacă ești autentificat și e-mailul contului tău nu e verificat, poți naviga tot site-ul normal, dar formularul de rezervare refuză trimiterea, cu un mesaj care te trimite spre profil („Retrimite e-mailul” / „Am verificat, actualizează”). **Nu se aplică** vizitatorilor fără cont (nu există un „e-mail de cont” de verificat) și nici conturilor Google sau modului local (ambele sunt tratate ca verificate din start — vezi secțiunile de mai sus).
+- Ambele verificări rulează în `js/app.js`, chiar înainte de calculul prețului și trimiterea comenzii (`allConsentsAccepted()`, apoi `emailVerified === false`), cu focus pe prima casetă nebifată sau pe mesajul de eroare.
+- Cod: `js/app.js` (gate-urile + checklist-ul din formular), `js/consent.js` (funcția `acceptDoc` extrasă și expusă ca `FVConsent.accept`), `js/auth.js` (`window.fvCurrentSession`, pentru ca `app.js` să știe dacă ești autentificat și verificat).
+
+## Verificarea e-mailului (gratuită) / telefonul rămâne doar validat ca format
+
+- **La înregistrarea cu parolă**, Firebase trimite automat un e-mail de verificare, imediat după crearea contului — gratuit, fără nicio configurare suplimentară (spre deosebire de verificarea telefonului prin SMS, vezi mai jos).
+- **În pagina de profil** apare un banner „E-mailul nu este verificat”, cu două butoane: **Retrimite e-mailul** și **Am verificat, actualizează** (recitește starea reală de pe Firebase). La deschiderea profilului se face și o verificare automată, silențioasă — dacă a apăsat linkul din altă filă, bannerul dispare singur.
+- **Conturile Google** sunt considerate verificate din start (Google garantează adresa) — nu li se trimite niciun e-mail suplimentar, nu apare bannerul.
+- **Modul local** (fără Firebase configurat) tratează orice cont ca verificat: nu există un mecanism real de verificat fără Firebase, deci n-are rost un avertisment pe care vizitatorul nu-l poate rezolva.
+- Starea de verificare vine direct de pe contul Firebase Auth (`user.emailVerified`), nu din baza de date — e imposibil de falsificat din site.
+- Cod: `js/backend.js` (`resendVerification`, `refreshVerification`, `sendEmailVerification` la `register()`), `js/auth.js` (bannerul și cele două butoane, în `#profileView`).
+
+**Verificarea telefonului prin SMS nu este inclusă** — spre deosebire de e-mail, Firebase **nu** oferă asta gratuit: necesită trecerea proiectului pe planul **Blaze** (facturare activată) și se plătește un cost per SMS trimis (de la ~0,01 $ în țările ieftine, până la ~0,46 $ în cele mai scumpe). Telefonul rămâne, ca și până acum, doar **validat ca format** (regex), nu verificat ca fiind al persoanei. Dacă vrei verificare reală prin SMS, spune-mi și o configurez — la fel ca la Apple, decizia de a activa facturarea Firebase îți aparține.
+
 ## Autentificare cu Google (gratuită)
 
 Pe lângă e-mail/parolă, oricine se poate autentifica sau crea cont cu un click, printr-o fereastră Google. E complet gratuit — Firebase nu taxează suplimentar pentru asta, indiferent de trafic.
