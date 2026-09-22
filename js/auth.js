@@ -130,6 +130,8 @@
         else if (window.FVAdmin) window.FVAdmin.sync(null);
         document.dispatchEvent(new CustomEvent('fv:admin', { detail: { admin: admin } }));
     }
+    // starea curentă de administrator, pentru modulele încărcate după ce evenimentul fv:admin a fost deja trimis (ex. fereastra „Jurnal”)
+    window.fvIsAdmin = function () { return !!(session && session.admin); };
     window.fvAdminOpen = function () {
         userDropdown.classList.add('hidden');
         loadAdminModule().then(function () { if (window.FVAdmin && session && session.admin) window.FVAdmin.openUsers(); })

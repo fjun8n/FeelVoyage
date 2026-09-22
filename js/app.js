@@ -107,7 +107,10 @@ function buildCard(item) {
                             <i class="fa-solid fa-chevron-left"></i><i class="fa-solid fa-images"></i>
                         </button>
                         <div class="fv-drawer-body">
-                            <div class="fv-drawer-title">${tr('card.drawerTitle', '{n} poze').replace('{n}', (item.images || []).length)}</div>
+                            <div class="fv-drawer-head">
+                                <div class="fv-drawer-title">${tr('card.drawerTitle', '{n} poze').replace('{n}', (item.images || []).length)}</div>
+                                <button type="button" class="fv-drawer-x" data-drawer-close aria-label="${tr('card.pullClose', 'Închide galeria foto')}" title="${tr('card.pullClose', 'Închide galeria foto')}"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
                             <div class="fv-drawer-grid" data-drawer-grid></div>
                         </div>
                     </div>
@@ -203,6 +206,8 @@ function initCardGallery(card, item) {
     drawer.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false); tab.focus(); }
     });
+    const xBtn = drawer.querySelector('[data-drawer-close]');
+    if (xBtn) xBtn.addEventListener('click', () => { setOpen(false); tab.focus(); });   // buton X vizibil: nu toată lumea știe că mânerul se apasă din nou
 }
 
 // Prima pagină: doar destinațiile „featured” + butonul „Vezi toate”
@@ -426,6 +431,55 @@ function dropPhoto(url) {
     });
 })();
 
+// ----- Galeria foto: pe calculator (≥ 1024 px) stă într-o fereastră SEPARATĂ, în dreapta pachetului, mai mare și cu buton X propriu;
+// pe ecrane mici rămâne în fereastra pachetului, deasupra descrierii. Aceleași elemente (#modalImg, miniaturi, săgeți) se mută între cele două locuri.
+const bkWrap = document.getElementById('bookingWrap');
+const galleryPanel = document.getElementById('galleryPanel');
+const gpBody = document.getElementById('gpBody');
+const modalHeader = document.getElementById('modalHeader');
+const modalHead = document.getElementById('modalHead');
+const bkGalleryBtn = document.getElementById('bkGalleryBtn');
+const desktopMQ = window.matchMedia ? window.matchMedia('(min-width: 1024px)') : { matches: false };
+let galleryVisible = true;   // alegerea vizitatorului pe calculator: galeria deschisă (implicit) sau închisă cu X
+function isDesktopGallery() { return !!desktopMQ.matches; }
+function galleryBtnLabel() { return tr('modal.galleryOpen', 'Galerie foto ({n})').replace('{n}', galleryImages.length); }
+function applyGalleryState() {
+    const desk = isDesktopGallery();
+    const show = desk && galleryVisible;
+    galleryPanel.hidden = !show;
+    bkWrap.classList.toggle('with-gallery', show);
+    if (bkGalleryBtn) {
+        bkGalleryBtn.hidden = !desk || show;
+        const l = document.getElementById('bkGalleryBtnLabel'); if (l) l.textContent = galleryBtnLabel();
+    }
+}
+function placeGallery() {
+    if (isDesktopGallery()) {
+        if (modalHeader.parentElement !== gpBody) gpBody.appendChild(modalHeader);
+        if (closeModalBtn.parentElement !== modalHead) modalHead.appendChild(closeModalBtn);     // X-ul pachetului în antetul lui
+    } else {
+        if (modalHeader.parentElement !== modalContainer) modalContainer.insertBefore(modalHeader, modalHead.nextSibling);
+        const stage = modalHeader.querySelector('.modal-stage');
+        if (stage && closeModalBtn.parentElement !== stage) stage.appendChild(closeModalBtn);   // pe telefon X-ul stă pe poză
+    }
+    applyGalleryState();
+}
+function setGalleryVisible(v) {
+    galleryVisible = !!v;
+    const hadFocus = galleryPanel.contains(document.activeElement);
+    applyGalleryState();
+    if (!v && hadFocus && bkGalleryBtn && !bkGalleryBtn.hidden) bkGalleryBtn.focus();
+    if (window.FVLog) FVLog.info('gallery', v ? 'show' : 'hide');
+}
+document.getElementById('galleryCloseBtn').addEventListener('click', () => setGalleryVisible(false));
+if (bkGalleryBtn) bkGalleryBtn.addEventListener('click', () => { setGalleryVisible(true); const nx = document.getElementById('modalNext'); if (nx && !nx.hidden) nx.focus({ preventScroll: true }); });
+if (desktopMQ.addEventListener) desktopMQ.addEventListener('change', () => { if (!bookingModal.classList.contains('hidden')) placeGallery(); });
+document.addEventListener('keydown', (e) => {
+    // Escape în fereastra galeriei o închide doar pe ea; pachetul rămâne deschis
+    if (e.key !== 'Escape' || bookingModal.classList.contains('hidden') || galleryPanel.hidden || !galleryPanel.contains(document.activeElement)) return;
+    e.preventDefault(); e.stopPropagation(); setGalleryVisible(false);
+});
+
 // Open Modal Function with Multi-Image Support & Dynamic Gallery
 let currentBookingDest = null;   // destinația pentru care e deschisă fereastra de rezervare
 function openModal(id, photoIndex) {
@@ -433,6 +487,7 @@ function openModal(id, photoIndex) {
     if (!item) { if (window.FVLog) FVLog.warn('package', 'unknown', { id: String(id).slice(0, 40) }); return; }
     if (window.FVLog) FVLog.info('package', 'open', { id: id, photo: Number.isInteger(photoIndex) ? photoIndex : 0 });
     currentBookingDest = item;
+    if (Number.isInteger(photoIndex)) galleryVisible = true;   // ai apăsat pe o poză (sertar / insignă): galeria se deschide chiar dacă o închisese
 
     const t = getDestinationText(item);
 
@@ -441,6 +496,10 @@ function openModal(id, photoIndex) {
     modalBadge.innerText = t.tagLabel || item.category;
     modalPrice.innerText = `${item.price} ${item.currency} (${item.priceRon || ''})`;
     modalDesc.innerText = t.description;
+    // antetul pentru calculator (același conținut ca pe poza de pe telefon)
+    document.getElementById('bkTitle').textContent = t.title;
+    document.getElementById('bkBadge').textContent = t.tagLabel || item.category;
+    document.getElementById('bkPrice').textContent = modalPrice.innerText;
 
     // Galeria: imaginea principală, săgeți, contor, miniaturi derulabile și sursa pozei (11–15 poze la fiecare pachet)
     galleryImages = item.images.slice();
@@ -458,6 +517,7 @@ function openModal(id, photoIndex) {
         thumb.addEventListener('error', () => dropPhoto(imgUrl));
         modalGalleryThumbnails.appendChild(thumb);
     });
+    placeGallery();   // pe calculator: galeria în fereastra din dreapta; pe telefon: în fereastra pachetului
     showPhoto(Number.isInteger(photoIndex) && photoIndex > 0 && photoIndex < galleryImages.length ? photoIndex : 0);   // din sertarul cardului se poate deschide direct la o anumită poză
 
     // Render Amenities

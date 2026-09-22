@@ -51,6 +51,7 @@
         return s.length > 220 ? s.slice(0, 220) + '…' : s;
     }
     function clean(v, depth, key) {
+        if (key === 'acct') return typeof v === 'string' ? v.slice(0, 40) : undefined;   // identificatorul contului (nu e e-mail): îl vede doar administratorul, legat de e-mail în fereastra „Jurnal”
         if (key && SENSITIVE_KEY.test(key)) return '[redactat]';
         if (v == null) return v;
         var t = typeof v;
@@ -99,13 +100,14 @@
         (list || entries).forEach(function (e) { rows.push([e.n, new Date(e.t).toISOString(), e.s, e.l, e.c, e.e, e.r || 1, e.d === undefined ? '' : JSON.stringify(e.d)].map(csvCell).join(';')); });
         return rows.join('\n');
     }
-    function download(kind) {
+    function download(kind, list, label) {
         try {
             var isCsv = kind === 'csv';
-            var blob = new Blob([isCsv ? '\ufeff' + toCSV() : JSON.stringify(entries, null, 2)], { type: isCsv ? 'text/csv;charset=utf-8' : 'application/json' });
+            var data = list || entries;
+            var blob = new Blob([isCsv ? '\ufeff' + toCSV(data) : JSON.stringify(data, null, 2)], { type: isCsv ? 'text/csv;charset=utf-8' : 'application/json' });
             var a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'feelvoyage-jurnal-' + new Date().toISOString().slice(0, 10) + (isCsv ? '.csv' : '.json');
+            a.download = 'feelvoyage-jurnal-' + (label ? label + '-' : '') + new Date().toISOString().slice(0, 10) + (isCsv ? '.csv' : '.json');
             document.body.appendChild(a); a.click();
             setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
             return true;

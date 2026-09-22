@@ -13,6 +13,7 @@
     const COUNTER_PATH = 'happyTravelers';
     const ACCOUNTS_PATH = 'accountIds';   // câte un marcaj anonim (uid → true) per cont creat; numărul lor = „Conturi Create"
     const ORDERS_PATH = 'orders';
+    const LOGS_PATH = 'logs';   // jurnalul tehnic: oricine poate crea intrări validate, doar administratorul le citește / șterge (firebase-rules.json)
     const KEY_ORDERS_LOCAL = 'fv_orders_local';
     const KEY_COUNTER_LOCAL = 'fv_happy_travelers';
     const KEY_COUNTER_CACHE = 'fv_happy_cache';
@@ -142,6 +143,10 @@
             },
             resetPassword: function () { return Promise.reject(FVError('unsupported')); },
             listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
+            submitLogs: function () { return Promise.resolve(0); },   // fără Firebase jurnalul rămâne doar pe dispozitiv
+            listLogs: function () { return Promise.reject(FVError('unsupported')); },
+            pruneLogs: function () { return Promise.reject(FVError('unsupported')); },
+            clearLogs: function () { return Promise.reject(FVError('unsupported')); },
             submitOrder: function (order) {
                 // Fără Firebase comanda nu ajunge la tine; o păstrăm doar în browser, pentru testare
                 const list = readJSON(KEY_ORDERS_LOCAL, []);
@@ -165,7 +170,7 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, saveConsent: fail, withdrawConsent: fail,
+            register: fail, login: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail,
             logout: function () { return Promise.resolve(); }
         };
     }
@@ -409,6 +414,49 @@
                     throw FVError('network', e);
                 }
             },
+            // Jurnal tehnic (js/logremote.js): fiecare intrare e un nod nou sub logs/, validat de reguli (câmpuri și lungimi fixe). Fără date personale în ele.
+            submitLogs: async function (entries) {
+                const list = (entries || []).slice(0, 40);
+                if (!list.length) return 0;
+                const base = dbM.ref(db, LOGS_PATH);
+                const updates = {};
+                list.forEach(function (en) { updates[dbM.push(base).key] = Object.assign({}, en, { at: dbM.serverTimestamp() }); });
+                await withTimeout(dbM.update(base, updates), 15000);
+                return list.length;
+            },
+            // Citirea, curățarea și ștergerea jurnalului: doar administratorul (protecția reală e în regulile bazei de date: un cont obișnuit primește PERMISSION_DENIED)
+            listLogs: async function (limit) {
+                if (!session || !session.admin) throw FVError('forbidden');
+                try {
+                    const q = dbM.query(dbM.ref(db, LOGS_PATH), dbM.orderByKey(), dbM.limitToLast(Math.max(1, Math.min(Number(limit) || 300, 1000))));
+                    const v = (await dbM.get(q)).val() || {};
+                    return Object.keys(v).map(function (id) { return Object.assign({ id: id }, v[id]); }).sort(function (a, b) { return (a.at || a.ts || 0) - (b.at || b.ts || 0); });
+                } catch (e) {
+                    if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
+                    throw FVError('network', e);
+                }
+            },
+            pruneLogs: async function (days) {
+                if (!session || !session.admin) throw FVError('forbidden');
+                const cutoff = Date.now() - Math.max(1, Number(days) || 30) * 86400000;
+                try {
+                    const q = dbM.query(dbM.ref(db, LOGS_PATH), dbM.orderByChild('at'), dbM.endAt(cutoff), dbM.limitToFirst(500));
+                    const ids = Object.keys((await dbM.get(q)).val() || {});
+                    if (ids.length) { const rm = {}; ids.forEach(function (k) { rm[k] = null; }); await withTimeout(dbM.update(dbM.ref(db, LOGS_PATH), rm), 15000); }
+                    return ids.length;
+                } catch (e) {
+                    if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
+                    throw FVError('network', e);
+                }
+            },
+            clearLogs: async function () {
+                if (!session || !session.admin) throw FVError('forbidden');
+                try { await withTimeout(dbM.remove(dbM.ref(db, LOGS_PATH)), 15000); }
+                catch (e) {
+                    if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
+                    throw FVError('network', e);
+                }
+            },
             resetPassword: async function (email) {
                 try { await authM.sendPasswordResetEmail(auth, email.trim()); }
                 catch (e) {
@@ -458,6 +506,10 @@
         resetPassword: function (e) { return ready.then(function (b) { return b.resetPassword(e); }); },
         submitOrder: function (o) { return ready.then(function (b) { return b.submitOrder(o); }); },
         listUsers: function () { return ready.then(function (b) { return b.listUsers(); }); },
+        submitLogs: function (entries) { return ready.then(function (b) { return b.submitLogs(entries); }); },
+        listLogs: function (limit) { return ready.then(function (b) { return b.listLogs(limit); }); },
+        pruneLogs: function (days) { return ready.then(function (b) { return b.pruneLogs(days); }); },
+        clearLogs: function () { return ready.then(function (b) { return b.clearLogs(); }); },
 
         // Pentru asistentul AI (js/ai.js): aplicația Firebase (null dacă nu e configurat) și încărcarea modulelor SDK la cerere
         firebaseApp: function () { return ready.then(function (b) { return b.app || null; }); },
@@ -472,14 +524,19 @@
         const L = window.FVLog;
         if (!L) return;
         ready.then(function (b) { L.info('backend', 'ready', { mode: b && b.mode }); }, function (e) { L.error('backend', 'init-failed', { code: e && e.code }); });
-        ['register', 'login', 'logout', 'saveConsent', 'withdrawConsent', 'resetPassword', 'listUsers'].forEach(function (m) {
+        let lastUid = '';   // identificatorul contului (nu e e-mail): administratorul îl leagă de e-mail în fereastra „Jurnal” (vezi js/logviewer.js)
+        try { window.FVBackend.onAuth(function (s) { if (s && s.uid) lastUid = s.uid; }); } catch (e) { /* ignorat */ }
+        ['register', 'login', 'logout', 'saveConsent', 'withdrawConsent', 'resetPassword', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
             const orig = window.FVBackend[m];
             if (typeof orig !== 'function') return;
             window.FVBackend[m] = function () {
                 const done = L.time('backend', m, 2500);
                 const doc = (m === 'saveConsent' || m === 'withdrawConsent') ? String(arguments[0] || '').slice(0, 20) : undefined;
+                const before = lastUid;
                 return Promise.resolve(orig.apply(window.FVBackend, arguments)).then(function (r) {
-                    done({ ok: true, doc: doc });
+                    const acct = (m === 'register' || m === 'login') ? (r && r.uid) : (m === 'logout' ? before : undefined);
+                    if (acct) lastUid = m === 'logout' ? '' : acct;
+                    done({ ok: true, doc: doc, acct: acct || undefined });
                     return r;
                 }, function (err) {
                     done({ ok: false, doc: doc, code: (err && err.code) || 'necunoscut' });

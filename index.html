@@ -559,12 +559,12 @@
                         <span data-i18n="footer.descAddr">Strada Tudor Vladimirescu, nr 124, Tg-Jiu, România.</span><br>
                         <span data-i18n="footer.descTagline">Agenție de turism dedicată experiențelor memorabile la nivel global.</span>
                     </p>
+                    <p class="footer-edu" data-i18n="footer.edu">Acest site este făcut în scop educativ și nu pot fi plasate comenzi reale.</p>
                     <div class="flex gap-3 text-slate-300">
                         <a href="https://www.facebook.com/share/19XnMiUthZ/?mibextid=wwXlfr" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition" title="Facebook FeelVoyage"><i class="fa-brands fa-facebook-f text-xs"></i></a>
                         <a href="https://www.instagram.com/dede.18_" target="_blank" rel="noopener noreferrer" title="Instagram" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-rose-600 hover:text-white transition"><i class="fa-brands fa-instagram text-xs"></i></a>
                         <a href="https://www.tiktok.com/@dede.18_1" target="_blank" rel="noopener noreferrer" title="TikTok" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fa-brands fa-tiktok text-xs"></i></a>
                     </div>
-                    <p class="footer-edu" data-i18n="footer.edu">Acest site este făcut în scop educativ și nu pot fi plasate comenzi reale.</p>
                 </div>
 
                 <div>
@@ -697,11 +697,26 @@
 
     <!-- Package Details & Multi-Image Gallery Modal -->
     <div id="bookingModal" class="fv-z-booking fixed inset-0 hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <!-- Pe calculator (≥ 1024 px): pachetul în stânga și galeria foto într-o fereastră separată, în dreapta; pe telefon totul rămâne într-o singură fereastră -->
+        <div id="bookingWrap" class="bk-wrap">
         <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden max-h-[94svh] sm:max-h-[90vh] flex flex-col transform transition-all scale-95 opacity-0" id="modalContainer">
+
+            <!-- Antet pentru calculator: titlu, preț, buton „Galerie foto”; butonul X de închidere se mută aici (vezi js/app.js: placeGallery) -->
+            <div id="modalHead" class="bk-head">
+                <div class="bk-head-main">
+                    <span id="bkBadge" class="bk-badge"></span>
+                    <h3 id="bkTitle" class="bk-title"></h3>
+                </div>
+                <div class="bk-head-side">
+                    <span class="bk-price-label" data-i18n="modal.priceLabel">Preț / persoană</span>
+                    <span id="bkPrice" class="bk-price"></span>
+                    <button id="bkGalleryBtn" type="button" class="bk-gallery-btn" hidden><i class="fa-solid fa-images"></i> <span id="bkGalleryBtnLabel"></span></button>
+                </div>
+            </div>
             
-            <!-- Modal Header Image & Gallery Slider -->
-            <div class="relative bg-slate-900">
-                <div class="relative h-48 sm:h-72 w-full overflow-hidden">
+            <!-- Modal Header Image & Gallery Slider (pe calculator se mută în fereastra galeriei din dreapta) -->
+            <div id="modalHeader" class="relative bg-slate-900">
+                <div class="modal-stage relative h-48 sm:h-72 w-full overflow-hidden">
                     <img id="modalImg" src="" alt="Destination" class="w-full h-full object-cover transition-all duration-300">
                     <button id="modalPrev" type="button" class="modal-nav modal-nav-prev" aria-label="Poza anterioară" data-i18n-aria="modal.prevPhoto"><i class="fa-solid fa-chevron-left"></i></button>
                     <button id="modalNext" type="button" class="modal-nav modal-nav-next" aria-label="Poza următoare" data-i18n-aria="modal.nextPhoto"><i class="fa-solid fa-chevron-right"></i></button>
@@ -709,7 +724,7 @@
                     <button id="closeModalBtn" type="button" aria-label="Închide" class="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/60 text-white hover:bg-black flex items-center justify-center backdrop-blur-md transition">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
-                    <div class="absolute bottom-3 sm:bottom-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1 sm:gap-3 text-white drop-shadow">
+                    <div class="modal-overlay absolute bottom-3 sm:bottom-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1 sm:gap-3 text-white drop-shadow">
                         <div>
                             <span id="modalBadge" class="px-3 py-1 rounded-full bg-brand-600 text-[11px] font-bold uppercase tracking-wider mb-2 inline-block"></span>
                             <h3 id="modalTitle" class="text-xl sm:text-3xl font-extrabold font-serif leading-tight"></h3>
@@ -719,7 +734,7 @@
                             <span id="modalPrice" class="text-xl sm:text-3xl font-black text-amber-300"></span>
                         </div>
                     </div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
+                    <div class="modal-overlay absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
                 </div>
 
                 <!-- Thumbnails Gallery Bar -->
@@ -914,6 +929,14 @@
 
             </div>
 
+        </div>
+        <aside id="galleryPanel" class="bk-gallery" aria-label="Galerie foto" data-i18n-aria="modal.galleryTitle" hidden>
+            <div class="gp-top">
+                <span class="gp-title"><i class="fa-solid fa-images" aria-hidden="true"></i> <span data-i18n="modal.galleryTitle">Galerie foto</span></span>
+                <button id="galleryCloseBtn" type="button" class="gp-x" aria-label="Închide galeria foto" data-i18n-aria="modal.galleryClose"><i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="about.close">Închide</span></button>
+            </div>
+            <div id="gpBody" class="gp-body"></div>
+        </aside>
         </div>
     </div>
 
@@ -1259,6 +1282,7 @@
                         <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s1.b3.lead">Date de facturare</strong><span data-i18n="privacy.s1.b3.text">Detaliile necesare pentru emiterea facturilor.</span></div>
                         <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s1.b4.lead">Date tehnice</strong><span data-i18n="privacy.s1.b4.text">Adresa IP, tipul de browser, sistemul de operare și modul în care navighezi pe site, colectate prin cookie-uri și tehnologii similare.</span></div>
                         <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s1.b5.lead">Cont și chat</strong><span data-i18n="privacy.s1.b5.text">Dacă îți creezi un cont, păstrăm numele, telefonul și adresa de e-mail; parola este gestionată de serviciul de autentificare și nu o vedem. Mesajele din chat sunt prelucrate de asistentul virtual: te rugăm să nu scrii date personale în chat, ci să folosești formularele.</span></div>
+                        <div class="doc-block"><strong class="doc-lead-in text-slate-900" data-i18n="privacy.s1.b6.lead">Jurnal tehnic (fără date personale)</strong><span data-i18n="privacy.s1.b6.text">Pentru a repara erori și a face site-ul mai rapid, înregistrăm evenimente tehnice: erori, timpi de încărcare, tipul general al dispozitivului (dimensiunea ecranului, memoria, conexiunea) și acțiuni în site (de exemplu categoria deschisă sau pachetul vizualizat). Nu înregistrăm nume, e-mail, telefon, parole sau texte scrise de tine în formulare, în căutări sau în chat. Pentru evenimentele de cont (creare cont, autentificare) păstrăm identificatorul contului, nu parola. Jurnalul este păstrat în Firebase (Google) și poate fi citit doar de administrator. Nu trimitem jurnalul dacă browserul tău transmite „Do Not Track” sau „Global Privacy Control”.</span></div>
                         </div>
                     </section>
 
@@ -1290,6 +1314,7 @@
                         <h3 id="privacy-h4" class="doc-h"><span class="doc-num">IV</span><span class="doc-title text-slate-900" data-i18n="privacy.s4.title">Cât timp păstrăm datele?</span></h3>
                         <div class="doc-body text-slate-600">
                         <p data-i18n="privacy.s4.p1">Păstrăm datele tale personale doar cât timp este necesar pentru scopurile menționate mai sus sau pentru perioada impusă de legile aplicabile (de exemplu, documentele financiar-contabile trebuie păstrate, conform legii, timp de mai mulți ani).</p>
+                        <p data-i18n="privacy.s4.p2">Intrările din jurnalul tehnic se păstrează cel mult 30 de zile și apoi sunt șterse de administrator.</p>
                         </div>
                     </section>
 
@@ -1616,6 +1641,7 @@
     <script src="js/accounts.js"></script>
     <script src="js/motion.js"></script>
     <script src="js/logviewer.js"></script>
+    <script src="js/logremote.js"></script>
 
 </body>
 </html>

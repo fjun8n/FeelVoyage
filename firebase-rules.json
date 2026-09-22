@@ -149,6 +149,47 @@
           ".validate": false
         }
       }
+    },
+    "logs": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".indexOn": [
+        "at"
+      ],
+      "$logId": {
+        ".write": "!data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['at', 'ts', 's', 'l', 'c', 'e'])",
+        "at": {
+          ".validate": "newData.val() === now"
+        },
+        "ts": {
+          ".validate": "newData.isNumber() && newData.val() > 1700000000000 && newData.val() <= now + 86400000"
+        },
+        "s": {
+          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 12"
+        },
+        "l": {
+          ".validate": "newData.val() === 'info' || newData.val() === 'warn' || newData.val() === 'error'"
+        },
+        "c": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24"
+        },
+        "e": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 48"
+        },
+        "r": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9999"
+        },
+        "a": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "d": {
+          ".validate": "newData.isString() && newData.val().length <= 1200"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
     }
   }
 }
