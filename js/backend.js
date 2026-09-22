@@ -143,6 +143,7 @@
             },
             resetPassword: function () { return Promise.reject(FVError('unsupported')); },
             listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
+            loginWithGoogle: function () { return Promise.reject(FVError('unsupported')); },   // autentificarea cu Google există doar cu Firebase configurat
             submitLogs: function () { return Promise.resolve(0); },   // fără Firebase jurnalul rămâne doar pe dispozitiv
             listLogs: function () { return Promise.reject(FVError('unsupported')); },
             pruneLogs: function () { return Promise.reject(FVError('unsupported')); },
@@ -170,7 +171,7 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail,
+            register: fail, login: fail, loginWithGoogle: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail,
             logout: function () { return Promise.resolve(); }
         };
     }
@@ -230,7 +231,17 @@
                 case 'auth/network-request-failed': return FVError('network', e);
                 case 'auth/too-many-requests': return FVError('too-many', e);
                 case 'auth/operation-not-allowed':
-                    console.error('[FeelVoyage] Activează „Email/Password" în Firebase → Authentication → Sign-in method.');
+                    console.error('[FeelVoyage] Activează „Email/Password" (sau „Google") în Firebase → Authentication → Sign-in method.');
+                    return FVError('unknown', e);
+                case 'auth/popup-closed-by-user':
+                case 'auth/cancelled-popup-request':
+                    return FVError('popup-closed', e);   // vizitatorul a închis singur fereastra Google — nu e o eroare de arătat
+                case 'auth/popup-blocked':
+                    return FVError('popup-blocked', e);
+                case 'auth/account-exists-with-different-credential':
+                    return FVError('account-exists', e);   // există deja un cont cu parolă, pe același e-mail
+                case 'auth/unauthorized-domain':
+                    console.error('[FeelVoyage] Domeniul acesta nu e autorizat în Firebase → Authentication → Settings → Authorized domains.');
                     return FVError('unknown', e);
                 default:
                     console.error('[FeelVoyage] Eroare Firebase:', e);
@@ -358,6 +369,23 @@
                 try {
                     const cred = await authM.signInWithEmailAndPassword(auth, email.trim(), password);
                     return await refresh(cred.user);
+                } catch (e) { throw normalize(e); }
+            },
+            // Autentificare cu Google (fereastră pop-up): gratuită, activată din Firebase → Authentication → Sign-in method → Google.
+            // Prima dată creează contul automat; profilul (users/<uid>) se scrie doar dacă nu există deja, fără să ceară telefonul —
+            // formularul de rezervare tot îl cere separat, deci nu blochează nimic (vezi README, secțiunea „Autentificare cu Google”).
+            loginWithGoogle: async function () {
+                try {
+                    const provider = new authM.GoogleAuthProvider();
+                    const cred = await authM.signInWithPopup(auth, provider);
+                    const user = cred.user;
+                    try {
+                        const snap = await dbM.get(dbM.ref(db, 'users/' + user.uid));
+                        if (!snap.val()) {
+                            await dbM.set(dbM.ref(db, 'users/' + user.uid), { name: user.displayName || (user.email || '').split('@')[0], email: user.email || '', createdAt: dbM.serverTimestamp() });
+                        }
+                    } catch (e) { console.warn('[FeelVoyage] Profilul Google nu a putut fi salvat (verifică regulile din firebase-rules.json):', e); }
+                    return await refresh(auth.currentUser || user);
                 } catch (e) { throw normalize(e); }
             },
             logout: async function () {
@@ -500,6 +528,7 @@
         onAuth: whenReady('onAuth'),
         register: function (d) { return ready.then(function (b) { return b.register(d); }); },
         login: function (e, p) { return ready.then(function (b) { return b.login(e, p); }); },
+        loginWithGoogle: function () { return ready.then(function (b) { return b.loginWithGoogle(); }); },
         logout: function () { return ready.then(function (b) { return b.logout(); }); },
         saveConsent: function (doc, v, at) { return ready.then(function (b) { return b.saveConsent(doc, v, at); }); },
         withdrawConsent: function (doc) { return ready.then(function (b) { return b.withdrawConsent(doc); }); },
@@ -526,7 +555,7 @@
         ready.then(function (b) { L.info('backend', 'ready', { mode: b && b.mode }); }, function (e) { L.error('backend', 'init-failed', { code: e && e.code }); });
         let lastUid = '';   // identificatorul contului (nu e e-mail): administratorul îl leagă de e-mail în fereastra „Jurnal” (vezi js/logviewer.js)
         try { window.FVBackend.onAuth(function (s) { if (s && s.uid) lastUid = s.uid; }); } catch (e) { /* ignorat */ }
-        ['register', 'login', 'logout', 'saveConsent', 'withdrawConsent', 'resetPassword', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
+        ['register', 'login', 'loginWithGoogle', 'logout', 'saveConsent', 'withdrawConsent', 'resetPassword', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
             const orig = window.FVBackend[m];
             if (typeof orig !== 'function') return;
             window.FVBackend[m] = function () {
@@ -534,7 +563,7 @@
                 const doc = (m === 'saveConsent' || m === 'withdrawConsent') ? String(arguments[0] || '').slice(0, 20) : undefined;
                 const before = lastUid;
                 return Promise.resolve(orig.apply(window.FVBackend, arguments)).then(function (r) {
-                    const acct = (m === 'register' || m === 'login') ? (r && r.uid) : (m === 'logout' ? before : undefined);
+                    const acct = (m === 'register' || m === 'login' || m === 'loginWithGoogle') ? (r && r.uid) : (m === 'logout' ? before : undefined);
                     if (acct) lastUid = m === 'logout' ? '' : acct;
                     done({ ok: true, doc: doc, acct: acct || undefined });
                     return r;

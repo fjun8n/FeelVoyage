@@ -162,6 +162,19 @@ La crearea unui cont, câmpul **Telefon** trebuie completat. Sunt acceptate nume
 - Regula din `firebase-rules.json` pentru `users/<uid>/phone` cere acum minim 6 caractere. **Publică din nou regulile** în Firebase (tab-ul **Rules** → **Publish**). Dacă nu le republici, site-ul merge oricum, dar baza de date nu verifică lungimea telefonului.
 - Obligativitatea telefonului este verificată de formular și de codul site-ului; baza de date nu poate impune ca un câmp să existe la crearea contului fără să blocheze conturile vechi.
 
+## Autentificare cu Google (gratuită)
+
+Pe lângă e-mail/parolă, oricine se poate autentifica sau crea cont cu un click, printr-o fereastră Google. E complet gratuit — Firebase nu taxează suplimentar pentru asta, indiferent de trafic.
+
+- **Ca să funcționeze pe site-ul tău real**, trebuie activat manual, o singură dată: Firebase Console → **Authentication** → **Sign-in method** → activează furnizorul **Google**. Fără acest pas, butonul apare, dar autentificarea eșuează cu eroarea „operation-not-allowed” (vizibilă în consolă).
+- Dacă găzduiești pe alt domeniu decât cel implicit Firebase, adaugă-l și la **Authentication → Settings → Authorized domains** (altfel fereastra Google refuză cu „unauthorized-domain”).
+- Butonul „Continuă cu Google” apare doar când Firebase e configurat (`js/firebase-config.js` are chei reale, nu „PASTE...”) — în modul local sau offline nu are sens, deci rămâne ascuns.
+- **La prima autentificare**, contul se creează automat: nume și e-mail vin din contul Google. **Telefonul nu este cerut** la acest pas (spre deosebire de înregistrarea cu parolă) — formularul de rezervare tot îl cere separat, când chiar rezervi ceva, deci nimic nu blochează o comandă.
+- Dacă cineva are deja cont cu parolă pe același e-mail și încearcă Google, primește un mesaj clar să se autentifice întâi cu parola (Firebase nu unește automat cele două metode).
+- Dacă vizitatorul închide singur fereastra Google (s-a răzgândit), nu apare nicio eroare pe ecran.
+- Un cont creat prin Google poate deveni administrator exact ca oricare altul: `admins/<uid>: true` în consola Firebase.
+- **Apple („Sign in with Apple”)** nu poate fi gratuit: necesită obligatoriu un cont Apple Developer Program (99 $/an), indiferent de tehnologia din spate. Dacă site-ul prinde trafic și decideți să plătiți acel abonament, spuneți-mi și îl configurez — structura din `js/backend.js`/`js/auth.js` e pregătită să primească un al doilea furnizor la fel de ușor.
+
 ## Limbi: română, engleză, italiană, franceză, spaniolă
 
 Comutatorul de limbă din antet (și din meniul de pe telefon) are 5 limbi. Româna este limba de bază, scrisă direct în `index.html`, `js/destinations.js` și în cod; celelalte sunt dicționare în `js/translations.js` (EN, IT), `js/translations-fr.js` (FR) și `js/translations-es.js` (ES), toate cu aceleași chei (`nav.acasa`, `dest.roma.title`...).

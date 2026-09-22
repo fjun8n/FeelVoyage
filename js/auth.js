@@ -13,6 +13,8 @@
     const tabLoginBtn = document.getElementById('tabLoginBtn');
     const tabRegisterBtn = document.getElementById('tabRegisterBtn');
     const tabsBar = document.getElementById('authTabs');
+    const authSocialBlock = document.getElementById('authSocialBlock');
+    const googleAuthBtn = document.getElementById('googleAuthBtn');
     const loginError = document.getElementById('loginError');
     const loginErrorText = document.getElementById('loginErrorText');
     const registerError = document.getElementById('registerError');
@@ -57,6 +59,8 @@
             case 'invalid-phone': return trF('auth.errorPhone', 'Introdu un număr de telefon valid, în format românesc (07XX XXX XXX) sau internațional (ex: +40 7XX XXX XXX).');
             case 'network': return trF('auth.errorNetwork', 'Nu m-am putut conecta la server. Verifică internetul și încearcă din nou.');
             case 'too-many': return trF('auth.errorTooMany', 'Prea multe încercări. Încearcă din nou peste câteva minute.');
+            case 'popup-blocked': return trF('auth.errorPopupBlocked', 'Browserul a blocat fereastra Google. Permite ferestrele pop-up pentru acest site și încearcă din nou.');
+            case 'account-exists': return trF('auth.errorAccountExists', 'Există deja un cont cu acest e-mail, creat cu parolă. Autentifică-te cu parola, apoi poți folosi și Google.');
             default: return trF('auth.errorGeneric', 'A apărut o eroare. Încearcă din nou.');
         }
     }
@@ -72,10 +76,21 @@
         const spinner = btn.querySelector('[data-spinner]');
         if (spinner) spinner.classList.toggle('hidden', !busy);
     }
+    function setBusy2(btn, busy) {
+        btn.disabled = busy;
+        btn.classList.toggle('opacity-70', busy);
+        const spinner = btn.querySelector('[data-spinner]');
+        if (spinner) spinner.classList.toggle('hidden', !busy);
+    }
 
     /* ---------- Fereastra de autentificare ---------- */
+    let authView = 'login', cloudMode = false;
+    // vizibilă doar în filele Autentificare/Înregistrare (nu în profil) ȘI doar dacă Firebase e configurat (Google nu merge fără el)
+    function updateSocialVisibility() { authSocialBlock.classList.toggle('hidden', authView === 'profile' || !cloudMode); }
     function showAuthView(view) {
+        authView = view;
         tabsBar.classList.toggle('hidden', view === 'profile');
+        updateSocialVisibility();
         loginForm.classList.toggle('hidden', view !== 'login');
         registerForm.classList.toggle('hidden', view !== 'register');
         profileView.classList.toggle('hidden', view !== 'profile');
@@ -236,6 +251,26 @@
         }
     });
 
+    // Continuă cu Google: valabilă din orice filă (autentificare sau cont nou); Firebase creează contul automat la prima folosire.
+    googleAuthBtn.addEventListener('click', async function () {
+        if (googleAuthBtn.disabled) return;
+        loginError.classList.add('hidden'); registerError.classList.add('hidden');
+        setBusy2(googleAuthBtn, true);
+        try {
+            const s = await FVBackend.loginWithGoogle();
+            session = s;
+            syncAdmin(s);
+            renderAuthUI();
+            closeAuthModal();
+            toast(trF('auth.googleWelcome', 'Bine ai venit') + ', ' + firstName(s) + '!');
+        } catch (err) {
+            if (err && err.code === 'popup-closed') { /* a închis singur fereastra Google — nu e o eroare de arătat */ }
+            else { const msg = errorMessage(err); if (authView === 'register') showRegisterError(msg); else showLoginError(msg); }
+        } finally {
+            setBusy2(googleAuthBtn, false);
+        }
+    });
+
     registerForm.addEventListener('submit', async function (e) {
         e.preventDefault();
         const name = document.getElementById('regName').value.trim();
@@ -337,9 +372,11 @@
     // Textul de sub formular și linkul „parolă uitată" depind de modul backend-ului
     FVBackend.ready.then(function () {
         const cloud = FVBackend.mode === 'firebase';
+        cloudMode = cloud;
         document.querySelectorAll('[data-note="local"]').forEach(function (el) { el.classList.toggle('hidden', cloud); });
         document.querySelectorAll('[data-note="cloud"]').forEach(function (el) { el.classList.toggle('hidden', !cloud); });
         forgotBtn.classList.toggle('hidden', !cloud);
+        updateSocialVisibility();   // blocul Google e „cloud” + depinde și de fila curentă; cele două reguli nu trebuie să se calce
     });
 
     renderAuthUI();
