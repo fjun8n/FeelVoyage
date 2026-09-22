@@ -81,6 +81,10 @@
     function isOpen() { return !!modal && !modal.classList.contains('hidden'); }
 
     function build() {
+        // dacă fereastra e deja deschisă (schimbare de filă sau de limbă), păstrăm panoul vizibil: altfel innerHTML de mai jos
+        // creează un #lvPanel NOU, fără clasa „is-open”, iar tranziția CSS l-ar lăsa invizibil (opacitate 0) — exact bug-ul semnalat
+        // („ecranul se blurează dar nu apare nimic”), pentru că doar deschiderea inițială (mai jos, în open()) adaugă acea clasă.
+        var wasOpen = isOpen();
         if (!modal) {
             modal = doc.createElement('div');
             modal.id = 'logModal'; modal.className = 'lv-modal hidden';
@@ -106,6 +110,7 @@
                 '<div class="lv-tabs" role="tablist">' + tabs.map(function (t) { return '<button type="button" role="tab" class="lv-tab' + (src === t[0] ? ' is-on' : '') + '" data-lv-tab="' + t[0] + '" aria-selected="' + (src === t[0]) + '">' + esc(t[1]) + '</button>'; }).join('') + '</div>' +
                 '<div class="lv-body" id="lvBody"></div>' +
             '</div>';
+        if (wasOpen) { var p0 = $('lvPanel'); if (p0) p0.classList.add('is-open'); }
     }
 
     function logView() {

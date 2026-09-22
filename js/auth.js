@@ -137,6 +137,12 @@
         loadAdminModule().then(function () { if (window.FVAdmin && session && session.admin) window.FVAdmin.openUsers(); })
             .catch(function () { toast(trF('auth.errorGeneric', 'A apărut o eroare. Încearcă din nou.'), 'error'); });
     };
+    // fereastra „Jurnal” (js/logviewer.js, încărcată dintotdeauna): arată jurnalul JavaScript de pe acest dispozitiv și, la fila „Server”, cel din baza de date
+    window.fvLogOpen = function () {
+        userDropdown.classList.add('hidden');
+        if (window.FVLogView) FVLogView.open();
+        else toast(trF('auth.errorGeneric', 'A apărut o eroare. Încearcă din nou.'), 'error');
+    };
 
     function openAuthModal(view) {
         if (!view) view = session ? 'profile' : 'login';
@@ -178,6 +184,7 @@
                 '<div class="p-2">' +
                 '<button onclick="openAuthModal(\'profile\')" class="' + item + '"><i class="fa-solid fa-user w-5 text-brand-600"></i>' + esc(trF('auth.profileBtn', 'Profilul meu')) + '</button>' +
                 (session.admin ? '<button onclick="fvAdminOpen()" class="' + item + ' !text-blue-700 bg-blue-50/60"><i class="fa-solid fa-users w-5 text-blue-600"></i>' + esc(trF('admin.usersBtn', 'Utilizatori')) + '</button>' : '') +
+                (session.admin ? '<button onclick="fvLogOpen()" class="' + item + ' !text-blue-700 bg-blue-50/60"><i class="fa-solid fa-clipboard-list w-5 text-blue-600"></i>' + esc(trF('log.btn', 'Jurnal')) + '</button>' : '') +
                 '<a href="#destinatii" class="dd-close ' + item + '"><i class="fa-solid fa-map-location-dot w-5 text-brand-600"></i>' + esc(trF('auth.viewDestinations', 'Vezi destinațiile')) + '</a>' +
                 '<button onclick="fvLogout()" class="w-full text-left px-3 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-xl flex items-center gap-2"><i class="fa-solid fa-right-from-bracket w-5"></i>' + esc(trF('auth.logoutBtn', 'Deconectare')) + '</button>' +
                 '</div>';
