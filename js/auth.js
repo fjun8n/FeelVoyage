@@ -290,6 +290,40 @@
     };
 
     /* ---------- Formulare ---------- */
+    // Formatul unui nume valid: nume + prenume, doar litere (inclusiv diacritice RO și alte litere latine accentuate), apostrof, cratimă;
+    // fiecare cuvânt trebuie să înceapă cu majusculă (ex: „Ion Popescu”, „Mihai-Ștefan Ionescu-Popa”).
+    const NAME_REGEX = /^[A-Za-zĂÂÎȘȚăâîșțÀ-ÿ'-]{2,}(?:[\s-][A-Za-zĂÂÎȘȚăâîșțÀ-ÿ'-]{2,})+$/;
+    function isCapitalizedWord(w) {
+        var c = w.charAt(0);
+        return c.length > 0 && c === c.toUpperCase() && c !== c.toLowerCase();   // funcționează corect și cu Ă/Â/Î/Ș/Ț
+    }
+    function nameWordsOf(name) { return name.trim().split(/[\s-]+/).filter(Boolean); }
+    // Cuvinte obscene / insulte / apelative jignitoare, respinse dintr-un nume de cont — o listă din cele mai comune, în română, engleză,
+    // italiană, franceză și spaniolă (nu poate fi o listă exhaustivă pentru „orice limbă”, dar acoperă limbile site-ului și pe cele mai răspândite).
+    const BAD_WORDS = [
+        'pula', 'pizda', 'pizdă', 'muie', 'cacat', 'căcat', 'cur', 'curva', 'curvă', 'prost', 'proasta', 'proastă',
+        'idiot', 'idioata', 'idioată', 'tampit', 'tâmpit', 'tampita', 'tâmpită', 'jegos', 'nesimtit', 'nesimțit',
+        'handicapat', 'retardat', 'mongol', 'gunoi', 'dobitoc', 'vaca', 'vacă', 'tarfa', 'târfă', 'jigodie',
+        'nemernic', 'ticalos', 'ticălos', 'cretin', 'cretina', 'cretină', 'magar', 'măgar', 'spurcat', 'scarba', 'scârbă', 'imbecil',
+        'fuck', 'shit', 'bitch', 'cunt', 'asshole', 'bastard', 'dick', 'pussy', 'whore', 'slut', 'faggot',
+        'nigger', 'nigga', 'retard', 'cock', 'twat', 'wanker', 'motherfucker', 'bollocks', 'douchebag', 'dumbass',
+        'idiot', 'moron', 'scumbag', 'jackass', 'prick',
+        'cazzo', 'merda', 'stronzo', 'stronza', 'puttana', 'troia', 'vaffanculo', 'coglione', 'bastardo', 'cretino',
+        'cretina', 'deficiente', 'minchia', 'culo', 'figa',
+        'merde', 'putain', 'salope', 'connard', 'connasse', 'pute', 'encule', 'enculee', 'batard', 'bâtard',
+        'con', 'conne', 'abruti', 'abrutie', 'ordure', 'salaud',
+        'mierda', 'puta', 'puto', 'gilipollas', 'cabron', 'cabrón', 'pendejo', 'imbécil', 'maricon', 'maricón',
+        'coño', 'joder', 'zorra', 'pendeja'
+    ];
+    // scoate diacriticele și reduce orice literă repetată consecutiv la una singură (ex. „puuulaaa” → „pula”), ca să prindă și variantele
+    // ușor deghizate; aceeași normalizare se aplică și listei de mai sus, ca cele două părți ale comparației să rămână pe aceeași „limbă”.
+    function normalizeForFilter(s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/(.)\1+/g, '$1'); }
+    var BAD_WORDS_NORM = BAD_WORDS.map(normalizeForFilter);
+    function containsBadWord(name) {
+        var words = normalizeForFilter(name).split(/[^a-z]+/).filter(Boolean);
+        return words.some(function (w) { return BAD_WORDS_NORM.indexOf(w) !== -1; });
+    }
+
     // Parole ușor de ghicit, respinse la înregistrare (secvențe simple sau din lista celor mai folosite parole)
     function isWeakPassword(pw) {
         const s = pw.toLowerCase();
@@ -359,7 +393,9 @@
         const pw2 = document.getElementById('regPassword2').value;
         registerError.classList.add('hidden');
 
-        if (name.split(' ').filter(Boolean).length < 2) { showRegisterError(trF('auth.errorName', 'Te rog introdu numele și prenumele.')); return; }
+        if (!NAME_REGEX.test(name)) { showRegisterError(trF('auth.errorName', 'Te rog introdu numele și prenumele, folosind doar litere.')); return; }
+        if (!nameWordsOf(name).every(isCapitalizedWord)) { showRegisterError(trF('auth.errorNameCase', 'Numele trebuie scris cu majusculă la începutul fiecărui cuvânt (ex: Ion Popescu).')); return; }
+        if (containsBadWord(name)) { showRegisterError(trF('auth.errorNameBad', 'Acest nume nu poate fi folosit. Te rugăm să introduci numele tău real.')); return; }
         if (!fvPhoneValid(phone)) { showRegisterError(trF('auth.errorPhone', 'Introdu un număr de telefon valid, în format românesc (07XX XXX XXX) sau internațional (ex: +40 7XX XXX XXX).')); document.getElementById('regPhone').focus(); return; }
         if (pw1.length < 6) { showRegisterError(trF('auth.errorPasswordShort', 'Parola trebuie să aibă minim 6 caractere.')); return; }
         if (pw1 !== pw2) { showRegisterError(trF('auth.errorPasswordMatch', 'Parolele nu coincid.')); return; }

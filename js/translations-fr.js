@@ -708,6 +708,8 @@ i18n.fr = {
     "auth.termsNote": "En vous inscrivant, vous acceptez les Conditions générales et la Politique de confidentialité de FeelVoyage.",
     "auth.errorLogin": "E-mail ou mot de passe incorrect.",
     "auth.errorName": "Veuillez saisir votre nom et votre prénom.",
+    "auth.errorNameCase": "Le nom doit commencer chaque mot par une majuscule (ex. Ion Popescu).",
+    "auth.errorNameBad": "Ce nom ne peut pas être utilisé. Veuillez indiquer votre vrai nom.",
     "auth.errorPasswordShort": "Le mot de passe doit contenir au moins 6 caractères.",
     "auth.errorPasswordMatch": "Les mots de passe ne correspondent pas.",
     "auth.errorEmailUsed": "Un compte existe déjà avec cet e-mail. Connectez-vous.",

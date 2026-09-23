@@ -708,6 +708,8 @@ i18n.es = {
     "auth.termsNote": "Al registrarte aceptas los Términos y condiciones y la Política de privacidad de FeelVoyage.",
     "auth.errorLogin": "Correo o contraseña incorrectos.",
     "auth.errorName": "Introduce tu nombre y apellidos.",
+    "auth.errorNameCase": "El nombre debe empezar cada palabra con mayúscula (ej. Ion Popescu).",
+    "auth.errorNameBad": "Este nombre no se puede usar. Introduce tu nombre real.",
     "auth.errorPasswordShort": "La contraseña debe tener al menos 6 caracteres.",
     "auth.errorPasswordMatch": "Las contraseñas no coinciden.",
     "auth.errorEmailUsed": "Ya existe una cuenta con este correo. Inicia sesión.",

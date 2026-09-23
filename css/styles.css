@@ -456,13 +456,13 @@ html:not(.motion-off) #modalImg.fv-swap { animation: fvSwap .32s cubic-bezier(.2
 .lv-head-text p { margin: 0; font-size: .7rem; opacity: .85; }
 .lv-x { width: 2.4rem; height: 2.4rem; flex: none; border: 0; border-radius: 999px; background: rgba(0, 0, 0, .25); color: #fff; cursor: pointer; }
 .lv-x:hover { background: rgba(0, 0, 0, .5); }
-.lv-body { display: flex; flex-direction: column; gap: .75rem; padding: 1rem; overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
-.lv-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+.lv-body { display: flex; flex-direction: column; gap: .75rem; padding: 1rem 1rem 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.lv-stats { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
 .lv-stat { padding: .55rem .4rem; border-radius: .85rem; background: #f1f5f9; text-align: center; }
 .lv-stat b { display: block; font-size: 1.25rem; line-height: 1.1; }
 .lv-stat span { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
 .lv-stat.lv-e b { color: #dc2626; } .lv-stat.lv-w b { color: #d97706; }
-.lv-perf { padding: .7rem .8rem; border-radius: .95rem; background: #f0f9ff; border: 1px solid #bae6fd; }
+.lv-perf { flex: none; padding: .7rem .8rem; border-radius: .95rem; background: #f0f9ff; border: 1px solid #bae6fd; }
 .lv-perf-title { font-size: .72rem; font-weight: 800; color: #0369a1; margin-bottom: .45rem; }
 .lv-perf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
 .lv-cell { padding: .35rem .5rem; border-radius: .6rem; background: #fff; }
@@ -470,16 +470,16 @@ html:not(.motion-off) #modalImg.fv-swap { animation: fvSwap .32s cubic-bezier(.2
 .lv-cell b { font-size: .88rem; }
 .lv-v { padding: .05rem .5rem; border-radius: 999px; font-size: .72rem; }
 .lv-v-ok { background: #dcfce7; color: #166534; } .lv-v-mid { background: #fef3c7; color: #92400e; } .lv-v-bad { background: #fee2e2; color: #991b1b; }
-.lv-tools { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.lv-tools { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
 .lv-q { grid-column: 1 / -1; }
 .lv-field { width: 100%; padding: .55rem .7rem; border-radius: .75rem; border: 1px solid #cbd5e1; background: #fff; color: #0f172a; font-size: .82rem; }
-.lv-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.lv-actions { flex: none; display: flex; flex-wrap: wrap; gap: .4rem; }
 .lv-act { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .8rem; border: 1px solid #cbd5e1; border-radius: .75rem; background: #fff; color: #0f172a; font-size: .76rem; font-weight: 700; cursor: pointer; }
 .lv-act:hover { background: #f1f5f9; }
 .lv-act.lv-danger { color: #b91c1c; border-color: #fecaca; }
-.lv-count { margin: 0; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; }
-.lv-list { display: flex; flex-direction: column; gap: .3rem; min-height: 6rem; }
-.lv-row { border-radius: .7rem; border: 1px solid #e2e8f0; border-left-width: 4px; background: #fff; overflow: hidden; }
+.lv-count { flex: none; margin: 0; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; }
+.lv-list { flex: 1 1 auto; min-height: 8rem; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: .3rem; padding-bottom: 1rem; }
+.lv-row { flex: none; border-radius: .7rem; border: 1px solid #e2e8f0; border-left-width: 4px; background: #fff; overflow: hidden; }
 .lv-l-error { border-left-color: #dc2626; background: #fef2f2; } .lv-l-warn { border-left-color: #f59e0b; background: #fffbeb; } .lv-l-info { border-left-color: #0ea5e9; } .lv-l-debug { border-left-color: #94a3b8; }
 .lv-row-head { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .45rem .6rem; border: 0; background: transparent; color: inherit; text-align: left; font-size: .76rem; cursor: pointer; }
 .lv-time { flex: none; font-variant-numeric: tabular-nums; color: #64748b; }
