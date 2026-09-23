@@ -87,14 +87,16 @@
     /* ---------- Fereastra de autentificare ---------- */
     let authView = 'login', cloudMode = false;
     // vizibilă doar în filele Autentificare/Înregistrare (nu în profil) ȘI doar dacă Firebase e configurat (Google nu merge fără el)
-    function updateSocialVisibility() { authSocialBlock.classList.toggle('hidden', authView === 'profile' || !cloudMode); }
+    function updateSocialVisibility() { authSocialBlock.classList.toggle('hidden', authView === 'profile' || authView === 'verify' || !cloudMode); }
     function showAuthView(view) {
         authView = view;
-        tabsBar.classList.toggle('hidden', view === 'profile');
+        tabsBar.classList.toggle('hidden', view === 'profile' || view === 'verify');
         updateSocialVisibility();
         loginForm.classList.toggle('hidden', view !== 'login');
         registerForm.classList.toggle('hidden', view !== 'register');
         profileView.classList.toggle('hidden', view !== 'profile');
+        document.getElementById('verifyView').classList.toggle('hidden', view !== 'verify');
+        if (view === 'verify') autoCheckVerification();
         loginError.classList.add('hidden');
         registerError.classList.add('hidden');
         tabLoginBtn.className = 'py-3.5 text-sm font-bold border-b-2 transition ' + (view === 'login' ? 'text-brand-600 border-brand-600' : 'text-slate-500 border-transparent hover:text-brand-600');
@@ -108,8 +110,6 @@
         document.getElementById('profileName').textContent = session.name || '';
         document.getElementById('profileEmail').textContent = session.email || '';
         applyProfileRole();
-        applyVerifyBanner();
-        autoCheckVerification();
         // panoul de administrator (js/admin.js, se încarcă doar pentru administrator) își pune butonul lângă nume
         document.dispatchEvent(new CustomEvent('fv:profile', { detail: { admin: !!session.admin } }));
     }
@@ -126,26 +126,27 @@
         avatar.className = 'w-14 h-14 rounded-full bg-gradient-to-tr text-white flex items-center justify-center text-xl font-black shadow-md ' + (admin ? 'from-blue-700 to-sky-400 ring-4 ring-blue-200' : 'from-brand-600 to-sunset-500');
     }
 
-    // Bannerul „E-mail neverificat”: vizibil doar când session.emailVerified este EXACT false (nu și când e necunoscut, ca să nu clipească la încărcare)
-    function applyVerifyBanner() {
-        const banner = document.getElementById('emailVerifyBanner');
-        banner.classList.toggle('hidden', !(session && session.emailVerified === false));
+    // Fereastra „Mai ai un singur pas”: înlocuiește complet profilul cât timp session.emailVerified === false (vezi openAuthModal).
+    function fillVerifyView() {
+        if (!session) return;
+        document.getElementById('verifyEmail').textContent = session.email || '';
     }
     let verifyChecking = false;
-    // La deschiderea profilului, dacă e-mailul apare neverificat, recitim o dată starea reală (poate a apăsat linkul din altă filă între timp)
+    // La deschiderea ferestrei, recitim o dată starea reală (poate a apăsat linkul din altă filă între timp) — dacă între timp s-a verificat, trecem direct la profil
     function autoCheckVerification() {
         if (verifyChecking || !session || session.emailVerified !== false || !window.FVBackend || FVBackend.mode !== 'firebase') return;
         verifyChecking = true;
         FVBackend.refreshVerification().then(function (s) {
             verifyChecking = false;
             if (!s) return;
-            const became = s.emailVerified === true;
             session = s;
-            applyVerifyBanner();
-            if (became) toast(trF('auth.verifiedNow', 'E-mailul a fost verificat!'));
+            if (s.emailVerified === true && authView === 'verify') {
+                toast(trF('auth.verifiedNow', 'E-mailul a fost verificat!'));
+                fillProfile(); showAuthView('profile');
+            }
         }).catch(function () { verifyChecking = false; });
     }
-    document.getElementById('resendVerifyBtn').addEventListener('click', function () {
+    document.getElementById('verifyResendBtn').addEventListener('click', function () {
         const btn = this;
         if (btn.disabled) return;
         btn.disabled = true;
@@ -157,19 +158,23 @@
             toast(errorMessage(err), 'error');
         });
     });
-    document.getElementById('refreshVerifyBtn').addEventListener('click', function () {
+    document.getElementById('verifyRefreshBtn').addEventListener('click', function () {
         const btn = this;
         if (btn.disabled) return;
         btn.disabled = true;
         FVBackend.refreshVerification().then(function (s) {
             btn.disabled = false;
             if (!s) return;
-            const became = s.emailVerified === true;
             session = s;
-            applyVerifyBanner();
-            toast(became ? trF('auth.verifiedNow', 'E-mailul a fost verificat!') : trF('auth.notVerifiedYet', 'Încă nu apare verificat. Ai deschis linkul din e-mail?'));
+            if (s.emailVerified === true) {
+                toast(trF('auth.verifiedNow', 'E-mailul a fost verificat!'));
+                fillProfile(); showAuthView('profile');
+            } else {
+                toast(trF('auth.notVerifiedYet', 'Încă nu apare verificat. Ai deschis linkul din e-mail?'));
+            }
         }).catch(function (err) { btn.disabled = false; toast(errorMessage(err), 'error'); });
     });
+    document.getElementById('verifyLogoutBtn').addEventListener('click', function () { window.fvLogout(); });
 
     /* ---------- Administrator: panoul se încarcă doar pentru contul marcat în baza de date ---------- */
     let adminLoading = null;
@@ -213,8 +218,10 @@
         if (!view) view = session ? 'profile' : 'login';
         if (view === 'profile' && !session) view = 'login';
         if ((view === 'login' || view === 'register') && session) view = 'profile';
+        if (view === 'profile' && session && session.emailVerified === false) view = 'verify';   // contul nu se poate folosi până nu se confirmă e-mailul
         showAuthView(view);
         if (view === 'profile') fillProfile();
+        if (view === 'verify') fillVerifyView();
         const wasOpen = isModalOpen();
         authModal.classList.remove('hidden');
         if (!wasOpen && typeof lockScroll === 'function') lockScroll(true);
@@ -248,8 +255,8 @@
                 '</div>' +
                 '<div class="p-2">' +
                 '<button onclick="openAuthModal(\'profile\')" class="' + item + '"><i class="fa-solid fa-user w-5 text-brand-600"></i>' + esc(trF('auth.profileBtn', 'Profilul meu')) + '</button>' +
-                (session.admin ? '<button onclick="fvAdminOpen()" class="' + item + ' !text-blue-700 bg-blue-50/60"><i class="fa-solid fa-users w-5 text-blue-600"></i>' + esc(trF('admin.usersBtn', 'Utilizatori')) + '</button>' : '') +
-                (session.admin ? '<button onclick="fvLogOpen()" class="' + item + ' !text-blue-700 bg-blue-50/60"><i class="fa-solid fa-clipboard-list w-5 text-blue-600"></i>' + esc(trF('log.btn', 'Jurnal')) + '</button>' : '') +
+                (session.admin && session.emailVerified !== false ? '<button onclick="fvAdminOpen()" class="' + item + ' !text-blue-700 bg-blue-50/60"><i class="fa-solid fa-users w-5 text-blue-600"></i>' + esc(trF('admin.usersBtn', 'Utilizatori')) + '</button>' : '') +
+                (session.admin && session.emailVerified !== false ? '<button onclick="fvLogOpen()" class="' + item + ' !text-blue-700 bg-blue-50/60"><i class="fa-solid fa-clipboard-list w-5 text-blue-600"></i>' + esc(trF('log.btn', 'Jurnal')) + '</button>' : '') +
                 '<a href="#destinatii" class="dd-close ' + item + '"><i class="fa-solid fa-map-location-dot w-5 text-brand-600"></i>' + esc(trF('auth.viewDestinations', 'Vezi destinațiile')) + '</a>' +
                 '<button onclick="fvLogout()" class="w-full text-left px-3 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-xl flex items-center gap-2"><i class="fa-solid fa-right-from-bracket w-5"></i>' + esc(trF('auth.logoutBtn', 'Deconectare')) + '</button>' +
                 '</div>';
@@ -283,17 +290,43 @@
     };
 
     /* ---------- Formulare ---------- */
+    // Parole ușor de ghicit, respinse la înregistrare (secvențe simple sau din lista celor mai folosite parole)
+    function isWeakPassword(pw) {
+        const s = pw.toLowerCase();
+        const COMMON = ['123456', '1234567', '12345678', '123456789', '1234567890', 'abcdef', 'abcdefg', 'abcdefgh', 'qwerty', 'qwertyui', 'password', 'parola', '123123', '111111', '000000', '654321', 'abc123', '1q2w3e', 'iloveyou', 'admin123'];
+        if (COMMON.indexOf(s) !== -1) return true;
+        if (/^(.)\1+$/.test(s)) return true;   // același caracter repetat (ex: aaaaaa, 111111)
+        if (s.length >= 4) {                     // secvență simplă, ascendentă sau descendentă (ex: 123456, abcdef, 987654, fedcba)
+            let asc = true, desc = true;
+            for (let i = 1; i < s.length; i++) {
+                const d = s.charCodeAt(i) - s.charCodeAt(i - 1);
+                if (d !== 1) asc = false;
+                if (d !== -1) desc = false;
+            }
+            if (asc || desc) return true;
+        }
+        return false;
+    }
+    // După autentificare (parolă sau Google): profilul dacă e-mailul e verificat, altfel fereastra „Mai ai un singur pas”
+    function afterSignIn(s, welcomeKey, welcomeFallback) {
+        session = s;
+        syncAdmin(s);
+        renderAuthUI();
+        if (s.emailVerified === false) {
+            fillVerifyView(); showAuthView('verify');
+        } else {
+            closeAuthModal();
+            toast(trF(welcomeKey, welcomeFallback) + ', ' + firstName(s) + '!');
+        }
+    }
+
     loginForm.addEventListener('submit', async function (e) {
         e.preventDefault();
         loginError.classList.add('hidden');
         setBusy(loginForm, true);
         try {
             const s = await FVBackend.login(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
-            session = s;
-            syncAdmin(s);
-            renderAuthUI();
-            closeAuthModal();
-            toast(trF('auth.welcomeBack', 'Bine ai revenit') + ', ' + firstName(s) + '!');
+            afterSignIn(s, 'auth.welcomeBack', 'Bine ai revenit');
         } catch (err) {
             showLoginError(errorMessage(err));
         } finally {
@@ -308,11 +341,7 @@
         setBusy2(googleAuthBtn, true);
         try {
             const s = await FVBackend.loginWithGoogle();
-            session = s;
-            syncAdmin(s);
-            renderAuthUI();
-            closeAuthModal();
-            toast(trF('auth.googleWelcome', 'Bine ai venit') + ', ' + firstName(s) + '!');
+            afterSignIn(s, 'auth.googleWelcome', 'Bine ai venit');
         } catch (err) {
             if (err && err.code === 'popup-closed') { /* a închis singur fereastra Google — nu e o eroare de arătat */ }
             else { const msg = errorMessage(err); if (authView === 'register') showRegisterError(msg); else showLoginError(msg); }
@@ -334,6 +363,7 @@
         if (!fvPhoneValid(phone)) { showRegisterError(trF('auth.errorPhone', 'Introdu un număr de telefon valid, în format românesc (07XX XXX XXX) sau internațional (ex: +40 7XX XXX XXX).')); document.getElementById('regPhone').focus(); return; }
         if (pw1.length < 6) { showRegisterError(trF('auth.errorPasswordShort', 'Parola trebuie să aibă minim 6 caractere.')); return; }
         if (pw1 !== pw2) { showRegisterError(trF('auth.errorPasswordMatch', 'Parolele nu coincid.')); return; }
+        if (isWeakPassword(pw1)) { showRegisterError(trF('auth.errorPasswordWeak', 'Această parolă e prea simplă (ex. „123456”, „abcdef”) și poate fi ghicită ușor. Alege una mai puțin previzibilă.')); return; }
 
         setBusy(registerForm, true);
         try {
@@ -341,8 +371,13 @@
             session = s;
             syncAdmin(s);
             renderAuthUI();
-            closeAuthModal();
-            toast(trF('auth.registerSuccess', 'Contul a fost creat. Bine ai venit') + ', ' + firstName(s) + '!');
+            if (s.emailVerified === false) {
+                fillVerifyView(); showAuthView('verify');
+                toast(trF('auth.registerPendingVerify', 'Contul a fost creat! Mai avem nevoie doar să confirmi e-mailul.'));
+            } else {
+                closeAuthModal();
+                toast(trF('auth.registerSuccess', 'Contul a fost creat. Bine ai venit') + ', ' + firstName(s) + '!');
+            }
         } catch (err) {
             showRegisterError(errorMessage(err));
         } finally {

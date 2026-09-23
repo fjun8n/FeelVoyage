@@ -162,6 +162,16 @@ La crearea unui cont, câmpul **Telefon** trebuie completat. Sunt acceptate nume
 - Regula din `firebase-rules.json` pentru `users/<uid>/phone` cere acum minim 6 caractere. **Publică din nou regulile** în Firebase (tab-ul **Rules** → **Publish**). Dacă nu le republici, site-ul merge oricum, dar baza de date nu verifică lungimea telefonului.
 - Obligativitatea telefonului este verificată de formular și de codul site-ului; baza de date nu poate impune ca un câmp să existe la crearea contului fără să blocheze conturile vechi.
 
+## Contul nu e „gata" până nu verifici e-mailul / parole ușor de ghicit, respinse
+
+- **Nu se poate crea (folosi) un cont fără e-mail verificat.** La înregistrare sau la orice autentificare ulterioară cu un cont neverificat, în locul profilului apare o fereastră dedicată, „Mai ai un singur pas" — nu doar un banner alături de profil, ci înlocuiește complet conținutul lui. De acolo: **Retrimite e-mailul**, **Am verificat, actualizează** (recitește starea reală de pe Firebase și, dacă e confirmată, trece direct la profil) și **Deconectare**. Fereastra rămâne închidabilă normal (X, fundal, Escape) — **poți naviga tot site-ul oricând**, doar profilul „real" al contului nu se deschide până nu confirmi.
+- Conturile **Google** rămân verificate automat (Google garantează adresa) — merg direct la profil, fără acest pas. **Modul local** (fără Firebase) la fel — nu există un mecanism real de verificat, deci nu cerem ceva ce site-ul nu poate confirma.
+- Butoanele **„Utilizatori"** și **„Jurnal"** din dropdown-ul de cont, pentru administrator, cer acum și e-mail verificat, nu doar rolul — un administrator neverificat vede doar „Profilul meu" (care duce spre „verify"), „Vezi destinațiile" și „Deconectare".
+- Blocajul de la trimiterea comenzii (secțiunea de mai jos) rămâne neschimbat și independent — funcționează chiar dacă vizitatorul nu a deschis niciodată fereastra de profil.
+- Cod: `js/auth.js` (`isWeakPassword`, `afterSignIn`, rutarea din `openAuthModal`/`showAuthView`, fereastra `#verifyView`), `index.html` (`#verifyView`, în locul vechiului banner din `#profileView`).
+
+- **Parole ușor de ghicit, respinse la înregistrare.** Pe lângă „123456" și „abcdef" (exact exemplele cerute), sunt respinse: alte secvențe simple ascendente/descendente de cifre sau litere (ex. „654321", „fedcba"), caractere repetate (ex. „111111", „aaaaaa") și o listă scurtă de parole foarte comune („qwerty", „password" etc.). Verificarea e doar în formularul de pe site — **dacă cineva își resetează parola prin linkul primit pe e-mail, acea pagină e găzduită de Firebase**, nu de site-ul nostru, și nu se poate aplica aceeași regulă acolo.
+
 ## Nu se poate trimite o comandă fără documentele acceptate și fără e-mail verificat
 
 - **Documentele legale (Termeni, Confidențialitate, ANPC):** în formularul de rezervare apar 3 casete de bifat, chiar deasupra butonului de trimitere, fiecare cu un link „citește” care deschide documentul respectiv PESTE formular (fără să pierzi ce ai completat). Bifarea aici salvează acceptul prin ACEEAȘI funcție ca la pagina documentului (`FVConsent.accept`, în `js/consent.js`): pe cont dacă ești autentificat, altfel pe acest dispozitiv. Dacă ai acceptat deja un document (de aici sau din subsol), apare bifat și blocat, nu ți se mai cere din nou. **Se aplică tuturor** — cu cont sau fără.
