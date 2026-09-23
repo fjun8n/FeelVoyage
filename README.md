@@ -179,6 +179,16 @@ La crearea unui cont, câmpul **Telefon** trebuie completat. Sunt acceptate nume
 - Ambele verificări rulează în `js/app.js`, chiar înainte de calculul prețului și trimiterea comenzii (`allConsentsAccepted()`, apoi `emailVerified === false`), cu focus pe prima casetă nebifată sau pe mesajul de eroare.
 - Cod: `js/app.js` (gate-urile + checklist-ul din formular), `js/consent.js` (funcția `acceptDoc` extrasă și expusă ca `FVConsent.accept`), `js/auth.js` (`window.fvCurrentSession`, pentru ca `app.js` să știe dacă ești autentificat și verificat).
 
+## E-mailurile ajung la Spam — nu se poate repara din cod
+
+E-mailurile trimise de Firebase (verificare, resetare parolă) pot ajunge la Spam. Cauza ține de infrastructura **gratuită** de trimitere a Firebase (adresă de expeditor comună, folosită de mii de proiecte, cu reputație slabă la filtrele anti-spam) — **nu de codul site-ului**. Nu există niciun parametru pe care să-l setez din cod și care să garanteze livrarea în Inbox.
+
+**Ce poți face gratuit, chiar acum, din consola Firebase:**
+- **Authentication → Templates** — personalizează subiectul și textul e-mailelor (un text specific site-ului tău ajută puțin la percepția destinatarului, nu la trecerea filtrelor tehnice).
+- **Project Settings → General** — completează „Public-facing name” și „Support email” cu datele reale ale afacerii; acestea apar ca nume al expeditorului.
+
+**Soluția completă** (livrare mult mai bună) presupune trimiterea e-mailurilor prin propriul domeniu, cu înregistrări SPF/DKIM/DMARC, printr-un serviciu extern (SendGrid, Mailgun etc.) declanșat dintr-o funcție Cloud Function — ceea ce cere planul plătit Firebase (Blaze) și acces la DNS-ul unui domeniu propriu. E aceeași categorie de decizie ca la Apple sau verificarea telefonului prin SMS: dacă vrei să mergi pe acest drum, discutăm pașii, dar nu e ceva ce se poate activa doar din cod.
+
 ## Verificarea e-mailului (gratuită) / telefonul rămâne doar validat ca format
 
 - **La înregistrarea cu parolă**, Firebase trimite automat un e-mail de verificare, imediat după crearea contului — gratuit, fără nicio configurare suplimentară (spre deosebire de verificarea telefonului prin SMS, vezi mai jos).
@@ -305,6 +315,7 @@ Prețurile celor 30 de pachete noi au fost aliniate la oferte găsite pe site-ur
 
 ## Jurnal (log-uri), modul rapid și animații
 
+- **Erorile și avertismentele au acum un mesaj clar, în română, vizibil direct în listă** (fără să deschizi datele brute): eroare de cod → mesajul, fișierul și linia; eșec de autentificare/înregistrare → tradus din codul tehnic Firebase (ex. „invalid-credentials” → „E-mail sau parolă greșite”); poză/resursă nereușită → ce anume și de unde; blocaj de securitate (CSP), acțiune prea lentă, oprirea trimiterii jurnalului către server — fiecare cu explicație. Codurile fără o traducere anume tot arată ceva (nu rămân goale). Datele tehnice complete (JSON) rămân disponibile la un click pe rând, pentru detalii suplimentare. Eroarea e roșie, avertismentul portocaliu. Cod: `friendlyError()` în `js/logviewer.js`. **Doar în română** — dacă vrei mesajele traduse și în celelalte 4 limbi, se poate adăuga.
 - **Reparat:** fereastra „Jurnal” devenea invizibilă (opacitate 0, deși fundalul rămânea întunecat/blurat) la schimbarea filei (Dispozitiv/Server/Conturi) sau a limbii cât timp fereastra era deschisă. Cauza: `build()` din `js/logviewer.js` recrea tot panoul de fiecare dată, iar clasa `is-open` (cea care face panoul vizibil, adăugată doar la prima deschidere) nu mai era pusă la loc. Rezolvat: `build()` reține dacă fereastra era deja deschisă și, dacă da, pune imediat `is-open` pe panoul nou creat. Acoperit de `test21.js` (verifică opacitatea reală, nu doar conținutul din DOM).
 - **„Jurnal” apare acum și în dropdown-ul de cont** (cel din antet, cu „Profilul meu / Utilizatori / Vezi destinațiile / Deconectare”), imediat sub „Utilizatori”, doar pentru administrator — la fel cum apare și „Utilizatori”. Butonul rămâne și lângă nume, în pagina de profil completă (dublă cale de acces, ca la „Utilizatori”). Cod: `window.fvLogOpen` în `js/auth.js`.
 

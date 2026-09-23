@@ -33,6 +33,35 @@
         return e;
     }
     function entries() { return src === 'server' ? (cache.server || []) : root.FVLog.getAll(); }
+    // Coduri interne (din js/backend.js: normalize()) traduse pe scurt, în română — aceleași coduri ca mesajele din fereastra de cont
+    var CODE_TEXT = {
+        'invalid-credentials': 'E-mail sau parolă greșite', 'email-in-use': 'E-mailul e deja folosit de alt cont', 'weak-password': 'Parola e prea scurtă (minimum 6 caractere)',
+        'user-not-found': 'Nu există niciun cont cu acest e-mail', 'too-many': 'Prea multe încercări — Firebase a limitat temporar cererile',
+        'popup-closed': 'Fereastra Google a fost închisă înainte de final', 'popup-blocked': 'Browserul a blocat fereastra pop-up pentru Google',
+        'account-exists': 'Există deja un cont cu acest e-mail, creat cu parolă', 'not-signed-in': 'Acțiunea cerea un cont autentificat, dar nu era niciunul',
+        'network': 'Fără legătură cu Firebase (offline sau resursă blocată)', 'forbidden': 'Acces respins de regulile bazei de date',
+        'unsupported': 'Funcția nu e disponibilă în acest mod (local/offline)', 'PERMISSION_DENIED': 'Acces respins de regulile Firebase',
+        'unknown': 'Eroare necunoscută de pe Firebase (vezi detaliile de mai jos)'
+    };
+    // O propoziție scurtă, ușor de citit, pentru un eveniment de nivel „warn”/„error” — fără să fie nevoie să deschizi datele brute (JSON).
+    // Întoarce null dacă evenimentul n-are o traducere anume: rândul arată doar numele categoriei, ca până acum.
+    function friendlyError(e) {
+        if (e.l !== 'warn' && e.l !== 'error') return null;
+        var d = e.d || {}, key = e.c + '.' + e.e, code = d.code, txt = CODE_TEXT[code];
+        switch (key) {
+            case 'js.error': return 'Eroare de cod: ' + (d.msg || '(fără mesaj)') + (d.file ? ' — ' + d.file + (d.line ? ':' + d.line : '') : '');
+            case 'js.unhandledrejection': return 'Eroare neașteptată (promisiune respinsă): ' + (d.msg || txt || code || '(fără mesaj)');
+            case 'console.error': case 'console.warn': return d.msg || '(fără mesaj în consolă)';
+            case 'resource.fail': return 'Nu s-a încărcat o resursă: ' + (d.tag || '?') + ' de pe ' + (d.host || '?') + (d.file ? ' (' + d.file + ')' : '');
+            case 'security.csp': return 'Blocat de regulile de securitate (CSP): ' + (d.directive || '?') + (d.blocked ? ' — ' + d.blocked : '');
+            case 'perf.slow': return 'A durat prea mult: „' + (d.what || '?') + '” — ' + (d.ms != null ? d.ms + ' ms' : '?');
+            case 'logremote.stopped': return 'Trimiterea jurnalului către server s-a oprit: ' + (txt || code || '(motiv necunoscut)');
+            case 'admin.log.denied': return 'Cineva fără rol de administrator a încercat să deschidă fereastra „Jurnal”';
+        }
+        if (/\.fail$/.test(e.e) || (e.c === 'ai' && e.e === 'ask' && d.ok === false)) return 'Eșuat: ' + (txt || code || '(fără cod de eroare)');
+        if (code) return txt || ('Cod: ' + code);
+        return null;
+    }
     function acctOf(e) { return e.acct || (e.d && e.d.acct) || ''; }
     function emailOf(acct) { var u = cache.users && cache.users.filter(function (x) { return x.uid === acct; })[0]; return u ? u.email : ''; }
     function statsOf(list) {
@@ -198,6 +227,7 @@
         var shown = rows.slice(0, 120);
         $('lvList').innerHTML = shown.length ? shown.map(function (e) {
             var open = !!openIds[e.n + src], ac = acctOf(e), mail = ac ? emailOf(ac) : '';
+            var friendly = friendlyError(e);
             return '<div class="lv-row lv-l-' + esc(e.l) + '" role="listitem">' +
                 '<button type="button" class="lv-row-head" data-lv="row" data-n="' + e.n + '" aria-expanded="' + open + '">' +
                     '<span class="lv-time">' + esc(dayOf(e.t) + ' ' + hhmmss(e.t)) + '</span>' +
@@ -206,6 +236,7 @@
                     (ac ? '<span class="lv-acct" title="' + esc(ac) + '">' + esc(mail || ('…' + ac.slice(-6))) + '</span>' : '') +
                     (e.r > 1 ? '<span class="lv-rep">×' + e.r + '</span>' : '') +
                 '</button>' +
+                (friendly ? '<p class="lv-friendly lv-friendly-' + esc(e.l) + '"><i class="fa-solid ' + (e.l === 'error' ? 'fa-circle-exclamation' : 'fa-triangle-exclamation') + '"></i> ' + esc(friendly) + '</p>' : '') +
                 (e.d !== undefined ? '<pre class="lv-data' + (open ? ' is-open' : '') + '">' + esc(JSON.stringify(e.d, null, open ? 2 : 0)) + '</pre>' : '') +
             '</div>';
         }).join('') + (rows.length > shown.length ? '<p class="lv-muted">… ' + esc(trF('log.older', 'mai vechi: exportă JSON / CSV pentru tot jurnalul')) + '</p>' : '') : '<p class="lv-muted">' + esc(trF('log.empty', 'Niciun eveniment pentru filtrele alese.')) + '</p>';

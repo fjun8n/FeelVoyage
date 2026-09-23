@@ -583,3 +583,11 @@ html.dark .lv-acc-meta, html.dark .lv-acc-pw { color: var(--fv-text-muted); }
 .booking-doc-link:hover, .booking-doc-link:focus-visible { text-decoration-color: #64748b; }
 html.dark .booking-doc-link { text-decoration-color: var(--fv-line); }
 html.dark .booking-doc-link:hover, html.dark .booking-doc-link:focus-visible { text-decoration-color: var(--fv-text-muted); }
+
+/* mesajul prietenos (fereastra „Jurnal”): explică pe scurt eroarea/avertismentul, vizibil fără să deschizi datele brute */
+.lv-friendly { margin: 0; padding: .35rem .6rem .5rem; font-size: .74rem; line-height: 1.4; font-weight: 600; }
+.lv-friendly i { margin-right: .3rem; }
+.lv-friendly-error { color: #b91c1c; }
+.lv-friendly-warn { color: #92400e; }
+html.dark .lv-friendly-error { color: #fca5a5; }
+html.dark .lv-friendly-warn { color: #fcd34d; }
