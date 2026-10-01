@@ -591,3 +591,32 @@ html.dark .booking-doc-link:hover, html.dark .booking-doc-link:focus-visible { t
 .lv-friendly-warn { color: #92400e; }
 html.dark .lv-friendly-error { color: #fca5a5; }
 html.dark .lv-friendly-warn { color: #fcd34d; }
+
+/* Confetti la finalizarea comenzii (fereastra „Mulțumim”): explodează din centru și dispare; respectă automat
+   html.motion-off (regula generală de mai sus reduce orice animație la aproape 0 — nu mai e nevoie de altă verificare aici). */
+.fv-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.fv-confetti i { position: absolute; top: 50%; left: 50%; opacity: 0; background: var(--c, #f59e0b); transform: translate(-50%, -50%) scale(.4); font-style: normal; }
+#thankYouOverlay:not(.hidden) .fv-confetti i { animation: fvConfettiBurst 1000ms cubic-bezier(.16,.8,.3,1) both; }
+@keyframes fvConfettiBurst {
+    0% { opacity: 0; transform: translate(-50%,-50%) rotate(0deg) scale(.4); }
+    14% { opacity: 1; }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1); }
+}
+.fv-confetti i:nth-child(1) { --dx:71.7px; --dy:-6.3px; --rot:-180deg; --c:#f59e0b; animation-delay:0ms; width:6px; height:12px; border-radius:2px; }
+.fv-confetti i:nth-child(2) { --dx:107.7px; --dy:69.2px; --rot:-133deg; --c:#f43f5e; animation-delay:30ms; width:9px; height:9px; border-radius:50%; }
+.fv-confetti i:nth-child(3) { --dx:67.5px; --dy:71.0px; --rot:-86deg; --c:#38bdf8; animation-delay:60ms; width:6px; height:12px; border-radius:2px; }
+.fv-confetti i:nth-child(4) { --dx:7.3px; --dy:71.6px; --rot:-39deg; --c:#fde68a; animation-delay:90ms; width:9px; height:9px; border-radius:50%; }
+.fv-confetti i:nth-child(5) { --dx:-17.5px; --dy:126.8px; --rot:8deg; --c:#f59e0b; animation-delay:120ms; width:6px; height:12px; border-radius:2px; }
+.fv-confetti i:nth-child(6) { --dx:-70.0px; --dy:68.6px; --rot:55deg; --c:#f43f5e; animation-delay:0ms; width:9px; height:9px; border-radius:50%; }
+.fv-confetti i:nth-child(7) { --dx:-61.9px; --dy:36.8px; --rot:102deg; --c:#38bdf8; animation-delay:30ms; width:6px; height:12px; border-radius:2px; }
+.fv-confetti i:nth-child(8) { --dx:-127.0px; --dy:-15.6px; --rot:149deg; --c:#fde68a; animation-delay:60ms; width:9px; height:9px; border-radius:50%; }
+.fv-confetti i:nth-child(9) { --dx:-91.7px; --dy:-34.7px; --rot:-164deg; --c:#f59e0b; animation-delay:90ms; width:6px; height:12px; border-radius:2px; }
+.fv-confetti i:nth-child(10) { --dx:-37.7px; --dy:-61.3px; --rot:-117deg; --c:#f43f5e; animation-delay:120ms; width:9px; height:9px; border-radius:50%; }
+.fv-confetti i:nth-child(11) { --dx:-39.3px; --dy:-121.8px; --rot:-70deg; --c:#38bdf8; animation-delay:0ms; width:6px; height:12px; border-radius:2px; }
+.fv-confetti i:nth-child(12) { --dx:33.3px; --dy:-92.2px; --rot:-23deg; --c:#fde68a; animation-delay:30ms; width:9px; height:9px; border-radius:50%; }
+.fv-confetti i:nth-child(13) { --dx:39.8px; --dy:-60.0px; --rot:24deg; --c:#f59e0b; animation-delay:60ms; width:6px; height:12px; border-radius:2px; }
+.fv-confetti i:nth-child(14) { --dx:121.2px; --dy:-41.1px; --rot:71deg; --c:#f43f5e; animation-delay:90ms; width:9px; height:9px; border-radius:50%; }
+
+/* Insigna logo-ului: o mică „săritură” elastică la deschiderea ferestrei de mulțumire, peste tranziția scale/opacity deja existentă */
+#thankYouContent .fv-badge-pop { animation: fvBadgePop 650ms cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes fvBadgePop { 0% { transform: scale(.5) rotate(-8deg); } 60% { transform: scale(1.08) rotate(3deg); } 100% { transform: scale(1) rotate(0deg); } }

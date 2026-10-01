@@ -296,6 +296,15 @@ Teme acoperite: agenție și contact, rezervări și cont, plată, prețuri (cop
 
 **Cum adaugi un răspuns:** copiezi o intrare din `js/faq-data-1.js` (sau 2 / 3), îi dai un `id` nou și completezi titlul (`t`), cuvintele-cheie (`k`) și textul (`a`) pentru `ro`, `en`, `it`. Traducerile în franceză și spaniolă stau separat, în `js/faq-fr.js` și `js/faq-es.js`: acolo adaugi aceeași intrare, după `id`, cu `t`, `k`, `a`. Dacă lipsește o traducere, chatul folosește textul în engleză pentru acea intrare. În text poți folosi `**bold**`, `{phone}`, `{email}`, `{address}`, `{hours}`, `{count}`. Datele agenției (telefon, e-mail, adresă, program) sunt într-un singur loc, în `js/faq.js` (`SITE`).
 
+## Logo nou (câștigătorul votului) + animație la finalizarea comenzii
+
+- **Logo-ul de pe site a fost înlocuit peste tot** (antet, fereastra „Mulțumim”) cu varianta câștigătoare la vot. Nu am folosit direct imaginea trimisă (era un JPEG pictat, cu fundal alb — ar fi arătat neclar la 40px în antet sau ca favicon); am **reconstruit-o ca desen vectorial adevărat**: literele „Feel voyage” sunt conturate din fonturile Poppins Bold și „Nothing You Could Do” (nu text obișnuit — arată identic peste tot, indiferent ce fonturi are instalate vizitatorul), cu o mică busolă ascunsă în litera „o”, exact ca în imaginea câștigătoare.
+- **Site-ul are acum și un favicon** (nu avea deloc înainte) — insigna cu busolă, codificată direct în pagină.
+- **Actualizare:** insigna conține acum **și peisajul, și avionul** din imaginea câștigătoare — nu mai e doar o busolă simplă. E tot o singură emblemă circulară, complet vectorială (reconstruită de la zero, nu imaginea foto trimisă): sus, un avion stilizat cu traiectoria de zbor și două păsări; jos, apusul de soare pe mare, stânca cu satul mediteranean și o barcă cu pânze — elementele din imaginea aleasă la vot. Testată la toate dimensiunile folosite pe site (antet, fereastra „Mulțumim”, favicon) — rămâne clară chiar și micșorată.
+- Logo-ul e definit **o singură dată**, ca simboluri SVG reutilizabile (`#fv-badge`, `#fv-wordmark`, `#fv-wordmark-dark`), refolosite prin `<use>` în antet și în fereastra „Mulțumim” — nu se repetă datele grele ale conturului de fiecare dată.
+- **Fișiere separate** (SVG + PNG, fundal transparent) livrate din nou, cu noul design: `feelvoyage-logo-icon`, `feelvoyage-logo-orizontal`, `feelvoyage-logo-orizontal-fundal-inchis`.
+- **La finalizarea comenzii** (fereastra „Mulțumim”), acum apar: o mică explozie de confetti (14 bucăți, culorile site-ului, dispar de la sine în ~1 secundă) și insigna „sare” elastic la apariție. Ambele sunt animații CSS simple, care respectă automat modul „fără animații” al site-ului (`html.motion-off`, pornit de modul rapid sau de „reduce motion” din sistem) — fără cod separat pentru asta, regula generală deja existentă le reduce automat la aproape zero. Cod: `.fv-confetti` / `.fv-badge-pop` în `css/styles.css`.
+
 ## Modificări de design
 
 Site-ul folosește Tailwind **precompilat** (`css/tailwind.css`), care se încarcă mult mai repede pe telefon decât varianta cu CDN.
