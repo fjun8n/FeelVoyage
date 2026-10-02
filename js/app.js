@@ -1023,6 +1023,11 @@ function cacheI18nDefaults() {
             el.dataset.i18nAriaDefault = el.getAttribute('aria-label') || '';
         }
     });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        if (el.dataset.i18nTitleDefault === undefined) {
+            el.dataset.i18nTitleDefault = el.getAttribute('title') || '';
+        }
+    });
 }
 
 // Translate a key; falls back to the Romanian default when lang is 'ro' or key missing
@@ -1074,6 +1079,11 @@ function applyStaticTranslations() {
         const key = el.getAttribute('data-i18n-aria');
         const fallback = el.dataset.i18nAriaDefault !== undefined ? el.dataset.i18nAriaDefault : (el.getAttribute('aria-label') || '');
         el.setAttribute('aria-label', tr(key, fallback));
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        const fallback = el.dataset.i18nTitleDefault !== undefined ? el.dataset.i18nTitleDefault : (el.getAttribute('title') || '');
+        el.setAttribute('title', tr(key, fallback));
     });
 }
 

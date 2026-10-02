@@ -100,7 +100,7 @@ const botResponses = {
         ]
     },
     destinations: {
-        text: 'Avem **59 de destinații** disponibile în portofoliul nostru! 🌍\n\n**România:** Delta Dunării, Poiana Brașov, Bran & Brașov, Transfăgărășan, Cazanele Dunării, Maramureș, Sibiu & Sighișoara, Mamaia & Constanța\n\n**Europa:** Roma, Barcelona, Londra, Praga, Viena, Paris\n\n**Exotice:** Maldive, Kenya Safari, Bali, Santorini, Tokyo & Kyoto, Alpii Elvețieni, Dubai, Cappadocia, New York\n\n**China & Coreea de Sud:** Beijing & Marele Zid, Shanghai, Zhangjiajie (munții din Avatar), Seoul, Busan, Jeju\n\n**Noutăți:** America (Yosemite, Grand Canyon, Horseshoe Bend, San Francisco, Hawaii, Niagara, Banff, Machu Picchu, Rio de Janeiro, Patagonia), Marea Britanie și Irlanda (Edinburgh, Insula Skye, Cornwall, Irlanda), nordul Europei (Norvegia, Islanda), Africa (Cape Town, Marrakech, Egipt, Zanzibar, Serengeti, Cascada Victoria, Namibia) și Asia & Oceania (India, Vietnam, Thailanda, Iordania, Noua Zeelandă, Sydney)\n\nVrei detalii despre o destinație anume?',
+        text: 'Avem **67 de destinații** disponibile în portofoliul nostru! 🌍\n\n**România:** Delta Dunării, Poiana Brașov, Bran & Brașov, Transfăgărășan, Cazanele Dunării, Maramureș, Sibiu & Sighișoara, Mamaia & Constanța\n\n**Europa:** Roma, Barcelona, Londra, Praga, Viena, Paris\n\n**Exotice:** Maldive, Kenya Safari, Bali, Santorini, Tokyo & Kyoto, Alpii Elvețieni, Dubai, Cappadocia, New York\n\n**China & Coreea de Sud:** Beijing & Marele Zid, Shanghai, Zhangjiajie (munții din Avatar), Seoul, Busan, Jeju\n\n**Noutăți:** America (Yosemite, Grand Canyon, Horseshoe Bend, San Francisco, Hawaii, Niagara, Banff, Machu Picchu, Rio de Janeiro, Patagonia), Marea Britanie și Irlanda (Edinburgh, Insula Skye, Cornwall, Irlanda), nordul Europei (Norvegia, Islanda), Africa (Cape Town, Marrakech, Egipt, Zanzibar, Serengeti, Cascada Victoria, Namibia) și Asia & Oceania (India, Vietnam, Thailanda, Iordania, Noua Zeelandă, Sydney)\n\n**Sărbători:** Halloween, Iarnă, Paște, Ziua Îndrăgostiților\n\nVrei detalii despre o destinație anume?',
         quickReplies: [
             { label: '🏖️ Destinații exotice', value: 'exotice' },
             { label: '🏔️ Destinații în România', value: 'romania' },
@@ -133,7 +133,7 @@ const botResponses = {
         ]
     },
     packages: {
-        text: 'Toate cele 59 de pachete turistice sunt afișate în secțiunea **Destinații & Pachete** de pe site. Fiecare pachet include galerie foto cu mai multe imagini, descriere detaliată, preț și durata sejurului. Poți filtra după categorie (Litoral, City Break, Exotic, etc.) și după buget.\n\nVrei să vezi pachetele acum?',
+        text: 'Toate cele 67 de pachete turistice sunt afișate în secțiunea **Destinații & Pachete** de pe site. Fiecare pachet include galerie foto cu mai multe imagini, descriere detaliată, preț și durata sejurului. Poți filtra după categorie (Litoral, City Break, Exotic, etc.) și după buget.\n\nVrei să vezi pachetele acum?',
         quickReplies: [
             { label: '📋 Vezi pachetele', value: 'scroll_packages' },
             { label: '💰 Prețuri', value: 'prețuri' },
@@ -149,7 +149,7 @@ const botResponses = {
         ]
     },
     booking: {
-        text: 'Pentru a rezerva, ai mai multe variante: 🎫\n\n1. **Telefon:** 0799 927 590\n2. **Email:** crucrudenis@gmail.com\n3. **La sediu:** Str. Tudor Vladimirescu nr 124, Tg-Jiu\n4. **Facebook:** Mesaj direct pe pagina FeelVoyage\n\nConsultanții noștri te vor ajuta să alegi pachetul perfect și să finalizezi rezervarea. Ce destinație te interesează?',
+        text: 'Pentru a rezerva, ai mai multe variante: 🎫\n\n1. **Telefon:** 0799 927 590\n2. **Email:** crucrudenis@gmail.com\n3. **La sediu:** Str. Tudor Vladimirescu nr 127, Tg-Jiu\n4. **Facebook:** Mesaj direct pe pagina FeelVoyage\n\nConsultanții noștri te vor ajuta să alegi pachetul perfect și să finalizezi rezervarea. Ce destinație te interesează?',
         quickReplies: [
             { label: '🌴 Vezi destinațiile', value: 'destinații' },
             { label: '📍 Sediul', value: 'sediul' },
@@ -157,7 +157,7 @@ const botResponses = {
         ]
     },
     contact: {
-        text: 'Ne poți contacta astfel: 📞\n\n**Telefon:** 0799 927 590\n**Email:** crucrudenis@gmail.com\n**Sediu:** Str. Tudor Vladimirescu nr 124, Tg-Jiu, Gorj\n**Facebook:** [FeelVoyage Facebook](https://www.facebook.com/share/19XnMiUthZ/?mibextid=wwXlfr)\n\nTe așteptăm cu drag!',
+        text: 'Ne poți contacta astfel: 📞\n\n**Telefon:** 0799 927 590\n**Email:** crucrudenis@gmail.com\n**Sediu:** Str. Tudor Vladimirescu nr 127, Tg-Jiu, Gorj\n**Facebook:** [FeelVoyage Facebook](https://www.facebook.com/share/19XnMiUthZ/?mibextid=wwXlfr)\n\nTe așteptăm cu drag!',
         quickReplies: [
             { label: '🌴 Destinații', value: 'destinații' },
             { label: '💰 Prețuri', value: 'prețuri' },
@@ -165,7 +165,7 @@ const botResponses = {
         ]
     },
     location: {
-        text: 'Sediul agenției FeelVoyage se află pe **Strada Tudor Vladimirescu, nr 124, Tg-Jiu, Gorj, România**. 📍\n\nProgram: Luni - Vineri: 09:00 - 18:00, Sâmbătă: 10:00 - 14:00. Te așteptăm!',
+        text: 'Sediul agenției FeelVoyage se află pe **Strada Tudor Vladimirescu, nr 127, Tg-Jiu, Gorj, România**. 📍\n\nProgram: Luni - Vineri: 09:00 - 18:00, Sâmbătă: 10:00 - 14:00. Te așteptăm!',
         quickReplies: [
             { label: '📞 Contact', value: 'contact' },
             { label: '🔵 Facebook', value: 'facebook' },
@@ -197,7 +197,7 @@ const botResponses = {
         ]
     },
     default: {
-        text: 'Îți mulțumesc pentru mesaj! 🙏 Un consultant FeelVoyage te poate ajuta cu detalii. Ne poți contacta la **0799 927 590**, pe **crucrudenis@gmail.com** sau la sediul din **Tg-Jiu, Str. Tudor Vladimirescu nr 124**. Iată ce te pot ajuta mai departe:',
+        text: 'Îți mulțumesc pentru mesaj! 🙏 Un consultant FeelVoyage te poate ajuta cu detalii. Ne poți contacta la **0799 927 590**, pe **crucrudenis@gmail.com** sau la sediul din **Tg-Jiu, Str. Tudor Vladimirescu nr 127**. Iată ce te pot ajuta mai departe:',
         quickReplies: [
             { label: '🌴 Destinații', value: 'destinații' },
             { label: '💰 Prețuri', value: 'prețuri' },

@@ -58,7 +58,7 @@
         return '• id=' + d.id + ' | ' + d.title + ' | ' + (CATEGORY_RO[d.category] || d.category)
             + ' | ' + durata + ' | ' + (BOARD_RO[p.board] || '') + ' | de la ' + d.price + ' € (' + d.priceRon + ') pe adult'
             + ' | transport inclus: ' + (p.transportIncluded ? 'da' : 'nu') + ' | ghid local inclus: ' + (p.guideIncluded ? 'da' : 'nu')
-            + ' | include: ' + amenities + ' | ' + shorten(d.description, 100);   // 59 de destinații: descrieri scurte ca promptul să rămână sub ~30.000 de caractere
+            + ' | include: ' + amenities + ' | ' + shorten(d.description, 70);   // 67 de destinații: descrieri scurte ca promptul să rămână sub ~30.000 de caractere
     }
 
     /* ------------------------------------------------------------------ instrucțiunile modelului (domeniul și regulile) */
@@ -91,7 +91,7 @@
             '• Fiecare mesaj al utilizatorului începe cu o linie [Context site …] scrisă de site (limba interfeței, pachetul deschis). Folosește-o doar ca să înțelegi contextul; dacă utilizatorul întreabă „cât costă?” fără să spună pachetul și există un pachet deschis, se referă la acela.',
             '',
             'INFORMAȚII DESPRE AGENȚIE ȘI SITE:',
-            '• Agenție de turism din Târgu Jiu, județul Gorj. Sediu: Str. Tudor Vladimirescu nr. 124, Tg-Jiu. Program: luni–vineri 09:00–18:00, sâmbătă 10:00–14:00.',
+            '• Agenție de turism din Târgu Jiu, județul Gorj. Sediu: Str. Tudor Vladimirescu nr. 127, Tg-Jiu. Program: luni–vineri 09:00–18:00, sâmbătă 10:00–14:00.',
             '• Contact: telefon și WhatsApp 0799 927 590; e-mail crucrudenis@gmail.com; pagina de Facebook „FeelVoyage”.',
             '• Portofoliu: ' + list.length + ' destinații: România, city break în Europa, exotice din toată lumea (America, Marea Britanie și Irlanda, Norvegia, Islanda, Africa, India, Asia de Sud-Est, Oceania) și China & Coreea de Sud.',
             '• Formularul din secțiunea Contact: un consultant răspunde în cel mult 2 ore lucrătoare. Site-ul mai spune: consultanță gratuită și ofertă personalizată în maximum 24 de ore; prețuri în EUR și lei (cursul folosit: 5 lei = 1 €); rate fără dobândă pentru anumite pachete; asigurare de călătorie și asistență medicală opționale; consultant dedicat și grup WhatsApp de asistență în sejur.',

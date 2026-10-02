@@ -123,7 +123,9 @@ html.dark .custom-scrollbar::-webkit-scrollbar-track { background: var(--fv-surf
 
 /* ---------------------------------------------------------------- elemente speciale */
 /* sigla „FeelVoyage": începutul degradeului (albastru închis) ar dispărea pe fundal închis */
-html.dark .logo-text { background-image: linear-gradient(to right, #7dd3fc, #38bdf8 45%, #fb7185); }
+/* fv-note: vechea regulă pentru .logo-text (background-image, pentru clip-text pe fundal întunecat) a fost scoasă —
+   logo-ul nu mai e text cu gradient aplicat prin clip-text, ci un SVG color propriu; regula veche rămânea vizibilă
+   ca un fundal colorat în spatele logo-ului, pe orice vizitator cu modul întunecat al sistemului activat. */
 
 /* butonul „Detalii Pachet" (negru în modul luminos) ar dispărea pe cardul închis */
 html.dark .dest-btn { background-color: #0369a1; }

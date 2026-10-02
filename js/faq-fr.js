@@ -292,6 +292,14 @@
         "petra": "De mars à mai et de septembre à novembre : températures agréables pour marcher. L'été est très chaud et l'hiver peut être froid et pluvieux ; tôt le matin, c'est plus calme.",
         "krabi": "De novembre à avril : la saison sèche et la mer calme, idéales pour la plage. Mai–octobre est la saison des pluies, avec des vagues plus fortes et moins d'excursions en bateau.",
         "cornwall": "De mai à septembre : la période la plus chaude et la plus sèche, idéale pour les plages et les sentiers côtiers ; juillet–août est très fréquenté. Le printemps et l'automne sont plus calmes, mais avec un temps changeant.",
-        "horseshoe-bend": "De mars à mai et de septembre à novembre : températures agréables. L'été est très chaud à midi ; le meilleur moment pour les photos est au coucher ou au lever du soleil."
+        "horseshoe-bend": "De mars à mai et de septembre à novembre : températures agréables. L'été est très chaud à midi ; le meilleur moment pour les photos est au coucher ou au lever du soleil.",
+        "salem": "Octobre, autour du 31, est la haute saison — pleine d'ambiance mais aussi très fréquentée ; pour une visite plus calme, choisissez la première quinzaine du mois.",
+        "new-orleans": "Octobre est idéal pour l'ambiance d'Halloween ; évitez l'été (chaud et humide) et la saison des ouragans (juin–novembre, avec un pic en septembre).",
+        "sleepy-hollow": "L'automne (septembre–octobre) est de loin le meilleur moment, avec un feuillage coloré et l'atmosphère de la légende à son comble.",
+        "corvin-castle": "Agréable à visiter toute l'année ; en automne, proche d'Halloween, l'atmosphère est la plus adaptée, tandis que les étés sont plus fréquentés.",
+        "laponia": "Décembre offre l'ambiance de fêtes la plus magique, mais c'est aussi la période la plus fréquentée et la plus chère ; pour plus de chances d'aurores boréales, choisissez janvier–mars.",
+        "ierusalim": "La période de Pâques (mars–avril) est pleine de sens mais très fréquentée ; le printemps et l'automne ont généralement un climat agréable pour les visites.",
+        "venetia": "Février (Carnaval) et la période de la Saint-Valentin ont une atmosphère romantique particulière ; évitez l'été, très fréquenté et où les canaux peuvent sentir fort par forte chaleur.",
+        "verona": "Le printemps et l'automne ont un climat agréable et moins de touristes ; en été, l'Arène accueille l'opéra en plein air, mais il fait chaud et c'est fréquenté."
     });
 })(typeof window !== 'undefined' ? window : globalThis);

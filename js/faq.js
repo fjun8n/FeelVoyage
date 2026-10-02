@@ -16,7 +16,7 @@
     const SITE = {
         phone: '0799 927 590',
         email: 'crucrudenis@gmail.com',
-        address: 'Str. Tudor Vladimirescu nr. 124, Tg-Jiu, Gorj',
+        address: 'Str. Tudor Vladimirescu nr. 127, Tg-Jiu, Gorj',
         hours: { ro: 'luni–vineri 09:00–18:00, sâmbătă 10:00–14:00', en: 'Monday–Friday 09:00–18:00, Saturday 10:00–14:00', it: 'lunedì–venerdì 09:00–18:00, sabato 10:00–14:00', fr: 'lundi–vendredi 09:00–18:00, samedi 10:00–14:00', es: 'lunes–viernes 09:00–18:00, sábado 10:00–14:00' }
     };
     const EUR_RON = 5;

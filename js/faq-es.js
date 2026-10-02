@@ -292,6 +292,14 @@
         "petra": "De marzo a mayo y de septiembre a noviembre: temperaturas agradables para caminar. El verano es muy caluroso y el invierno puede ser frío y lluvioso; a primera hora hay más tranquilidad.",
         "krabi": "De noviembre a abril: la estación seca y el mar en calma, lo mejor para la playa. Mayo–octubre es la estación de lluvias, con más oleaje y menos excursiones en barco.",
         "cornwall": "De mayo a septiembre: el periodo más cálido y seco, ideal para playas y senderos costeros; julio–agosto está concurrido. La primavera y el otoño son más tranquilos, pero con tiempo cambiante.",
-        "horseshoe-bend": "De marzo a mayo y de septiembre a noviembre: temperaturas agradables. El verano es muy caluroso al mediodía; el mejor momento para fotos es al atardecer o al amanecer."
+        "horseshoe-bend": "De marzo a mayo y de septiembre a noviembre: temperaturas agradables. El verano es muy caluroso al mediodía; el mejor momento para fotos es al atardecer o al amanecer.",
+        "salem": "Octubre, en torno al día 31, es temporada alta: llena de ambiente pero también muy concurrida; para una visita más tranquila, elige la primera quincena del mes.",
+        "new-orleans": "Octubre es ideal para el ambiente de Halloween; evita el verano (caluroso y húmedo) y la temporada de huracanes (junio–noviembre, con pico en septiembre).",
+        "sleepy-hollow": "El otoño (septiembre–octubre) es, con diferencia, el mejor momento, con follaje de colores y el ambiente de la leyenda en su punto álgido.",
+        "corvin-castle": "Agradable de visitar todo el año; en otoño, cerca de Halloween, tiene el ambiente más adecuado, mientras que los veranos son más concurridos.",
+        "laponia": "Diciembre tiene el ambiente navideño más mágico, pero también es la temporada más concurrida y cara; para más posibilidades de ver auroras boreales, elige enero–marzo.",
+        "ierusalim": "La época de Semana Santa (marzo–abril) está llena de significado pero muy concurrida; la primavera y el otoño suelen tener un clima agradable para las visitas.",
+        "venetia": "Febrero (Carnaval) y la época de San Valentín tienen un ambiente romántico especial; evita el verano, cuando está muy concurrida y los canales pueden oler fuerte con el calor.",
+        "verona": "La primavera y el otoño tienen un clima agradable y menos turistas; en verano, la Arena acoge ópera al aire libre, pero hace calor y hay mucha gente."
     });
 })(typeof window !== 'undefined' ? window : globalThis);

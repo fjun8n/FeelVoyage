@@ -620,3 +620,13 @@ html.dark .lv-friendly-warn { color: #fcd34d; }
 /* Insigna logo-ului: o mică „săritură” elastică la deschiderea ferestrei de mulțumire, peste tranziția scale/opacity deja existentă */
 #thankYouContent .fv-badge-pop { animation: fvBadgePop 650ms cubic-bezier(.34,1.56,.64,1) both; }
 @keyframes fvBadgePop { 0% { transform: scale(.5) rotate(-8deg); } 60% { transform: scale(1.08) rotate(3deg); } 100% { transform: scale(1) rotate(0deg); } }
+
+/* Wordmark-ul logo-ului (Feel voyage): varianta normală (navy) e vizibilă implicit; cea deschisă la culoare
+   apare doar pe fundal întunecat (html.dark), ca „voyage” să rămână lizibil pe antetul închis la culoare. */
+.fv-word-dark { display: none; }
+html.dark .fv-word-light { display: none; }
+html.dark .fv-word-dark { display: inline; }
+
+/* O mică umbră pe textul logo-ului (wordmark „Feel voyage”), în antet și subsol — îi dă puțin relief, fără să fie exagerată */
+.fv-logo-shadow { filter: drop-shadow(0 1px 2px rgba(15, 23, 42, .35)); }
+html.dark .fv-logo-shadow { filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .55)); }
