@@ -397,7 +397,10 @@ function detectsNewsletterIntent(text) {
 // Întrebat direct în chat despre newsletter (nu reamintirea automată): răspunde potrivit situației —
 // fără cont / deja abonat / întreabă cu butoane Da-Nu. Returnează true dacă a tratat mesajul (nu mai trece mai departe).
 function maybeHandleNewsletterIntent(text, displayText) {
-    if (chatAdmin || !detectsNewsletterIntent(text)) return false;
+    // notă: administratorul NU e exclus aici — dacă întreabă explicit despre newsletter (ex. chiar proprietarul site-ului,
+    // testând din propriul cont), tot primește răspunsul corect, cu butoane, nu lasă mesajul să ajungă la AI, care ar inventa un răspuns.
+    // (doar reamintirea AUTOMATĂ, la deschiderea chatului, rămâne sărită pentru admin — vezi maybeRemindNewsletter mai sus)
+    if (!detectsNewsletterIntent(text)) return false;
     addUserMessage(displayText !== undefined ? displayText : text);
     const session = typeof window.fvCurrentSession === 'function' ? window.fvCurrentSession() : null;
     if (!session) {
