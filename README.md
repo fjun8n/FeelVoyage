@@ -450,3 +450,27 @@ Pe lângă salvarea în baza de date (care se întâmplă deja automat, prin Fir
 Trimiterea e „cel mai bun efort": dacă e-mailul eșuează din orice motiv (internet oprit, cheie greșită), comanda tot a fost deja salvată în baza de date — nimic nu blochează sau întrerupe trimiterea formularului pentru vizitator.
 
 Fișiere noi: `js/emailjs-config.js` (cheile tale), `js/emailnotify.js` (logica de trimitere, apelată automat din `js/app.js → sendOrder()`, după ce comanda e deja salvată în baza de date).
+
+## Facilități deselectabile, restricții de sezon pentru sărbători, reducere de rezervare din timp, popup newsletter
+
+**Facilități deselectabile, cu scăderea prețului:** în fereastra fiecărui pachet, „Servicii & Facilități Incluse" au devenit bife (bifate implicit — sunt incluse). Dacă debifezi una, prețul scade pe loc, live, și apare o linie nouă în estimare. Fără o defalcare reală pe fiecare facilitate (sunt text liber, diferit la fiecare pachet), fiecare facilitate a unei destinații reprezintă o parte egală dintr-un procent fix din preț (30% împărțit egal, ex. 1 din 4 facilități debifată = -7,5%).
+
+**Restricții de dată pentru sărbători** (Halloween, Sfântul Patrick, Târguri de Crăciun, Ziua Îndrăgostiților, Paște): extins mecanismul sezonier existent (iarnă/vară) cu 5 ferestre noi, fiecare cu marja standard de ±15 zile. Aplicat **doar** la destinațiile construite special pentru sărbătoarea respectivă (ex. Salem, Sleepy Hollow, New Orleans, Corvin Castle pentru Halloween; cele 3 orașe engleze pentru Sf. Patrick; cele 5 orașe pentru Târguri de Crăciun; Veneția și Verona pentru Valentine; Ierusalim pentru Paște) — **nu** la destinațiile unde sărbătoarea e doar o etichetă suplimentară (Paris, Bali, Santorini, Maramureș, Sibiu etc. rămân rezervabile tot anul, pentru city-break/exotic/românia). Paștele, fiind o sărbătoare mobilă (dată diferită în fiecare an, diferită catolic/ortodox), folosește o fereastră mai largă (22 martie – 8 mai) care acoperă ambele calendare, în loc de o dată fixă.
+
+**Reducere de rezervare din timp (15%):** nouă, separată de reducerea existentă de „sezon opus" — se aplică la **orice** destinație dacă data plecării e la 8-13 luni distanță de ziua comenzii. Dacă s-ar califica și la reducerea de sezon opus (doar la destinațiile iarnă/vară), se aplică automat doar reducerea mai mare dintre cele două, nu se adună.
+
+**Pop-up newsletter:** mic, în colțul din dreapta sus, pe tema site-ului (gradient brand), cu o bifă „Da, vreau să primesc oferte pe e-mail". Apare **doar** dacă vizitatorul are cont (e autentificat) și nu s-a abonat deja; dacă îl închide fără să bifeze, nu mai apare 7 zile. Am adăugat și partea de bază de date care lipsea: citirea și salvarea preferinței de newsletter pe cont (`FVBackend.setNewsletter`), în ambele moduri (Firebase și local).
+
+**CSS reconstruit:** proiectul folosește Tailwind precompilat (`npm run build:css`), nu generat live — a fost reconstruit ca să includă toate clasele noi folosite de popup (altfel apărea nepoziționat corect). Dacă mai adaugi clase Tailwind noi pe viitor, rulează din nou `npm run build:css` înainte de a publica.
+
+**Bug reparat pe parcurs:** căsuțele de bifare ale facilităților erau în afara `<form>`-ului de rezervare, deci un prim ascultător de evenimente nu le prindea; acum au propriul ascultător, pe un container stabil.
+
+## Norișor din chatbot, reamintire de newsletter în chat, difuzare actualizări către abonați
+
+**Norișor din chatbot:** un mic mesaj-bulă („Ai vreo întrebare sau o problemă? Mă poți întreba orice! 😊") iese din butonul de chat la ~9 secunde după încărcarea paginii, cu codiță vizuală îndreptată spre robot, ca botul să pară mai viu. Click pe el deschide chatul direct; X îl închide. Apare o singură dată per vizită și nu mai revine 6 ore dacă e închis manual.
+
+**Reamintire de newsletter în chat:** când deschizi chatul, dacă ai cont și nu ești abonat la newsletter, botul trimite un mesaj separat, firesc, la scurt timp după salut, cu un buton „📩 Da, abonează-mă" direct în conversație — nu mai trebuie să cauți popup-ul din altă parte a paginii.
+
+**Difuzare actualizări către abonați (panoul de administrator):** buton nou, „Trimite actualizare" (lângă „Utilizatori"), unde administratorul scrie un mesaj scurt și îl trimite tuturor celor abonați la newsletter — niciodată automat, doar la cerere. Spre deosebire de notificarea de comandă (care merge la tine, la fiecare rezervare), asta e un șablon EmailJS separat (`updateTemplateId` în `js/emailjs-config.js`, cu propriile instrucțiuni acolo) — newsletter-ul rămâne complet independent și trimite doar când TU alegi să anunți ceva nou, nu la fiecare comandă. Trimiterea arată progres live („3 din 7") și un rezumat final („5 trimise, 0 eșuate"), cu o mică pauză între fiecare e-mail (EmailJS, pe planul gratuit, nu e gândit pentru trimiteri masive instant).
+
+Toate trei verificate funcțional, cu date simulate (panou de admin, listă de abonați, trimitere).

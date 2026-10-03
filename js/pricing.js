@@ -115,13 +115,33 @@
        core: luna-ziua (MM-ZZ) a sezonului propriu-zis · margin: zile în plus la fiecare capăt în care tot se poate rezerva
        opposite: sezonul „opus”, folosit pentru reducerea de rezervare din timp (ex. schi rezervat vara) */
     const SEASONAL = {
-        iarna: { coreStart: '12-01', coreEnd: '03-15', opposite: 'vara' },
-        vara: { coreStart: '06-01', coreEnd: '09-15', opposite: 'iarna' }
+        iarna:     { coreStart: '12-01', coreEnd: '03-15', opposite: 'vara' },
+        vara:      { coreStart: '06-01', coreEnd: '09-15', opposite: 'iarna' },
+        halloween: { coreStart: '10-24', coreEnd: '11-02', opposite: null },   // 31 oct ± o săptămână
+        patrick:   { coreStart: '03-10', coreEnd: '03-24', opposite: null },   // 17 mar ± o săptămână
+        craciun:   { coreStart: '11-25', coreEnd: '01-06', opposite: null },   // târguri de Crăciun: de la Sf. Andrei până la Bobotează
+        valentine: { coreStart: '02-07', coreEnd: '02-21', opposite: null },   // 14 feb ± o săptămână
+        // Paștele e o sărbătoare mobilă (dată diferită în fiecare an, și diferită catolic/ortodox); fără calcul exact pe an,
+        // folosim o fereastră lată, care acoperă ambele calendare în orice an: 22 mar (cea mai devreme dată catolică posibilă)
+        // până la 8 mai (cea mai târzie dată ortodoxă posibilă) — mai largă decât o sărbătoare fixă, dar tot limitată la primăvară.
+        paste:     { coreStart: '03-22', coreEnd: '05-08', opposite: null }
     };
     const SEASONAL_MARGIN_DAYS = 15;
     const LONG_STAY_NIGHTS = 14;        // peste atâtea nopți se aplică reducerea de sejur lung
     const LONG_STAY_DISCOUNT = 0.05;    // 5%
     const OFF_SEASON_DISCOUNT = 0.12;   // 12%
+
+    // Reducere de rezervare din timp: valabilă la ORICE destinație (nu doar cele sezoniere), dacă data plecării e
+    // la 8-13 luni distanță de ziua comenzii. Dacă destinația e și sezonieră și s-ar califica și la OFF_SEASON_DISCOUNT,
+    // se aplică doar reducerea mai mare dintre cele două (nu se adună).
+    const EARLY_BOOKING_MIN_DAYS = 240;   // ~8 luni
+    const EARLY_BOOKING_MAX_DAYS = 400;   // ~13 luni (o mică marjă peste 12, ca „un an înainte” să se califice sigur)
+    const EARLY_BOOKING_DISCOUNT = 0.15;  // 15%
+
+    // Facilitățile incluse (dest.amenities, ex. „Hotel 4★”, „Mic Dejun Inclus”) sunt bifate implicit; clientul poate debifa
+    // oricare dintre ele dacă nu o vrea, iar prețul scade. Fără o defalcare reală pe fiecare facilitate (sunt text liber,
+    // diferit la fiecare pachet), tratăm toate facilitățile unei destinații ca împărțind în mod egal acest procent din preț.
+    const AMENITIES_POOL_PCT = 0.30;   // 30% din preț e considerat „acoperit” de totalul facilităților incluse
 
     /* ------------------------------------------------------------------ calcule pe lună-zi (MM-ZZ), independente de an */
     function mdOf(dateStr) { return String(dateStr || '').slice(5, 10); }   // 'AAAA-LL-ZZ' -> 'LL-ZZ'
@@ -158,12 +178,27 @@
         if (!info || !dateStr) return true;
         return mdInRange(mdOf(dateStr), info.windowStart, info.windowEnd);
     }
-    // Reducere „rezervare din timp”: comanda plasată azi, în sezonul opus celui al destinației
+    // Reducere „rezervare din timp” (sezon opus): comanda plasată azi, în sezonul opus celui al destinației.
+    // Se aplică doar la destinațiile cu sezon „pereche” (iarnă ↔ vară) — sărbătorile (Halloween, Paște etc.) nu au una.
     function offSeasonDiscount(dest, orderDateStr) {
         const info = seasonalInfo(dest);
-        if (!info) return 0;
+        if (!info || !info.opposite) return 0;
         const opp = SEASONAL[info.opposite];
         return mdInRange(mdOf(orderDateStr), opp.coreStart, opp.coreEnd) ? OFF_SEASON_DISCOUNT : 0;
+    }
+    // Numărul de zile calendaristice între două date 'AAAA-LL-ZZ' (poate fi negativ dacă b e înainte de a)
+    function daysBetween(aStr, bStr) {
+        const a = new Date(String(aStr || '') + 'T00:00:00');
+        const b = new Date(String(bStr || '') + 'T00:00:00');
+        if (isNaN(a) || isNaN(b)) return null;
+        return Math.round((b - a) / 86400000);
+    }
+    // Reducere „rezervare din timp” (cu mult înainte): data plecării e la 8-13 luni distanță de ziua comenzii.
+    // Valabilă la orice destinație, indiferent dacă e sezonieră sau nu.
+    function earlyBookingDiscount(orderDateStr, travelDateStr) {
+        const gap = daysBetween(orderDateStr, travelDateStr);
+        if (gap === null) return 0;
+        return (gap >= EARLY_BOOKING_MIN_DAYS && gap <= EARLY_BOOKING_MAX_DAYS) ? EARLY_BOOKING_DISCOUNT : 0;
     }
 
     /* ------------------------------------------------------------------ ajutoare */
@@ -273,6 +308,13 @@
         if (singles) { const u = p.singlePerNight * nights; add('single', { count: singles, unit: u, perNight: p.singlePerNight, nights: nights }, singles * u); }
 
         const core = lines.reduce(function (s, l) { return s + l.amount; }, 0);
+
+        // Facilități incluse, debifate de client: fiecare reprezintă o parte egală din AMENITIES_POOL_PCT
+        const amenitiesTotal = Array.isArray(dest.amenities) ? dest.amenities.length : 0;
+        const amenitiesRemoved = clamp(int(opts.amenitiesRemoved, 0), 0, amenitiesTotal);
+        const amenitiesPct = amenitiesTotal > 0 ? (AMENITIES_POOL_PCT * amenitiesRemoved / amenitiesTotal) : 0;
+        if (amenitiesRemoved > 0) { const d = -Math.round(core * amenitiesPct); add('amenities_removed', { count: amenitiesRemoved, total: amenitiesTotal, pct: Math.round(amenitiesPct * 100) }, d); }
+
         const sf = seasonFactor(p.season, opts.date);
         const seasonAmount = Math.round(core * (sf.factor - 1));
         if (seasonAmount > 0) add('season', { month: sf.month, pct: Math.round((sf.factor - 1) * 100) }, seasonAmount);
@@ -281,10 +323,16 @@
         const longStay = nights > LONG_STAY_NIGHTS;
         if (longStay) { const d = -Math.round(core * LONG_STAY_DISCOUNT); add('longstay', { nights: nights, pct: Math.round(LONG_STAY_DISCOUNT * 100) }, d); }
 
-        // Reducere de rezervare din timp: comanda plasată azi (orderDate), în sezonul opus al unei destinații sezoniere
+        // Reducere de rezervare din timp: fie sezon opus (doar la destinațiile sezoniere), fie plecare la 8-13 luni distanță
+        // (la orice destinație) — se aplică doar reducerea mai mare dintre cele două, nu se adună.
         const orderDate = opts.orderDate || todayISO();
         const offSeasonPct = offSeasonDiscount(dest, orderDate);
-        if (offSeasonPct > 0) { const d = -Math.round(core * offSeasonPct); add('offseason', { pct: Math.round(offSeasonPct * 100) }, d); }
+        const earlyPct = earlyBookingDiscount(orderDate, opts.date);
+        const earlyWins = earlyPct > offSeasonPct;
+        const earlyBookingPct = earlyWins ? earlyPct : 0;
+        const finalOffSeasonPct = earlyWins ? 0 : offSeasonPct;
+        if (earlyWins) { const d = -Math.round(core * earlyPct); add('earlybooking', { pct: Math.round(earlyPct * 100) }, d); }
+        else if (offSeasonPct > 0) { const d = -Math.round(core * offSeasonPct); add('offseason', { pct: Math.round(offSeasonPct * 100) }, d); }
 
         const chosen = new Set(opts.extras || []);
         extrasFor(dest, nights).forEach(function (ex) {
@@ -316,8 +364,17 @@
             seasonal: p.seasonal,
             dateAllowed: isDateAllowed(dest, opts.date),
             longStay: longStay,
-            offSeasonPct: Math.round(offSeasonPct * 100)
+            offSeasonPct: Math.round(finalOffSeasonPct * 100),
+            earlyBookingPct: Math.round(earlyBookingPct * 100)
         };
+    }
+
+    // Valoarea estimată a UNEI facilități incluse (pentru afișarea „-X €” lângă fiecare, când o debifezi), la numărul curent de persoane
+    function amenityUnitValue(dest, opts) {
+        const amenitiesTotal = Array.isArray(dest.amenities) ? dest.amenities.length : 0;
+        if (!amenitiesTotal) return 0;
+        const q = quote(dest, Object.assign({}, opts || {}, { amenitiesRemoved: 0 }));
+        return Math.round(q.total * AMENITIES_POOL_PCT / amenitiesTotal);
     }
 
     /* ------------------------------------------------------------------ formatare */
@@ -331,7 +388,10 @@
         profile: profile, extrasFor: extrasFor, quote: quote, seasonFactor: seasonFactor, adultPrice: adultPrice,
         fmtEUR: fmtEUR, fmtRON: fmtRON, toRON: toRON, SERVICE_ORDER: SERVICE_ORDER,
         seasonalInfo: seasonalInfo, isDateAllowed: isDateAllowed, offSeasonDiscount: offSeasonDiscount,
+        earlyBookingDiscount: earlyBookingDiscount,
         LONG_STAY_NIGHTS: LONG_STAY_NIGHTS, LONG_STAY_DISCOUNT: LONG_STAY_DISCOUNT, OFF_SEASON_DISCOUNT: OFF_SEASON_DISCOUNT,
+        EARLY_BOOKING_MIN_DAYS: EARLY_BOOKING_MIN_DAYS, EARLY_BOOKING_MAX_DAYS: EARLY_BOOKING_MAX_DAYS, EARLY_BOOKING_DISCOUNT: EARLY_BOOKING_DISCOUNT,
+        AMENITIES_POOL_PCT: AMENITIES_POOL_PCT, amenityUnitValue: amenityUnitValue,
         todayISO: todayISO
     };
     if (typeof module !== 'undefined' && module.exports) module.exports = api;

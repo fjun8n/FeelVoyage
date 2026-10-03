@@ -61,9 +61,10 @@
         function hash(str) { let h = 5381; for (let i = 0; i < str.length; i++) { h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; } return 'h' + h.toString(16); }
         function readCount() { const n = parseInt(kv.get(KEY_COUNTER_LOCAL), 10); return Number.isFinite(n) && n > 0 ? n : 0; }
         function acctConsents(email) { const all = readJSON(KEY_CONSENTS_ACCT, {}); return cleanConsents(all && all[email]); }
-        function withConsents(s) { return s ? Object.assign({}, s, { consents: acctConsents(s.email) }) : s; }
-        function readSession() { return withConsents(readJSON(KEY_SESSION_LOCAL, null)); }
         function users() { return readJSON(KEY_USERS_LOCAL, []); }
+        function acctNewsletter(email) { const u = users().find(function (x) { return x.email === email; }); return !!(u && u.newsletter); }
+        function withConsents(s) { return s ? Object.assign({}, s, { consents: acctConsents(s.email), newsletter: acctNewsletter(s.email) }) : s; }
+        function readSession() { return withConsents(readJSON(KEY_SESSION_LOCAL, null)); }
         function publishSession(s) {
             if (s) kv.set(KEY_SESSION_LOCAL, JSON.stringify({ name: s.name, email: s.email, phone: s.phone })); else kv.del(KEY_SESSION_LOCAL);
             const out = withConsents(s);
@@ -141,6 +142,17 @@
             withdrawConsent: function (doc) {
                 return writeConsent(doc, function (mine) { if (mine[doc]) mine[doc] = Object.assign({}, mine[doc], { off: Date.now() }); });
             },
+            setNewsletter: function (value) {
+                const s = readJSON(KEY_SESSION_LOCAL, null);
+                if (!s) return Promise.reject(FVError('forbidden'));
+                const list = users();
+                const idx = list.findIndex(function (u) { return u.email === s.email; });
+                if (idx < 0) return Promise.reject(FVError('forbidden'));
+                list[idx] = Object.assign({}, list[idx], { newsletter: !!value });
+                kv.set(KEY_USERS_LOCAL, JSON.stringify(list));
+                publishSession(s);
+                return Promise.resolve(!!value);
+            },
             resetPassword: function () { return Promise.reject(FVError('unsupported')); },
             listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
             loginWithGoogle: function () { return Promise.reject(FVError('unsupported')); },   // autentificarea cu Google există doar cu Firebase configurat
@@ -173,7 +185,7 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail,
+            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail,
             logout: function () { return Promise.resolve(); }
         };
     }
@@ -285,7 +297,8 @@
                 phone: profile.phone || '',
                 admin: admin,
                 emailVerified: !!user.emailVerified,   // de pe contul Firebase Auth, nu din baza de date; Google vine deja verificat
-                consents: cleanConsents(profile.consents)
+                consents: cleanConsents(profile.consents),
+                newsletter: !!profile.newsletter
             };
         }
 
@@ -428,6 +441,21 @@
                     return applyConsent(doc, (await dbM.get(r)).val());
                 } catch (e) { throw consentError(e); }
             },
+            // Abonare / dezabonare de la newsletter, oricând după crearea contului (ex. din pop-up-ul de reamintire)
+            setNewsletter: async function (value) {
+                if (!auth.currentUser || !session) throw FVError('forbidden');
+                const r = dbM.ref(db, 'users/' + auth.currentUser.uid + '/newsletter');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(r, !!value), 15000);
+                    session = Object.assign({}, session, { newsletter: !!value });
+                    authSubs.forEach(function (cb) { cb(session); });
+                    return !!value;
+                } catch (e) {
+                    console.error('[FeelVoyage] Nu pot salva preferința de newsletter:', e);
+                    throw FVError('network', e);
+                }
+            },
             submitOrder: async function (order) {
                 const payload = Object.assign({}, order, { status: 'nou', createdAt: dbM.serverTimestamp() });
                 if (auth.currentUser) payload.uid = auth.currentUser.uid;   // dacă e logat, comanda se leagă de contul lui
@@ -452,7 +480,7 @@
                     const users = res[0].val() || {}, admins = res[1].val() || {};
                     return Object.keys(users).map(function (uid) {
                         const u = users[uid] || {};
-                        return { uid: uid, name: String(u.name || ''), email: String(u.email || ''), phone: String(u.phone || ''), createdAt: Number(u.createdAt) || 0, admin: admins[uid] === true, consents: cleanConsents(u.consents) };
+                        return { uid: uid, name: String(u.name || ''), email: String(u.email || ''), phone: String(u.phone || ''), createdAt: Number(u.createdAt) || 0, admin: admins[uid] === true, consents: cleanConsents(u.consents), newsletter: !!u.newsletter };
                     }).sort(function (a, b) { return (b.createdAt - a.createdAt) || a.name.localeCompare(b.name); });
                 } catch (e) {
                     if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
@@ -551,6 +579,7 @@
         logout: function () { return ready.then(function (b) { return b.logout(); }); },
         saveConsent: function (doc, v, at) { return ready.then(function (b) { return b.saveConsent(doc, v, at); }); },
         withdrawConsent: function (doc) { return ready.then(function (b) { return b.withdrawConsent(doc); }); },
+        setNewsletter: function (value) { return ready.then(function (b) { return b.setNewsletter(value); }); },
         resetPassword: function (e) { return ready.then(function (b) { return b.resetPassword(e); }); },
         submitOrder: function (o) { return ready.then(function (b) { return b.submitOrder(o); }); },
         listUsers: function () { return ready.then(function (b) { return b.listUsers(); }); },
@@ -574,7 +603,7 @@
         ready.then(function (b) { L.info('backend', 'ready', { mode: b && b.mode }); }, function (e) { L.error('backend', 'init-failed', { code: e && e.code }); });
         let lastUid = '';   // identificatorul contului (nu e e-mail): administratorul îl leagă de e-mail în fereastra „Jurnal” (vezi js/logviewer.js)
         try { window.FVBackend.onAuth(function (s) { if (s && s.uid) lastUid = s.uid; }); } catch (e) { /* ignorat */ }
-        ['register', 'login', 'loginWithGoogle', 'logout', 'saveConsent', 'withdrawConsent', 'resetPassword', 'resendVerification', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
+        ['register', 'login', 'loginWithGoogle', 'logout', 'saveConsent', 'withdrawConsent', 'setNewsletter', 'resetPassword', 'resendVerification', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
             const orig = window.FVBackend[m];
             if (typeof orig !== 'function') return;
             window.FVBackend[m] = function () {

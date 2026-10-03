@@ -11,17 +11,30 @@
       Notează „Service ID"-ul generat (ex: service_abc1234).
    3. „Email Templates" → „Create New Template". Scrie un subiect și un conținut care folosesc variabilele de mai jos
       (le poți insera din panoul din dreapta al editorului): {{order_type}}, {{name}}, {{phone}}, {{email}},
-      {{destination}}, {{period}}, {{travelers}}, {{total_price}}, {{services}}, {{message}}, {{sent_at}}.
+      {{destination}}, {{period}}, {{travelers}}, {{total_price}}, {{services}}, {{amenities_excluded}}, {{message}}, {{sent_at}}.
       În câmpul „To Email" al template-ului pune {{to_email}}.
       Exemplu de subiect: Solicitare nouă FeelVoyage — {{order_type}}
       Notează „Template ID"-ul (ex: template_xyz5678).
    4. „Account" → „General" → copiază „Public Key"-ul (ex: AbCdEfGhIjKlMnOp).
    5. Pune cele 3 valori mai jos, între ghilimele, în locul textului "PASTE...". Salvează fișierul.
 
-   Asta e tot — nu trebuie schimbat nimic altundeva în cod. */
+   Asta e tot pentru notificarea de comandă nouă. ---------------------------------------------------------------
+
+   PENTRU NEWSLETTER (opțional, separat): panoul de administrator are un buton „Trimite actualizare" (lângă
+   „Utilizatori"), care trimite un e-mail scurt, scris de tine, către toți cei abonați la newsletter — de exemplu
+   când adaugi destinații noi sau schimbi ceva important pe site. Are nevoie de UN AL DOILEA șablon EmailJS (diferit
+   de cel de mai sus, pentru că destinatarul și conținutul sunt altele):
+   6. „Email Templates" → „Create New Template" (încă unul). Variabile disponibile: {{to_email}}, {{message}},
+      {{sent_at}}. În câmpul „To Email" pune {{to_email}}.
+      Exemplu de subiect: Noutăți FeelVoyage
+      Exemplu de conținut: {{message}}
+      Notează „Template ID"-ul acestui al doilea șablon și pune-l mai jos, la updateTemplateId.
+   Dacă nu completezi updateTemplateId, butonul din panoul de administrator rămâne dezactivat — restul site-ului
+   funcționează normal oricum. */
 window.FV_EMAILJS_CONFIG = {
-    publicKey: "PASTE_EMAILJS_PUBLIC_KEY",
-    serviceId: "PASTE_EMAILJS_SERVICE_ID",
-    templateId: "PASTE_EMAILJS_TEMPLATE_ID",
+    publicKey: "PXMzonXn_vMUEWtH8",
+    serviceId: "FeelVoyage",
+    templateId: "template_iscq76d",
+    updateTemplateId: "template_ftx524k",
     toEmail: "crucrudenis@gmail.com"
 };

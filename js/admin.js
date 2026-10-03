@@ -84,12 +84,14 @@
                     '<div class="px-4 pt-4 pb-2 flex gap-2">' +
                         '<div class="relative flex-1"><i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>' +
                         '<input id="adminSearch" type="search" autocomplete="off" class="w-full pl-9 pr-3 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div>' +
+                        '<button id="adminBroadcastBtn" type="button" class="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-bullhorn"></i></button>' +
                         '<button id="adminRefresh" type="button" class="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-rotate"></i></button>' +
                     '</div>' +
                     '<p id="adminCount" class="px-5 pb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider"></p>' +
                     '<div id="adminList" class="flex-1 overflow-y-auto px-3 pb-4 space-y-1"></div>' +
                 '</div>' +
                 '<div id="adminUserView" class="hidden flex-1 min-h-0 overflow-y-auto p-5 space-y-5"></div>' +
+                '<div id="adminBroadcastView" class="hidden flex-1 min-h-0 overflow-y-auto p-5 space-y-4"></div>' +
             '</div>';
         doc.body.appendChild(modal);
         box = $('adminBox');
@@ -98,6 +100,7 @@
         $('adminClose').addEventListener('click', closeModal);
         $('adminBack').addEventListener('click', showList);
         $('adminRefresh').addEventListener('click', function () { load(true); });
+        $('adminBroadcastBtn').addEventListener('click', showBroadcast);
         $('adminSearch').addEventListener('input', function (e) { query = e.target.value; renderList(); });
         $('adminList').addEventListener('click', function (e) {
             const row = e.target.closest('[data-uid]');
@@ -118,9 +121,13 @@
         $('adminSearch').setAttribute('aria-label', trF('admin.search', 'Caută după nume, e-mail sau telefon'));
         $('adminRefresh').setAttribute('aria-label', trF('admin.refresh', 'Reîmprospătează'));
         $('adminRefresh').title = trF('admin.refresh', 'Reîmprospătează');
+        $('adminBroadcastBtn').setAttribute('aria-label', trF('admin.broadcast.btn', 'Trimite actualizare'));
+        $('adminBroadcastBtn').title = trF('admin.broadcast.btn', 'Trimite actualizare');
         $('adminClose').setAttribute('aria-label', trF('admin.close', 'Închide'));
         $('adminBack').setAttribute('aria-label', trF('admin.back', 'Înapoi la listă'));
-        if (selected) { setHeader(true); renderUser(selected); } else { setHeader(false); renderList(); }
+        if (selected) { setHeader(true); renderUser(selected); }
+        else if (!$('adminBroadcastView').classList.contains('hidden')) { showBroadcast(); }
+        else { setHeader(false); renderList(); }
     }
 
     function setHeader(userView) {
@@ -154,9 +161,11 @@
 
     function showList() {
         selected = null;
+        broadcasting = false;
         if (!modal) return;
         $('adminListView').classList.remove('hidden');
         $('adminUserView').classList.add('hidden');
+        $('adminBroadcastView').classList.add('hidden');
         setHeader(false);
         renderList();
     }
@@ -164,9 +173,76 @@
         selected = u;
         $('adminListView').classList.add('hidden');
         $('adminUserView').classList.remove('hidden');
+        $('adminBroadcastView').classList.add('hidden');
         $('adminUserView').scrollTop = 0;
         setHeader(true);
         renderUser(u);
+    }
+
+    /* ------------------------------------------------------------------ trimite actualizare (newsletter) */
+    let broadcasting = false;
+    function showBroadcast() {
+        if (!modal) return;
+        $('adminListView').classList.add('hidden');
+        $('adminUserView').classList.add('hidden');
+        $('adminBroadcastView').classList.remove('hidden');
+        $('adminBack').classList.remove('hidden');   // deja merge la showList() — ascultătorul e pus o singură dată în ensureModal()
+        $('adminIcon').classList.add('hidden');
+        $('adminTitle').textContent = trF('admin.broadcast.title', 'Trimite actualizare');
+        $('adminSub').textContent = trF('admin.broadcast.sub', 'Doar celor abonați la newsletter');
+        renderBroadcast();
+    }
+    function subscriberEmails() {
+        return users.filter(function (u) { return u.newsletter && u.email; }).map(function (u) { return u.email; });
+    }
+    function renderBroadcast() {
+        const view = $('adminBroadcastView');
+        if (!view) return;
+        const ready = window.FVEmailNotify && window.FVEmailNotify.updateConfigured;
+        const emails = loaded ? subscriberEmails() : [];
+        if (!ready) {
+            view.innerHTML =
+                '<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">' +
+                    '<p class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation"></i> ' + esc(trF('admin.broadcast.notConfiguredTitle', 'Nu e configurat încă')) + '</p>' +
+                    '<p>' + esc(trF('admin.broadcast.notConfiguredBody', 'Completează updateTemplateId în js/emailjs-config.js ca să poți trimite actualizări abonaților.')) + '</p>' +
+                '</div>';
+            return;
+        }
+        view.innerHTML =
+            '<p class="text-xs text-slate-500">' + esc(trF('admin.broadcast.hint', 'Scrie un mesaj scurt (ex. „Am adăugat 5 destinații noi!"). Îl primesc doar cei abonați la newsletter.')) + '</p>' +
+            '<p id="adminBroadcastCount" class="text-xs font-bold text-slate-700"></p>' +
+            '<textarea id="adminBroadcastText" rows="5" class="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none" placeholder="' + esc(trF('admin.broadcast.placeholder', 'Ce e nou pe site?')) + '"></textarea>' +
+            '<div id="adminBroadcastProgress" class="hidden"><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div id="adminBroadcastBar" class="h-full bg-blue-600 transition-all" style="width:0%"></div></div><p id="adminBroadcastStatus" class="text-xs text-slate-500 mt-1.5"></p></div>' +
+            '<button id="adminBroadcastSend" type="button" class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-700 to-sky-500 text-white font-bold text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">' +
+                '<i class="fa-solid fa-paper-plane"></i> <span>' + esc(trF('admin.broadcast.send', 'Trimite')) + '</span>' +
+            '</button>';
+        const countEl = $('adminBroadcastCount');
+        countEl.textContent = loaded
+            ? trF('admin.broadcast.count', '{n} abonați vor primi mesajul').replace('{n}', emails.length)
+            : trF('admin.broadcast.loading', 'Se încarcă lista de abonați…');
+        const sendBtn = $('adminBroadcastSend');
+        const textEl = $('adminBroadcastText');
+        sendBtn.disabled = broadcasting || !loaded || emails.length === 0;
+        sendBtn.addEventListener('click', function () {
+            const msg = textEl.value.trim();
+            if (!msg || broadcasting) return;
+            broadcasting = true;
+            sendBtn.disabled = true;
+            textEl.disabled = true;
+            const progress = $('adminBroadcastProgress'), bar = $('adminBroadcastBar'), status = $('adminBroadcastStatus');
+            progress.classList.remove('hidden');
+            status.textContent = trF('admin.broadcast.sending', 'Se trimite…');
+            window.FVEmailNotify.sendUpdateToSubscribers(emails, msg, function (done, total) {
+                bar.style.width = Math.round(done / total * 100) + '%';
+                status.textContent = trF('admin.broadcast.progress', '{done} din {total}').replace('{done}', done).replace('{total}', total);
+            }).then(function (res) {
+                broadcasting = false;
+                textEl.disabled = false;
+                sendBtn.disabled = emails.length === 0;
+                status.textContent = trF('admin.broadcast.done', 'Gata — {sent} trimise, {failed} eșuate.').replace('{sent}', res.sent).replace('{failed}', res.failed);
+                if (res.sent > 0) textEl.value = '';
+            });
+        }, { once: true });
     }
 
     /* ------------------------------------------------------------------ lista */
@@ -182,7 +258,10 @@
             users = []; loaded = false;
         }
         loading = false;
-        if (modal) { if (selected) { const s = selected; selected = users.filter(function (x) { return x.uid === s.uid; })[0] || s; } renderList(); }
+        if (modal) {
+            if (selected) { const s = selected; selected = users.filter(function (x) { return x.uid === s.uid; })[0] || s; }
+            if (!$('adminBroadcastView').classList.contains('hidden')) renderBroadcast(); else renderList();
+        }
     }
 
     function filtered() {

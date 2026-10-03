@@ -570,11 +570,13 @@ function openModal(id, photoIndex) {
     placeGallery();   // pe calculator: galeria în fereastra din dreapta; pe telefon: în fereastra pachetului
     showPhoto(Number.isInteger(photoIndex) && photoIndex > 0 && photoIndex < galleryImages.length ? photoIndex : 0);   // din sertarul cardului se poate deschide direct la o anumită poză
 
-    // Render Amenities
-    modalAmenities.innerHTML = t.amenities.map(a => `
-        <span class="px-3 py-1 bg-brand-50 text-brand-700 font-bold text-xs rounded-lg border border-brand-200/60 flex items-center gap-1.5">
-            <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> ${a}
-        </span>
+    // Render Amenities — bifate implicit (incluse); debifează orice nu vrei și prețul scade (vezi deselectedAmenities mai jos)
+    deselectedAmenities = new Set();   // pachet nou deschis: toate facilitățile pornesc bifate
+    modalAmenities.innerHTML = t.amenities.map((a, i) => `
+        <label class="px-3 py-1 bg-brand-50 text-brand-700 font-bold text-xs rounded-lg border border-brand-200/60 flex items-center gap-1.5 cursor-pointer select-none hover:bg-brand-100 transition">
+            <input type="checkbox" name="booking-amenity" data-amenity-index="${i}" checked class="w-3.5 h-3.5 rounded text-brand-600 focus:ring-brand-500 focus:ring-offset-0">
+            <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> <span>${a}</span>
+        </label>
     `).join('');
 
     initBookingPricing(item);
@@ -648,6 +650,7 @@ document.addEventListener('input', (e) => {
 // ============ CALCULATORUL DE PREȚ AL REZERVĂRII (regulile sunt în js/pricing.js) ============
 const bookingState = { adults: 2, kids04: 0, kids512: 0 };
 let bookingRange = null;   // selectorul de interval de date (js/daterange.js)
+let deselectedAmenities = new Set();   // indicii facilităților incluse pe care clientul le-a debifat (prețul scade pentru fiecare)
 const EXTRA_LABEL_KEYS = { transport: 'modal.serviceTransport', cazare: 'modal.serviceCazare', transfer: 'modal.serviceTransfer', meals: 'modal.serviceMeals', tickets: 'modal.serviceTickets', insurance: 'modal.serviceInsurance', guide: 'modal.serviceGuide', car: 'modal.serviceCar' };
 const EXTRA_LABELS_RO = { transport: 'Transport (zbor/autocar)', cazare: 'Cazare hotel', transfer: 'Transfer aeroport-hotel', meals: 'Demipensiune / Mic dejun', tickets: 'Bilete la atracții', insurance: 'Asigurare de călătorie', guide: 'Ghid local', car: 'Închiriere auto' };
 const LOCALES = { ro: 'ro-RO', en: 'en-GB', it: 'it-IT', fr: 'fr-FR', es: 'es-ES' };
@@ -671,7 +674,8 @@ function currentQuote() {
     const range = currentRange();
     return FVPricing.quote(currentBookingDest, {
         adults: bookingState.adults, kids04: bookingState.kids04, kids512: bookingState.kids512,
-        extras: selectedServiceKeys(), date: range.start, nights: currentNights()
+        extras: selectedServiceKeys(), date: range.start, nights: currentNights(),
+        amenitiesRemoved: deselectedAmenities.size
     });
 }
 
@@ -688,6 +692,8 @@ function quoteLineText(l, localized) {
         case 'season': return fmtTpl(t('quote.seasonLine', 'Supliment de sezon: {month} (+{pct}%)'), { month: monthName(l.month, lang), pct: l.pct });
         case 'longstay': return fmtTpl(t('quote.longstayLine', 'Reducere sejur lung, peste {min} nopți (-{pct}%)'), { min: FVPricing.LONG_STAY_NIGHTS, pct: l.pct });
         case 'offseason': return fmtTpl(t('quote.offseasonLine', 'Reducere rezervare din timp, în afara sezonului (-{pct}%)'), { pct: l.pct });
+        case 'earlybooking': return fmtTpl(t('quote.earlyBookingLine', 'Reducere rezervare cu mult înainte (-{pct}%)'), { pct: l.pct });
+        case 'amenities_removed': return fmtTpl(t('quote.amenitiesRemovedLine', 'Facilități nedorite, debifate ({count} din {total}) (-{pct}%)'), { count: l.count, total: l.total, pct: l.pct });
         case 'extra':
             if (l.per === 'group') return fmtTpl(t('quote.groupLine', '{name} (per grup)'), { name: name(l.key) });
             if (l.per === 'car') return fmtTpl(t('quote.carLine', '{name} ({cars} × {days} zile × {unit})'), { name: name(l.key), cars: l.cars, days: l.days, unit: priceEUR(l.unit) });
@@ -799,6 +805,14 @@ document.querySelectorAll('#modalBookingForm [data-stepper] [data-step]').forEac
 });
 document.getElementById('modalBookingForm').addEventListener('change', (e) => {
     if (e.target.name === 'booking-service') renderBookingQuote();
+});
+// modalAmenities e în afara <form>-ului (e doar lista descriptivă de mai sus), deci are propriul ascultător,
+// pe containerul stabil (conținutul dinăuntru se regenerează la fiecare pachet deschis — delegarea evenimentului rezistă la asta)
+modalAmenities.addEventListener('change', (e) => {
+    if (e.target.name !== 'booking-amenity') return;
+    const idx = e.target.getAttribute('data-amenity-index');
+    if (e.target.checked) deselectedAmenities.delete(idx); else deselectedAmenities.add(idx);
+    renderBookingQuote();
 });
 bookingRange = FVDateRange.create(document.getElementById('dateRange'), {
     t: (key, fallback) => tr(key, fallback),
@@ -988,6 +1002,7 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
         nights: quote.nights,
         periodText: `${FVDateRange.fmt(range.start)} – ${FVDateRange.fmt(range.end)} (${quote.nights} nopți)`,
         services: selectedServiceKeys().join(', '),
+        amenitiesExcluded: dest ? Array.from(deselectedAmenities).map(i => dest.amenities[i]).filter(Boolean).join(', ') : '',
         totalPrice: quote.total,
         pricePerPerson: quote.perPerson,
         priceDetails: quote.lines.map(l => `${quoteLineText(l, false)} = ${l.amount} €`).join('; ') + ` | Total ${quote.total} € (≈ ${quote.ron} lei)`

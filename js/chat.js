@@ -356,6 +356,23 @@ function initChat(immediate) {
     const greeting = getTranslatedBotResponse('greeting');
     if (relanguage) addBotMessage(greeting.text, greeting.quickReplies);   // fără întârziere, ca să nu apară după mesajul următor
     else sendBotReply(greeting.text, greeting.quickReplies);
+    maybeRemindNewsletter();
+}
+
+// Reamintire de abonare la newsletter, o singură dată per vizită: doar dacă ai cont și nu ești deja abonat.
+// Vine ca un mesaj normal al botului, cu puțină întârziere după salut, ca să nu pară două mesaje deodată.
+let newsletterReminderShown = false;
+function maybeRemindNewsletter() {
+    if (newsletterReminderShown || chatAdmin) return;
+    const session = typeof window.fvCurrentSession === 'function' ? window.fvCurrentSession() : null;
+    if (!session || session.newsletter) return;
+    newsletterReminderShown = true;
+    setTimeout(() => {
+        sendBotReply(
+            tr('chat.newsletter.reminder', 'Apropo — nu ești abonat la newsletter. Te anunțăm pe e-mail doar când apare ceva nou pe site (nimic altceva, promit 🙂).'),
+            [{ label: tr('chat.newsletter.button', '📩 Da, abonează-mă'), value: 'newsletter_subscribe' }]
+        );
+    }, 1400);
 }
 
 // Toggle chat window
@@ -397,6 +414,18 @@ document.addEventListener('click', (e) => {
             setTimeout(() => {
                 document.getElementById('destinatii').scrollIntoView({ behavior: 'smooth' });
             }, 300);
+            return;
+        }
+
+        if (replyValue === 'newsletter_subscribe') {
+            addUserMessage(displayText);
+            if (window.FVBackend) {
+                window.FVBackend.setNewsletter(true).then(() => {
+                    sendBotReply(tr('chat.newsletter.thanks', 'Perfect, te-am abonat! 🎉 Îți trimitem pe e-mail doar atunci când apare ceva nou pe site — nimic altceva.'), []);
+                }).catch(() => {
+                    sendBotReply(tr('chat.newsletter.error', 'Nu am reușit să salvez abonarea acum. Poți încerca din nou mai târziu, din contul tău.'), []);
+                });
+            }
             return;
         }
 

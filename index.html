@@ -527,7 +527,7 @@
                 </button>
             </div>
 
-            <div class="text-center mt-10">
+            <div class="text-center mt-16">
                 <button id="viewAllBtn" type="button" class="view-all-btn inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-brand-600 text-white font-bold text-sm shadow-lg transition">
                     <i class="fa-solid fa-compass"></i> <span id="viewAllLabel">Vezi toate cele 67 de destinații</span> <i class="fa-solid fa-arrow-right text-xs"></i>
                 </button>
@@ -837,6 +837,17 @@
                     <p data-i18n="chat.ai.note">Răspunsurile sunt generate de AI și pot conține greșeli. Nu scrie date personale în chat.</p>
                     <p><span data-i18n="chat.ai.recaptcha">Protejat de reCAPTCHA; se aplică</span> <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="underline"><span data-i18n="chat.ai.privacy">Politica de confidențialitate</span></a> <span data-i18n="chat.ai.and">și</span> <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" class="underline"><span data-i18n="chat.ai.terms">Termenii</span></a> Google.</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- Norișor care iese din chatbot, cu un îndemn prietenos (js/chat-nudge.js) -->
+        <div id="chatNudgeBubble" class="absolute bottom-full right-0 mb-3 hidden w-56 opacity-0 translate-y-2 transition-all duration-300 cursor-pointer">
+            <div class="relative bg-white rounded-2xl shadow-xl border border-slate-200 px-4 py-3 hover:shadow-2xl transition-shadow">
+                <button type="button" id="chatNudgeClose" aria-label="Închide" data-i18n-aria="about.close" class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-slate-700 text-white flex items-center justify-center text-[10px] shadow hover:bg-slate-900">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+                <p class="text-xs text-slate-700 leading-snug font-semibold" id="chatNudgeText" data-i18n="chat.nudge.text">Ai vreo întrebare sau o problemă? Mă poți întreba orice! 😊</p>
+                <div class="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-r border-b border-slate-200 rotate-45"></div>
             </div>
         </div>
 
@@ -1833,6 +1844,25 @@
     <!-- Toast Notification -->
     <div id="fvToast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[110] hidden w-max max-w-[calc(100vw-2rem)] px-5 py-3 rounded-2xl bg-slate-900 text-white text-sm font-semibold shadow-2xl border border-white/10 flex items-center gap-2 text-left" role="status" aria-live="polite"></div>
 
+    <!-- Pop-up de reamintire newsletter: doar pentru vizitatorii cu cont, care nu s-au abonat încă (js/newsletter-popup.js) -->
+    <div id="newsletterPopup" class="fixed top-24 right-4 z-[55] hidden w-64 sm:w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transition-all duration-300 opacity-0 -translate-y-2" role="dialog" aria-live="polite" aria-labelledby="newsletterPopupTitle">
+        <div class="bg-gradient-to-r from-brand-600 to-sunset-500 px-3.5 py-2 flex items-center justify-between gap-2">
+            <p id="newsletterPopupTitle" class="text-white font-bold text-[11px] flex items-center gap-1.5 leading-tight">
+                <i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i> <span data-i18n="newsletter.popup.title">Nu rata ofertele noastre</span>
+            </p>
+            <button type="button" id="newsletterPopupClose" aria-label="Închide" data-i18n-aria="about.close" class="shrink-0 text-white/80 hover:text-white w-5 h-5 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-[11px]" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="p-3.5">
+            <p class="text-[11px] text-slate-500 mb-2.5 leading-relaxed" data-i18n="newsletter.popup.body">Abonează-te la newsletter și primești primii ofertele și reducerile noastre speciale.</p>
+            <label class="flex items-start gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="newsletterPopupCheckbox" class="mt-0.5 w-3.5 h-3.5 rounded text-brand-600 focus:ring-brand-500 focus:ring-offset-0">
+                <span class="text-[11px] font-semibold text-slate-800 leading-snug" data-i18n="newsletter.popup.checkbox">Da, vreau să primesc oferte pe e-mail</span>
+            </label>
+        </div>
+    </div>
+
     <!-- Thank You Overlay -->
     <div id="thankYouOverlay" class="fixed inset-0 z-[100] hidden bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="fv-confetti" aria-hidden="true">
@@ -1867,6 +1897,7 @@
     <script src="js/daterange.js"></script>
     <script src="js/app.js"></script>
     <script src="js/chat.js"></script>
+    <script src="js/chat-nudge.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/backend.js"></script>
     <script src="js/emailjs-config.js"></script>
@@ -1874,6 +1905,7 @@
     <script src="js/ai.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/newsletter-popup.js"></script>
     <script src="js/infomodal.js"></script>
     <script src="js/consent.js"></script>
     <script src="js/counter.js"></script>
