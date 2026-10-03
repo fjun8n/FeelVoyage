@@ -404,3 +404,15 @@ Prețurile celor 30 de pachete noi au fost aliniate la oferte găsite pe site-ur
 - Toate cele 12 destinații noi au traduceri complete în toate cele 5 limbi (titlu, descriere, facilități, perioadă), verificate funcțional una câte una.
 - **Despre numărul de poze:** pentru orașele mari, internaționale (Budapesta, Strasbourg, Londra, Birmingham, Manchester, Seychelles, Insula Paștelui) am găsit 17-20 de poze reale per destinație. Pentru Craiova și Constanța, acoperirea foto disponibilă online e mult mai mică (confirmat după căutări extinse pe mai multe surse) — au rămas cu 7, respectiv 3 poze, toate reale și verificate, dar mai puține decât pragul standard de pe restul site-ului.
 - **Compatibilitate tehnică:** sesiunea de lucru s-a întrerupt la jumătate (resetare de container); proiectul a fost restaurat din ultima arhivă livrată, fără pierderi, dar infrastructura de testare automată construită în sesiunile anterioare (36 de fișiere de test) nu a mai putut fi recuperată. Tot ce e descris mai sus a fost verificat manual, direct în browser, dar nu mai există o suită de regresie automată pentru întregul site.
+
+## Reorganizare „Pentru Seniori" (83 de destinații)
+
+Categoria **Pentru Seniori** a fost reconstruită de la zero, dedicată exclusiv stațiunilor balneare și de relaxare, conform cerinței:
+- **Băile Herculane** (nouă) — Cădițele istorice, Valea Cernei
+- **Sovata** (nouă) — Lacul Ursu, unicul lac helioterm cu dată de formare cunoscută exact
+- **Karlovy Vary, Cehia** (nouă) — colonade termale Art Nouveau
+- **Baden-Baden, Germania** (nouă) — Termele Friedrichsbad, Patrimoniu UNESCO
+
+Cele 6 destinații mutate anterior la seniori (Viena, Praga, Roma, Barcelona, Sibiu-Sighișoara, Croazieră pe Dunăre) au fost scoase din această categorie și au rămas doar în categoriile lor proprii (city-break, românia, paște, târguri de Crăciun) — nimic nu a fost șters, doar reatribuit.
+
+**Notă onestă despre poze:** Karlovy Vary (15) și Baden-Baden (14) au acoperire foto excelentă. Pentru Băile Herculane și Sovata, după căutări extinse pe Unsplash, Wikimedia și alte surse, a existat câte o singură poză reală, verificată, pentru fiecare — stațiunile mai mici din România au, pur și simplu, foarte puține poze libere de drepturi disponibile online. Băile Săcelu, menționată explicit, nu a avut nicio poză găsibilă pe nicio sursă verificată, motiv pentru care a fost înlocuită cu Sovata.

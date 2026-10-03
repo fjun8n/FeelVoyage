@@ -489,6 +489,12 @@
     });
     document.addEventListener('keydown', function (e) {
         if (e.key !== 'Escape') return;
+        // termenii/confidențialitatea deschise deasupra înregistrării: Escape le închide doar pe ele
+        const overlayOpen = ['termsModal', 'privacyModal', 'anpcModal'].some(function (id) {
+            const m = document.getElementById(id);
+            return m && !m.classList.contains('hidden');
+        });
+        if (overlayOpen) return;
         if (isModalOpen()) closeAuthModal();
         userDropdown.classList.add('hidden');
     });
