@@ -434,3 +434,5 @@ Cele 6 destinații mutate anterior la seniori (Viena, Praga, Roma, Barcelona, Si
 - `img2/` — pozele pentru târgurile de Crăciun: Craiova, Cluj-Napoca și Timișoara.
 
 Conexiunea dintre cele două foldere este în `js/destinations.js`: fiecare destinație își listează pozele cu calea completă (`img/…` sau `img2/…`), deci nu depinde de altceva. O destinație nouă cu poze locale se adaugă în folderul care are mai puține fișiere (ținta: sub 100 de fișiere pe încărcare).
+
+**Curățare categorie „Târguri de Crăciun":** la cererea utilizatorului, categoria a fost restrânsă la cele 5 destinații construite special pentru ea, cu poze proprii dedicate (Cluj-Napoca, Timișoara, Craiova, Budapesta, Strasbourg). Viena, Praga, Castelul Bran și Sibiu-Sighișoara, care aveau eticheta suplimentară „târg de Crăciun" fără să fie gândite ca atare, au fost scoase din această categorie — rămân neschimbate în categoriile lor proprii (city-break, românia, Halloween, Paște).
