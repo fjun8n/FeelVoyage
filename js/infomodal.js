@@ -128,4 +128,13 @@
         window['fvOpen' + d.name] = function () { inst.open(false); };
         window['fvClose' + d.name] = function () { inst.close(); };
     });
+
+    /* ---------- Street View (sediul, din secțiunea de contact) ---------- */
+    const streetview = attach({ modal: 'streetviewModal', panel: 'streetviewModalContainer', scroll: 'streetviewScroll', close: 'closeStreetviewBtn', hash: '#locatie' });
+    if (streetview) {
+        window.fvOpenStreetview = function () { streetview.open(false); };
+        window.fvCloseStreetview = function () { streetview.close(); };
+        const trigger = document.getElementById('openStreetviewBtn');
+        if (trigger) trigger.addEventListener('click', function () { streetview.open(false); });
+    }
 })();

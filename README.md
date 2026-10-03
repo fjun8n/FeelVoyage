@@ -436,3 +436,17 @@ Cele 6 destinații mutate anterior la seniori (Viena, Praga, Roma, Barcelona, Si
 Conexiunea dintre cele două foldere este în `js/destinations.js`: fiecare destinație își listează pozele cu calea completă (`img/…` sau `img2/…`), deci nu depinde de altceva. O destinație nouă cu poze locale se adaugă în folderul care are mai puține fișiere (ținta: sub 100 de fișiere pe încărcare).
 
 **Curățare categorie „Târguri de Crăciun":** la cererea utilizatorului, categoria a fost restrânsă la cele 5 destinații construite special pentru ea, cu poze proprii dedicate (Cluj-Napoca, Timișoara, Craiova, Budapesta, Strasbourg). Viena, Praga, Castelul Bran și Sibiu-Sighișoara, care aveau eticheta suplimentară „târg de Crăciun" fără să fie gândite ca atare, au fost scoase din această categorie — rămân neschimbate în categoriile lor proprii (city-break, românia, Halloween, Paște).
+
+**Rotație automată a vitrinei de pe prima pagină:** cele 6 destinații afișate pe prima pagină nu mai sunt fixe (eticheta `featured: true` a fost eliminată din toate destinațiile) — acum se schimbă automat la fiecare 3 ore, cu alte 6 destinații, identice pentru toți vizitatorii în același interval (calculat din ora curentă, nu per sesiune — nu e nevoie de server). Logica (`getFeaturedDestinations()` în `js/app.js`) amestecă toate cele 84 de destinații o singură dată, cu o ordine fixă, apoi alunecă o fereastră de 6 prin acea ordine, avansând la fiecare tură — fără repetări în cadrul unei parcurgeri complete (~14 ture, adică ~42 de ore până se reia ciclul). Dacă pagina rămâne deschisă peste granița dintre două ture, vitrina se reîmprospătează singură, fără refresh manual.
+
+**Street View la sediu:** click pe eticheta hărții din secțiunea de Contact deschide acum o fereastră dedicată (aceeași logică și același stil ca la Termeni/Confidențialitate/ANPC), cu Google Street View chiar pe adresă — Str. Tudor Vladimirescu nr 127, Târgu Jiu (coordonate confirmate: 45.0379553, 23.2863048). Nu necesită cheie API Google (format `output=svembed`, gratuit și fără limite de utilizare). Fereastra are și un link „Deschide în Google Maps" ca variantă de rezervă, care se deschide într-o filă nouă.
+
+## Notificare pe e-mail la fiecare solicitare (rezervare sau formular de contact)
+
+Pe lângă salvarea în baza de date (care se întâmplă deja automat, prin Firebase, în `orders/`), solicitările trimise prin formularul de rezervare sau cel de contact pot fi trimise și pe e-mail la **crucrudenis@gmail.com**.
+
+**Trimiterea pe e-mail e opțională și separată** de baza de date — foloseşte [EmailJS](https://www.emailjs.com/) (gratuit până la 200 de e-mailuri/lună), care trimite direct din browser, fără server propriu. Cheile se completează în `js/emailjs-config.js` — fișierul conține instrucțiuni pas cu pas (cont gratuit, conectarea Gmail-ului, un șablon de e-mail, 3 valori de copiat). Până le completezi, site-ul funcționează exact ca înainte — comenzile tot ajung în baza de date, doar notificarea pe e-mail e sărită (cu un mesaj clar în consolă, nu o eroare).
+
+Trimiterea e „cel mai bun efort": dacă e-mailul eșuează din orice motiv (internet oprit, cheie greșită), comanda tot a fost deja salvată în baza de date — nimic nu blochează sau întrerupe trimiterea formularului pentru vizitator.
+
+Fișiere noi: `js/emailjs-config.js` (cheile tale), `js/emailnotify.js` (logica de trimitere, apelată automat din `js/app.js → sendOrder()`, după ce comanda e deja salvată în baza de date).

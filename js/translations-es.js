@@ -930,6 +930,8 @@ i18n.es = {
     "footer.terms": "Términos y condiciones",
     "footer.privacy": "Política de privacidad",
     "footer.anpc": "ANPC / SAL",
+    "streetview.badge": "Oficina de FeelVoyage",
+    "streetview.openInMaps": "Abrir en Google Maps",
 
     // Chat
     "chat.headerTitle": "Asistente FeelVoyage",

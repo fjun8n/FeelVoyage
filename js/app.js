@@ -52,8 +52,56 @@ function lockScroll(on) {
 }
 
 // ----- Destinații
-// Prima pagină arată doar cele 6 destinații marcate „featured: true” în js/destinations.js.
+// Prima pagină arată 6 destinații „în vitrină”, care se rotesc automat la fiecare 3 ore — același set pentru toți vizitatorii
+// în acel interval (calculat din ora curentă, nu din sesiune), fără server: vezi FEATURED_ROTATION_HOURS mai jos.
 // Restul se deschid într-o fereastră (ca „Termeni și Condiții”), pe categorii, din butoanele de categorie sau din căutarea de sus.
+
+const FEATURED_ROTATION_HOURS = 3;   // cât timp rămâne același set de 6 înainte să treacă la următorul
+const FEATURED_COUNT = 6;
+
+// amestec determinist, cu sămânță fixă: ordinea e mereu aceeași (nu se recalculează la fiecare reîncărcare a paginii),
+// doar fereastra de 6 care alunecă prin ea se schimbă o dată la FEATURED_ROTATION_HOURS
+function seededShuffle(arr, seed) {
+    const a = arr.slice();
+    let s = seed;
+    const rand = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+let _featuredOrder = null;
+function getFeaturedOrder() {
+    if (!_featuredOrder || _featuredOrder.length !== destinations.length) {
+        _featuredOrder = seededShuffle(destinations.map(d => d.id).sort(), 42);
+    }
+    return _featuredOrder;
+}
+
+// setul de 6 pentru „tura” curentă — se schimbă o dată la FEATURED_ROTATION_HOURS, identic pentru orice vizitator în acel interval
+function getFeaturedDestinations() {
+    const pool = getFeaturedOrder();
+    if (pool.length === 0) return [];
+    const slot = Math.floor(Date.now() / (FEATURED_ROTATION_HOURS * 60 * 60 * 1000));
+    const start = (slot * FEATURED_COUNT) % pool.length;
+    const picked = [];
+    for (let i = 0; i < Math.min(FEATURED_COUNT, pool.length); i++) {
+        picked.push(pool[(start + i) % pool.length]);
+    }
+    return picked.map(id => destinations.find(d => d.id === id)).filter(Boolean);
+}
+
+// dacă pagina rămâne deschisă peste granița dintre două ture, vitrina se reîmprospătează singură, fără refresh manual
+let _lastFeaturedSlot = Math.floor(Date.now() / (FEATURED_ROTATION_HOURS * 60 * 60 * 1000));
+setInterval(() => {
+    const slot = Math.floor(Date.now() / (FEATURED_ROTATION_HOURS * 60 * 60 * 1000));
+    if (slot !== _lastFeaturedSlot) {
+        _lastFeaturedSlot = slot;
+        renderDestinations();
+    }
+}, 5 * 60 * 1000);
 
 // număr + „destinații” cu acordul corect în română („59 de destinații”, dar „11 destinații”); în celelalte limbi: textul tradus cu {n}
 function nDest(key, roText, n) {
@@ -216,7 +264,7 @@ function renderDestinations() {
     document.querySelectorAll('[data-dest-count]').forEach(el => { el.textContent = String(destinations.length); });
     destinationsGrid.innerHTML = '';
     noResultsMsg.classList.add('hidden');
-    destinations.filter(d => d.featured).forEach(item => destinationsGrid.appendChild(buildCard(item)));
+    getFeaturedDestinations().forEach(item => destinationsGrid.appendChild(buildCard(item)));
     const label = document.getElementById('viewAllLabel');
     if (label) label.textContent = nDest('catwin.viewAll', 'Vezi toate cele {n} destinații', destinations.length);
     refreshCatalog();   // dacă fereastra cu destinații e deschisă, își reface cardurile în limba curentă
@@ -780,7 +828,12 @@ function sendOrder(order) {
     order.dateText = new Date().toLocaleString('ro-RO');
     const done = window.FVLog ? FVLog.time('order', 'send', 1500) : null;
     return window.FVBackend.submitOrder(order).then(
-        (r) => { if (done) done({ ok: true, type: order.type }); return r; },
+        (r) => {
+            if (done) done({ ok: true, type: order.type });
+            // Notificare pe e-mail (js/emailnotify.js), pe lângă baza de date: „cel mai bun efort" — dacă eșuează, comanda tot e salvată deja
+            if (window.FVEmailNotify) window.FVEmailNotify.send(order).catch(() => { });
+            return r;
+        },
         (err) => { if (done) done({ ok: false, type: order.type }); if (window.FVLog) FVLog.error('order', 'failed', { type: order.type, code: (err && err.code) || 'necunoscut' }); throw err; }
     );
 }

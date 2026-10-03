@@ -905,6 +905,8 @@ const i18n = {
         'footer.terms': 'Terms and Conditions',
         'footer.privacy': 'Privacy Policy',
         'footer.anpc': 'ANPC / SAL',
+        'streetview.badge': 'FeelVoyage Office',
+        'streetview.openInMaps': 'Open in Google Maps',
 
         // Chat Widget
         'chat.headerTitle': 'FeelVoyage Assistant',
@@ -2248,6 +2250,8 @@ const i18n = {
         'footer.terms': 'Termini e Condizioni',
         'footer.privacy': 'Informativa sulla Privacy',
         'footer.anpc': 'ANPC / SAL',
+        'streetview.badge': 'Sede FeelVoyage',
+        'streetview.openInMaps': 'Apri in Google Maps',
 
         // Chat Widget
         'chat.headerTitle': 'Assistente FeelVoyage',

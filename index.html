@@ -630,15 +630,15 @@
                         </div>
                     </div>
 
-                    <!-- Map Preview Mock -->
-                    <div class="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative h-48 bg-slate-200">
-                        <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80" alt="Map Preview" class="w-full h-full object-cover">
+                    <!-- Map Preview: deschide fereastra cu Street View la sediu -->
+                    <button type="button" id="openStreetviewBtn" class="w-full text-left rounded-3xl overflow-hidden border border-slate-200 shadow-md relative h-48 bg-slate-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+                        <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80" alt="" aria-hidden="true" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
                         <div class="absolute inset-0 bg-slate-900/30 flex items-center justify-center">
                             <div class="bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl font-bold text-slate-800 text-sm shadow-lg flex items-center gap-2">
                                 <i class="fa-solid fa-location-pin text-rose-500"></i> <span data-i18n="contact.mapLabel">Str. Tudor Vladimirescu nr 127, Tg-Jiu</span>
                             </div>
                         </div>
-                    </div>
+                    </button>
 
                 </div>
 
@@ -1658,6 +1658,27 @@
         </div>
     </div>
 
+    <!-- Street View Modal (sediul FeelVoyage) -->
+    <div id="streetviewModal" class="fixed inset-0 z-[90] hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="streetviewModalTitle">
+        <div id="streetviewModalContainer" class="doc-panel relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94svh] sm:max-h-[92vh] flex flex-col transform transition-all scale-95 opacity-0">
+            <button id="closeStreetviewBtn" type="button" aria-label="Închide" data-i18n-aria="about.close" class="doc-close absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/30 text-white hover:bg-black/60 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="streetviewScroll" class="doc-scroll relative overflow-y-auto">
+                <div class="text-center max-w-2xl mx-auto space-y-3">
+                    <span class="px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-700 text-xs font-bold uppercase tracking-wider" data-i18n="streetview.badge">Sediul FeelVoyage</span>
+                    <h2 id="streetviewModalTitle" class="text-2xl sm:text-4xl font-extrabold font-serif text-slate-900" data-i18n="contact.mapLabel">Str. Tudor Vladimirescu nr 127, Tg-Jiu</h2>
+                </div>
+                <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-md mt-6" style="aspect-ratio:16/10;">
+                    <iframe src="https://maps.google.com/maps?layer=c&amp;cbll=45.0379553,23.2863048&amp;cbp=11,0,0,0,0&amp;output=svembed" width="100%" height="100%" style="border:0;display:block;" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Street View — Str. Tudor Vladimirescu nr 127, Tg-Jiu"></iframe>
+                </div>
+                <p class="text-center mt-5">
+                    <a href="https://www.google.com/maps?layer=c&amp;cbll=45.0379553,23.2863048&amp;cbp=11,0,0,0,0" target="_blank" rel="noopener" class="doc-link"><i class="fa-solid fa-up-right-from-square mr-1.5" aria-hidden="true"></i><span data-i18n="streetview.openInMaps">Deschide în Google Maps</span></a>
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Auth Modal (Autentificare / Înregistrare) -->
     <div id="authModal" class="fv-z-booking fixed inset-0 hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full overflow-hidden max-h-[94svh] sm:max-h-[92vh] flex flex-col transform transition-all scale-95 opacity-0" id="authModalContainer">
@@ -1848,6 +1869,8 @@
     <script src="js/chat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/backend.js"></script>
+    <script src="js/emailjs-config.js"></script>
+    <script src="js/emailnotify.js"></script>
     <script src="js/ai.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
