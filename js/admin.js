@@ -112,6 +112,25 @@
             const c = e.target.closest('[data-copy-uid]');
             if (c && selected) copyText(selected.uid);
         });
+        $('adminUserView').addEventListener('change', function (e) {
+            if (e.target.id !== 'adminNewsletterToggle' || !selected) return;
+            const box = e.target, uid = box.getAttribute('data-uid'), value = box.checked;
+            const statusEl = $('adminNewsletterStatus');
+            box.disabled = true;
+            FVBackend.adminSetNewsletter(uid, value).then(function () {
+                selected.newsletter = value;
+                const u2 = users.filter(function (x) { return x.uid === uid; })[0];
+                if (u2) u2.newsletter = value;
+                statusEl.textContent = trF(value ? 'admin.newsletterOn' : 'admin.newsletterOff', value ? 'Da, abonat' : 'Nu e abonat');
+                statusEl.className = 'text-sm font-semibold ' + (value ? 'text-emerald-600' : 'text-slate-400');
+                box.disabled = false;
+                if (typeof fvToast === 'function') fvToast(trF('admin.newsletterSaved', 'Salvat.'));
+            }).catch(function () {
+                box.checked = !value;   // revenim la starea veche — nu s-a salvat
+                box.disabled = false;
+                if (typeof fvToast === 'function') fvToast(trF('admin.errorGeneric', 'A apărut o eroare. Încearcă din nou.'), 'error');
+            });
+        });
         applyTexts();
     }
 
@@ -340,7 +359,7 @@
         const v = $('adminUserView');
         const muted = function (t) { return '<span class="text-slate-400 italic text-xs">' + esc(t) + '</span>'; };
         v.innerHTML =
-            '<div class="p-3 rounded-2xl bg-blue-50 border border-blue-100 text-[11px] leading-relaxed text-blue-800 flex gap-2"><i class="fa-solid fa-eye mt-0.5"></i><span>' + esc(trF('admin.viewBanner', 'Vezi profilul acestui utilizator așa cum îl vede el. Mod administrator, doar citire: nu poți modifica nimic.')) + '</span></div>' +
+            '<div class="p-3 rounded-2xl bg-blue-50 border border-blue-100 text-[11px] leading-relaxed text-blue-800 flex gap-2"><i class="fa-solid fa-eye mt-0.5"></i><span>' + esc(trF('admin.viewBanner', 'Vezi profilul acestui utilizator așa cum îl vede el. Mod administrator: poți modifica doar abonarea la newsletter de mai jos — restul e doar citire.')) + '</span></div>' +
             // aceeași machetă ca „Profilul meu"
             '<div class="flex items-center gap-4">' +
                 '<div class="' + avatarClass(u.admin, 'w-14 h-14 text-xl') + '">' + esc(initialsOf(u.name)) + '</div>' +
@@ -364,8 +383,21 @@
                 detailRow('fa-envelope', trF('admin.email', 'E-mail'), u.email ? esc(u.email) : muted(trF('admin.noEmail', 'necunoscut (apare după următoarea autentificare a utilizatorului)'))) +
                 detailRow('fa-calendar-check', trF('admin.since', 'Membru din'), esc(fmtDate(u.createdAt))) +
                 detailRow('fa-file-signature', trF('admin.consents', 'Acceptări documente'), consentsHtml(u)) +
+                detailRow('fa-envelope-open-text', trF('admin.newsletter', 'Abonat la newsletter'), newsletterToggleHtml(u)) +
                 detailRow('fa-fingerprint', trF('admin.uid', 'ID cont'), '<code class="text-[11px] bg-slate-100 rounded px-1.5 py-0.5 break-all">' + esc(u.uid) + '</code> <button type="button" data-copy-uid class="ml-1 text-[11px] font-bold text-blue-600 hover:underline">' + esc(trF('admin.copy', 'Copiază')) + '</button>') +
             '</div>';
+    }
+    // singurul lucru editabil din acest panou altfel doar-citire: administratorul poate (dez)abona pe oricine la newsletter
+    function newsletterToggleHtml(u) {
+        const on = !!u.newsletter;
+        return '<label class="inline-flex items-center gap-2.5 cursor-pointer select-none">' +
+            '<span class="relative inline-block w-10 h-6 shrink-0">' +
+                '<input type="checkbox" id="adminNewsletterToggle" data-uid="' + esc(u.uid) + '"' + (on ? ' checked' : '') + ' class="peer sr-only">' +
+                '<span class="absolute inset-0 rounded-full bg-slate-300 peer-checked:bg-emerald-500 peer-disabled:opacity-50 transition-colors"></span>' +
+                '<span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4"></span>' +
+            '</span>' +
+            '<span id="adminNewsletterStatus" class="text-sm font-semibold ' + (on ? 'text-emerald-600' : 'text-slate-400') + '">' + esc(on ? trF('admin.newsletterOn', 'Da, abonat') : trF('admin.newsletterOff', 'Nu e abonat')) + '</span>' +
+        '</label>';
     }
 
     function copyText(text) {

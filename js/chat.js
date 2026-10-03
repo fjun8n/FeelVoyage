@@ -368,11 +368,46 @@ function maybeRemindNewsletter() {
     if (!session || session.newsletter) return;
     newsletterReminderShown = true;
     setTimeout(() => {
-        sendBotReply(
-            tr('chat.newsletter.reminder', 'Apropo — nu ești abonat la newsletter. Te anunțăm pe e-mail doar când apare ceva nou pe site (nimic altceva, promit 🙂).'),
-            [{ label: tr('chat.newsletter.button', '📩 Da, abonează-mă'), value: 'newsletter_subscribe' }]
-        );
+        sendBotReply(tr('chat.newsletter.reminder', 'Apropo — nu ești abonat la newsletter. Te anunțăm pe e-mail doar când apare ceva nou pe site (nimic altceva, promit 🙂).'), newsletterAskReplies());
     }, 1400);
+}
+
+// Butoanele „Da / Nu” folosite oriunde întrebăm despre abonarea la newsletter (reamintirea automată și întrebarea directă)
+function newsletterAskReplies() {
+    return [
+        { label: tr('chat.newsletter.button', '📩 Da, abonează-mă'), value: 'newsletter_subscribe' },
+        { label: tr('chat.newsletter.decline', 'Nu, mulțumesc'), value: 'newsletter_decline' }
+    ];
+}
+
+// Cuvinte-cheie pentru intenția „vreau să mă abonez / dezabonez la newsletter”, scrisă direct în chat (nu doar la reamintirea automată)
+const newsletterIntentKeywords = {
+    ro: ['newsletter', 'abonez', 'abonare', 'abonament', 'abona', 'dezabon'],
+    en: ['newsletter', 'subscribe', 'subscription', 'unsubscribe'],
+    it: ['newsletter', 'iscriv', 'abbonat', 'disiscriv'],
+    fr: ['newsletter', 'abonn', 'désabonn', 'desabonn'],
+    es: ['newsletter', 'suscri', 'boletín', 'boletin', 'desuscri']
+};
+function detectsNewsletterIntent(text) {
+    const lower = String(text || '').toLowerCase();
+    const kws = (newsletterIntentKeywords[currentLang] || []).concat(newsletterIntentKeywords.ro);
+    return kws.some(kw => lower.includes(kw));
+}
+
+// Întrebat direct în chat despre newsletter (nu reamintirea automată): răspunde potrivit situației —
+// fără cont / deja abonat / întreabă cu butoane Da-Nu. Returnează true dacă a tratat mesajul (nu mai trece mai departe).
+function maybeHandleNewsletterIntent(text, displayText) {
+    if (chatAdmin || !detectsNewsletterIntent(text)) return false;
+    addUserMessage(displayText !== undefined ? displayText : text);
+    const session = typeof window.fvCurrentSession === 'function' ? window.fvCurrentSession() : null;
+    if (!session) {
+        sendBotReply(tr('chat.newsletter.needAccount', 'Ca să te abonezi la newsletter, ai nevoie întâi de un cont gratuit — îl faci rapid din „Contul Meu”, sus.'), []);
+    } else if (session.newsletter) {
+        sendBotReply(tr('chat.newsletter.alreadyIn', 'Ești deja abonat! 🎉 Te anunțăm pe e-mail doar când apare ceva nou pe site.'), []);
+    } else {
+        sendBotReply(tr('chat.newsletter.ask', 'Sigur — vrei să te abonezi la newsletter? Te anunțăm doar când apare ceva nou pe site, nimic altceva.'), newsletterAskReplies());
+    }
+    return true;
 }
 
 // Toggle chat window
@@ -417,6 +452,12 @@ document.addEventListener('click', (e) => {
             return;
         }
 
+        if (replyValue === 'newsletter_decline') {
+            addUserMessage(displayText);
+            sendBotReply(tr('chat.newsletter.declined', 'Sigur, nicio problemă! Dacă te răzgândești, îmi poți scrie oricând „newsletter”. 🙂'), []);
+            return;
+        }
+
         if (replyValue === 'newsletter_subscribe') {
             addUserMessage(displayText);
             if (window.FVBackend) {
@@ -448,6 +489,7 @@ chatForm.addEventListener('submit', (e) => {
 // `displayText` is what's shown in the chat bubble (translated label);
 // `text` is the canonical value used for keyword/category matching.
 function handleUserMessage(text, displayText) {
+    if (maybeHandleNewsletterIntent(text, displayText)) return;
     if (window.FVLog && (displayText !== undefined || (typeof text === 'string' && text.indexOf('faq:') === 0))) FVLog.info('chat', 'message', { kind: 'quick' });   // butoane de răspuns rapid (textul liber se scrie la trimitere)
     addUserMessage(displayText !== undefined ? displayText : text);
     // butoanele generate de baza de răspunsuri au valoarea „faq:<id>"
@@ -596,6 +638,7 @@ function showPackageButtons(ids, replies) {
 
 function handleFreeText(text) {
     if (aiBusy) return;
+    if (maybeHandleNewsletterIntent(text)) return;
     if (!(window.FVAI && FVAI.enabled())) { handleUserMessage(text); return; }
 
     // mesaje scurte și clare (salut, mulțumesc, la revedere...) au răspuns pregătit: nu consumăm o cerere către AI

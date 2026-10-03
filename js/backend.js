@@ -155,6 +155,7 @@
             },
             resetPassword: function () { return Promise.reject(FVError('unsupported')); },
             listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
+            adminSetNewsletter: function () { return Promise.reject(FVError('unsupported')); },
             loginWithGoogle: function () { return Promise.reject(FVError('unsupported')); },   // autentificarea cu Google există doar cu Firebase configurat
             resendVerification: function () { return Promise.reject(FVError('unsupported')); },   // fără Firebase nu există un e-mail real de trimis
             refreshVerification: function () { return Promise.resolve(readSession()); },
@@ -185,7 +186,7 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail,
+            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail, adminSetNewsletter: fail,
             logout: function () { return Promise.resolve(); }
         };
     }
@@ -456,6 +457,20 @@
                     throw FVError('network', e);
                 }
             },
+            // Administratorul (dez)abonează pe altcineva la newsletter, din panoul de utilizatori (js/admin.js).
+            // Protecția reală e în regulile bazei de date: doar un cont din „admins” poate scrie în câmpul newsletter al altui cont.
+            adminSetNewsletter: async function (uid, value) {
+                if (!session || !session.admin) throw FVError('forbidden');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(dbM.ref(db, 'users/' + uid + '/newsletter'), !!value), 15000);
+                    return !!value;
+                } catch (e) {
+                    if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
+                    console.error('[FeelVoyage] Nu pot salva preferința de newsletter a utilizatorului:', e);
+                    throw FVError('network', e);
+                }
+            },
             submitOrder: async function (order) {
                 const payload = Object.assign({}, order, { status: 'nou', createdAt: dbM.serverTimestamp() });
                 if (auth.currentUser) payload.uid = auth.currentUser.uid;   // dacă e logat, comanda se leagă de contul lui
@@ -580,6 +595,7 @@
         saveConsent: function (doc, v, at) { return ready.then(function (b) { return b.saveConsent(doc, v, at); }); },
         withdrawConsent: function (doc) { return ready.then(function (b) { return b.withdrawConsent(doc); }); },
         setNewsletter: function (value) { return ready.then(function (b) { return b.setNewsletter(value); }); },
+        adminSetNewsletter: function (uid, value) { return ready.then(function (b) { return b.adminSetNewsletter(uid, value); }); },
         resetPassword: function (e) { return ready.then(function (b) { return b.resetPassword(e); }); },
         submitOrder: function (o) { return ready.then(function (b) { return b.submitOrder(o); }); },
         listUsers: function () { return ready.then(function (b) { return b.listUsers(); }); },
@@ -603,7 +619,7 @@
         ready.then(function (b) { L.info('backend', 'ready', { mode: b && b.mode }); }, function (e) { L.error('backend', 'init-failed', { code: e && e.code }); });
         let lastUid = '';   // identificatorul contului (nu e e-mail): administratorul îl leagă de e-mail în fereastra „Jurnal” (vezi js/logviewer.js)
         try { window.FVBackend.onAuth(function (s) { if (s && s.uid) lastUid = s.uid; }); } catch (e) { /* ignorat */ }
-        ['register', 'login', 'loginWithGoogle', 'logout', 'saveConsent', 'withdrawConsent', 'setNewsletter', 'resetPassword', 'resendVerification', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
+        ['register', 'login', 'loginWithGoogle', 'logout', 'saveConsent', 'withdrawConsent', 'setNewsletter', 'adminSetNewsletter', 'resetPassword', 'resendVerification', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
             const orig = window.FVBackend[m];
             if (typeof orig !== 'function') return;
             window.FVBackend[m] = function () {
