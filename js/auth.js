@@ -19,6 +19,8 @@
     const loginErrorText = document.getElementById('loginErrorText');
     const registerError = document.getElementById('registerError');
     const registerErrorText = document.getElementById('registerErrorText');
+    const regConsentTerms = document.getElementById('regConsentTerms');
+    const regNewsletter = document.getElementById('regNewsletter');
     const forgotBtn = document.getElementById('forgotBtn');
     const authBtn = document.getElementById('authBtn');
     const authBtnLabel = document.getElementById('authBtnLabel');
@@ -97,11 +99,40 @@
         profileView.classList.toggle('hidden', view !== 'profile');
         document.getElementById('verifyView').classList.toggle('hidden', view !== 'verify');
         if (view === 'verify') autoCheckVerification();
+        if (view === 'register') refreshRegisterConsent();
         loginError.classList.add('hidden');
         registerError.classList.add('hidden');
         tabLoginBtn.className = 'py-3.5 text-sm font-bold border-b-2 transition ' + (view === 'login' ? 'text-brand-600 border-brand-600' : 'text-slate-500 border-transparent hover:text-brand-600');
         tabRegisterBtn.className = 'py-3.5 text-sm font-bold border-b-2 transition ' + (view === 'register' ? 'text-brand-600 border-brand-600' : 'text-slate-500 border-transparent hover:text-brand-600');
     }
+
+    // Bifa de acceptare (Termeni + Confidențialitate) de la înregistrare: aceeași sursă de adevăr ca la rezervare și subsol (js/consent.js).
+    // O singură bifă acceptă ambele documente deodată; dacă au fost deja acceptate din altă parte, apare bifată și blocată.
+    let registerConsentPending = false;
+    function registerConsentAccepted() { return !!(window.FVConsent && FVConsent.isAccepted('terms') && FVConsent.isAccepted('privacy')); }
+    function refreshRegisterConsent() {
+        if (!regConsentTerms) return;
+        const done = registerConsentAccepted();
+        regConsentTerms.checked = done;
+        regConsentTerms.disabled = done || registerConsentPending;
+    }
+    if (regConsentTerms) {
+        regConsentTerms.addEventListener('change', function () {
+            if (!regConsentTerms.checked || registerConsentPending || !window.FVConsent) { refreshRegisterConsent(); return; }
+            registerConsentPending = true; regConsentTerms.disabled = true;
+            Promise.all([FVConsent.accept('terms', false), FVConsent.accept('privacy', false)]).then(function () {
+                registerConsentPending = false; refreshRegisterConsent();
+            });
+        });
+    }
+    document.querySelectorAll('#registerConsent [data-open-doc]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const doc = btn.getAttribute('data-open-doc');
+            const fn = window['fvOpen' + doc.charAt(0).toUpperCase() + doc.slice(1)];   // js/infomodal.js: fvOpenTerms / fvOpenPrivacy
+            if (typeof fn === 'function') fn();
+        });
+    });
+    document.addEventListener('fv:doc-open', function () { if (authView === 'register') refreshRegisterConsent(); });
 
     function fillProfile() {
         if (!session) return;
@@ -400,10 +431,11 @@
         if (pw1.length < 6) { showRegisterError(trF('auth.errorPasswordShort', 'Parola trebuie să aibă minim 6 caractere.')); return; }
         if (pw1 !== pw2) { showRegisterError(trF('auth.errorPasswordMatch', 'Parolele nu coincid.')); return; }
         if (isWeakPassword(pw1)) { showRegisterError(trF('auth.errorPasswordWeak', 'Această parolă e prea simplă (ex. „123456”, „abcdef”) și poate fi ghicită ușor. Alege una mai puțin previzibilă.')); return; }
+        if (!registerConsentAccepted()) { showRegisterError(trF('auth.errorConsent', 'Trebuie să accepți Termenii și Condițiile și Politica de Confidențialitate pentru a crea un cont.')); return; }
 
         setBusy(registerForm, true);
         try {
-            const s = await FVBackend.register({ name: name, phone: phone, email: email, password: pw1 });
+            const s = await FVBackend.register({ name: name, phone: phone, email: email, password: pw1, newsletter: !!(regNewsletter && regNewsletter.checked) });
             session = s;
             syncAdmin(s);
             renderAuthUI();

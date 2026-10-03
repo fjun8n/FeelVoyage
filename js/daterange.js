@@ -67,8 +67,17 @@
         const cal = q('[data-date-calendar]');
         const errorEl = q('[data-date-error]');
 
-        const cfg = { defaultNights: 3, minNights: 2, maxNights: 14, fixed: false };
+        const cfg = { defaultNights: 3, minNights: 2, maxNights: 14, fixed: false, seasonalWindow: null };
         const st = { start: null, end: null, open: false, mode: 'start', view: null, error: false };
+
+        // Fereastra sezonieră (destinații de tip schi/plajă de vară): null = fără restricție.
+        // cfg.seasonalWindow = { start: 'LL-ZZ', end: 'LL-ZZ' } — 'end' < 'start' înseamnă că trece peste anul nou (ex. 11-16 → 03-30)
+        function inSeasonalWindow(d) {
+            const w = cfg.seasonalWindow;
+            if (!w) return true;
+            const md = d.slice(5, 10);
+            return w.start <= w.end ? (md >= w.start && md <= w.end) : (md >= w.start || md <= w.end);
+        }
 
         const minStart = function () { return addDays(today(), 1); };
         const maxStart = function () { return addDays(today(), MAX_AHEAD_DAYS); };
@@ -83,6 +92,7 @@
             const n = diffDays(st.start, st.end);
             if (st.start < minStart()) return 'past';
             if (n < cfg.minNights || n > cfg.maxNights) return 'range';
+            if (!inSeasonalWindow(st.start)) return 'season';
             return null;
         }
 
@@ -94,7 +104,7 @@
                 const n = diffDays(st.start, d);
                 return n < cfg.minNights || n > cfg.maxNights;
             }
-            return d < minStart() || d > maxStart();
+            return d < minStart() || d > maxStart() || !inSeasonalWindow(d);
         }
 
         /* ---------- afișare */

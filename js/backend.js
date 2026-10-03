@@ -119,7 +119,7 @@
                 if (users().some(function (u) { return u.email === email; })) return Promise.reject(FVError('email-in-use'));
                 if (d.password.length < 6) return Promise.reject(FVError('weak-password'));
                 const list = users();
-                list.push({ name: d.name, phone: d.phone || '', email: email, pw: hash(d.password), created: new Date().toISOString() });
+                list.push({ name: d.name, phone: d.phone || '', email: email, pw: hash(d.password), created: new Date().toISOString(), newsletter: !!d.newsletter });
                 kv.set(KEY_USERS_LOCAL, JSON.stringify(list));
                 accountSubs.forEach(function (cb) { cb(list.length); });
                 const s = { name: d.name, email: email, phone: d.phone || '', emailVerified: true };
@@ -364,7 +364,7 @@
                     try { await authM.sendEmailVerification(cred.user); } catch (e) { console.warn('[FeelVoyage] E-mailul de verificare nu a putut fi trimis:', e); }
                     try { await authM.updateProfile(cred.user, { displayName: d.name }); } catch (e) { /* nu e critic */ }
                     try {
-                        await dbM.set(dbM.ref(db, 'users/' + cred.user.uid), { name: d.name, phone: d.phone || '', email: d.email.trim(), createdAt: dbM.serverTimestamp() });
+                        await dbM.set(dbM.ref(db, 'users/' + cred.user.uid), { name: d.name, phone: d.phone || '', email: d.email.trim(), createdAt: dbM.serverTimestamp(), newsletter: !!d.newsletter });
                     } catch (e) { console.warn('[FeelVoyage] Profilul nu a putut fi salvat (verifică regulile din firebase-rules.json):', e); }
                     return await refresh(auth.currentUser || cred.user);
                 } catch (e) { throw normalize(e); }

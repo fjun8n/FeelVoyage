@@ -111,6 +111,61 @@
 
     const SERVICE_ORDER = ['transport', 'cazare', 'transfer', 'meals', 'tickets', 'insurance', 'guide', 'car'];
 
+    /* ------------------------------------------------------------------ destinații sezoniere (ski / plajă de vară)
+       core: luna-ziua (MM-ZZ) a sezonului propriu-zis · margin: zile în plus la fiecare capăt în care tot se poate rezerva
+       opposite: sezonul „opus”, folosit pentru reducerea de rezervare din timp (ex. schi rezervat vara) */
+    const SEASONAL = {
+        iarna: { coreStart: '12-01', coreEnd: '03-15', opposite: 'vara' },
+        vara: { coreStart: '06-01', coreEnd: '09-15', opposite: 'iarna' }
+    };
+    const SEASONAL_MARGIN_DAYS = 15;
+    const LONG_STAY_NIGHTS = 14;        // peste atâtea nopți se aplică reducerea de sejur lung
+    const LONG_STAY_DISCOUNT = 0.05;    // 5%
+    const OFF_SEASON_DISCOUNT = 0.12;   // 12%
+
+    /* ------------------------------------------------------------------ calcule pe lună-zi (MM-ZZ), independente de an */
+    function mdOf(dateStr) { return String(dateStr || '').slice(5, 10); }   // 'AAAA-LL-ZZ' -> 'LL-ZZ'
+    function mdInRange(md, start, end) {
+        if (!md) return false;
+        return start <= end ? (md >= start && md <= end) : (md >= start || md <= end);   // 'end < start' = intervalul trece peste anul nou
+    }
+    // Deplasează un 'LL-ZZ' cu n zile (foloseşte un an bisect/nebisect fix, doar ca să calculăm ziua — anul în sine nu contează)
+    function shiftMonthDay(md, days) {
+        const mo = +md.slice(0, 2), da = +md.slice(3, 5);
+        const dt = new Date(2027, mo - 1, da, 12);   // 2027: an nebisect, suficient pentru calculul zi-lună
+        dt.setDate(dt.getDate() + days);
+        return pad2(dt.getMonth() + 1) + '-' + pad2(dt.getDate());
+    }
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function todayISO() { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+
+    // Informațiile de sezon ale unei destinații: null dacă nu e sezonieră
+    function seasonalInfo(dest) {
+        const kind = dest && dest.seasonal;
+        const cfg = SEASONAL[kind];
+        if (!cfg) return null;
+        return {
+            kind: kind,
+            coreStart: cfg.coreStart, coreEnd: cfg.coreEnd,
+            windowStart: shiftMonthDay(cfg.coreStart, -SEASONAL_MARGIN_DAYS),
+            windowEnd: shiftMonthDay(cfg.coreEnd, SEASONAL_MARGIN_DAYS),
+            opposite: cfg.opposite
+        };
+    }
+    // O dată (AAAA-LL-ZZ) e în perioada în care destinația sezonieră poate fi rezervată (sezon ± marjă)?
+    function isDateAllowed(dest, dateStr) {
+        const info = seasonalInfo(dest);
+        if (!info || !dateStr) return true;
+        return mdInRange(mdOf(dateStr), info.windowStart, info.windowEnd);
+    }
+    // Reducere „rezervare din timp”: comanda plasată azi, în sezonul opus celui al destinației
+    function offSeasonDiscount(dest, orderDateStr) {
+        const info = seasonalInfo(dest);
+        if (!info) return 0;
+        const opp = SEASONAL[info.opposite];
+        return mdInRange(mdOf(orderDateStr), opp.coreStart, opp.coreEnd) ? OFF_SEASON_DISCOUNT : 0;
+    }
+
     /* ------------------------------------------------------------------ ajutoare */
     const int = (v, dflt) => { const n = parseInt(v, 10); return Number.isFinite(n) ? n : dflt; };
     const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
@@ -152,7 +207,8 @@
             carUnavailable: !!ov.carUnavailable,
             board: boardOf(dest.period),
             guideIncluded: fixedTour,
-            transportIncluded: dest.category !== 'romania'
+            transportIncluded: dest.category !== 'romania',
+            seasonal: seasonalInfo(dest)
         };
     }
 
@@ -221,6 +277,15 @@
         const seasonAmount = Math.round(core * (sf.factor - 1));
         if (seasonAmount > 0) add('season', { month: sf.month, pct: Math.round((sf.factor - 1) * 100) }, seasonAmount);
 
+        // Reducere de sejur lung: peste LONG_STAY_NIGHTS nopți
+        const longStay = nights > LONG_STAY_NIGHTS;
+        if (longStay) { const d = -Math.round(core * LONG_STAY_DISCOUNT); add('longstay', { nights: nights, pct: Math.round(LONG_STAY_DISCOUNT * 100) }, d); }
+
+        // Reducere de rezervare din timp: comanda plasată azi (orderDate), în sezonul opus al unei destinații sezoniere
+        const orderDate = opts.orderDate || todayISO();
+        const offSeasonPct = offSeasonDiscount(dest, orderDate);
+        if (offSeasonPct > 0) { const d = -Math.round(core * offSeasonPct); add('offseason', { pct: Math.round(offSeasonPct * 100) }, d); }
+
         const chosen = new Set(opts.extras || []);
         extrasFor(dest, nights).forEach(function (ex) {
             if (ex.status !== 'optional' || !chosen.has(ex.key)) return;
@@ -247,7 +312,11 @@
             nightsFixed: p.nightsFixed,
             nightsAdjusted: nights !== p.nights,
             season: { factor: sf.factor, month: sf.month, applied: seasonAmount > 0 },
-            soloParent: soloParent
+            soloParent: soloParent,
+            seasonal: p.seasonal,
+            dateAllowed: isDateAllowed(dest, opts.date),
+            longStay: longStay,
+            offSeasonPct: Math.round(offSeasonPct * 100)
         };
     }
 
@@ -260,7 +329,10 @@
     const api = {
         EUR_RON: EUR_RON, MAX_ADULTS: MAX_ADULTS, MAX_KIDS: MAX_KIDS, CAR_SEATS: CAR_SEATS,
         profile: profile, extrasFor: extrasFor, quote: quote, seasonFactor: seasonFactor, adultPrice: adultPrice,
-        fmtEUR: fmtEUR, fmtRON: fmtRON, toRON: toRON, SERVICE_ORDER: SERVICE_ORDER
+        fmtEUR: fmtEUR, fmtRON: fmtRON, toRON: toRON, SERVICE_ORDER: SERVICE_ORDER,
+        seasonalInfo: seasonalInfo, isDateAllowed: isDateAllowed, offSeasonDiscount: offSeasonDiscount,
+        LONG_STAY_NIGHTS: LONG_STAY_NIGHTS, LONG_STAY_DISCOUNT: LONG_STAY_DISCOUNT, OFF_SEASON_DISCOUNT: OFF_SEASON_DISCOUNT,
+        todayISO: todayISO
     };
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     root.FVPricing = api;

@@ -37,6 +37,9 @@
         "email": {
           ".validate": "newData.isString() && newData.val().length <= 254"
         },
+        "newsletter": {
+          ".validate": "newData.isBoolean()"
+        },
         "consents": {
           "$doc": {
             ".validate": "($doc === 'terms' || $doc === 'privacy' || $doc === 'anpc') && newData.hasChildren(['v', 'at'])",

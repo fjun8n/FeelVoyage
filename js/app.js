@@ -638,6 +638,8 @@ function quoteLineText(l, localized) {
         case 'kids512': return fmtTpl(t('quote.kids512Line', '{n} × copil 5–12 ani ({pct}% din preț)'), { n: l.count, pct: l.pct });
         case 'single': return fmtTpl(t('quote.singleLine', 'Supliment cameră single ({perNight} × {nights} nopți)'), { perNight: priceEUR(l.perNight), nights: l.nights });
         case 'season': return fmtTpl(t('quote.seasonLine', 'Supliment de sezon: {month} (+{pct}%)'), { month: monthName(l.month, lang), pct: l.pct });
+        case 'longstay': return fmtTpl(t('quote.longstayLine', 'Reducere sejur lung, peste {min} nopți (-{pct}%)'), { min: FVPricing.LONG_STAY_NIGHTS, pct: l.pct });
+        case 'offseason': return fmtTpl(t('quote.offseasonLine', 'Reducere rezervare din timp, în afara sezonului (-{pct}%)'), { pct: l.pct });
         case 'extra':
             if (l.per === 'group') return fmtTpl(t('quote.groupLine', '{name} (per grup)'), { name: name(l.key) });
             if (l.per === 'car') return fmtTpl(t('quote.carLine', '{name} ({cars} × {days} zile × {unit})'), { name: name(l.key), cars: l.cars, days: l.days, unit: priceEUR(l.unit) });
@@ -689,6 +691,12 @@ function renderSteppers() {
     });
 }
 
+// Formatează o lună-zi (LL-ZZ) ca text citibil, în limba curentă (anul e doar un suport de calcul, nu contează)
+function fmtMonthDay(md) { const [mo, da] = md.split('-').map(Number); return new Date(2027, mo - 1, da).toLocaleDateString(LOCALES[currentLang] || 'ro-RO', { day: 'numeric', month: 'long' }); }
+function fmtSeasonalError(seasonal) {
+    return fmtTpl(tr('modal.dateSeasonError', 'Această destinație este sezonieră: alege o dată de plecare între {start} și {end}.'), { start: fmtMonthDay(seasonal.windowStart), end: fmtMonthDay(seasonal.windowEnd) });
+}
+
 function renderBookingQuote() {
     const q = currentQuote();
     if (!q) return;
@@ -708,6 +716,9 @@ function renderBookingQuote() {
     rangeEl.textContent = range.start && range.end ? `${FVDateRange.fmt(range.start)} – ${FVDateRange.fmt(range.end)}` : '';
     rangeEl.classList.toggle('hidden', !(range.start && range.end));
     const notes = [];
+    if (q.seasonal) {
+        notes.push(fmtTpl(tr('quote.noteSeasonal', 'Destinație sezonieră: rezervări posibile doar {start} – {end}.'), { start: fmtMonthDay(q.seasonal.windowStart), end: fmtMonthDay(q.seasonal.windowEnd) }));
+    }
     if (q.season.month === 0) notes.push(tr('quote.noteDate', 'Prețul „de la" este pentru sezonul redus. Alege data plecării ca să vezi prețul exact al sezonului.'));
     else if (!q.season.applied) notes.push(tr('quote.noteLow', 'Data aleasă este în sezon redus: se aplică prețul de bază.'));
     if (q.nightsAdjusted) notes.push(fmtTpl(tr('quote.noteDuration', 'Prețul este ajustat la durata aleasă (pachetul standard are {std} nopți).'), { std: q.packageNights }));
@@ -718,7 +729,10 @@ function initBookingPricing(item) {
     bookingState.adults = 2; bookingState.kids04 = 0; bookingState.kids512 = 0;
     if (bookingRange) {   // durata și limitele pachetului; datele se aleg din nou pentru fiecare pachet
         const pr = FVPricing.profile(item);
-        bookingRange.configure({ defaultNights: pr.nights, minNights: pr.minNights, maxNights: pr.maxNights, fixed: pr.nightsFixed });
+        // fereastra sezonieră (schi / plajă de vară): se resetează explicit la null pentru pachetele fără restricție,
+        // altfel fereastra destinației anterioare ar rămâne agățată de configurare (configure() doar îmbină cheile date)
+        const seasonalWindow = pr.seasonal ? { start: pr.seasonal.windowStart, end: pr.seasonal.windowEnd } : null;
+        bookingRange.configure({ defaultNights: pr.nights, minNights: pr.minNights, maxNights: pr.maxNights, fixed: pr.nightsFixed, seasonalWindow: seasonalWindow });
         bookingRange.reset(true);
         bookingRange.refresh();
     }
@@ -869,11 +883,13 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
         emailError.classList.add('hidden');
     }
 
-    // --- Validate Dates (plecare + întoarcere, în limitele pachetului, nu în trecut) ---
-    if (!bookingRange || bookingRange.validate()) {
-        if (window.FVLog) FVLog.info('booking', 'invalid', { field: 'date' });
+    // --- Validate Dates (plecare + întoarcere, în limitele pachetului, nu în trecut, în fereastra sezonieră) ---
+    const dateErr = bookingRange ? bookingRange.validate() : 'missing';
+    if (dateErr) {
+        if (window.FVLog) FVLog.info('booking', 'invalid', { field: 'date', reason: dateErr });
         if (bookingRange) {
-            bookingRange.showError(tr('modal.dateRequired', 'Alege data plecării și data întoarcerii.'));
+            const pr = currentBookingDest ? FVPricing.profile(currentBookingDest) : null;
+            bookingRange.showError(dateErr === 'season' && pr && pr.seasonal ? fmtSeasonalError(pr.seasonal) : tr('modal.dateRequired', 'Alege data plecării și data întoarcerii.'));
             bookingRange.open(bookingRange.getRange().start ? 'end' : 'start');
             document.getElementById('dateRange').scrollIntoView({ block: 'center', behavior: 'smooth' });
         }

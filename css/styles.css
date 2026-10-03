@@ -630,3 +630,7 @@ html.dark .fv-word-dark { display: inline; }
 /* O mică umbră pe textul logo-ului (wordmark „Feel voyage”), în antet și subsol — îi dă puțin relief, fără să fie exagerată */
 .fv-logo-shadow { filter: drop-shadow(0 1px 2px rgba(15, 23, 42, .35)); }
 html.dark .fv-logo-shadow { filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .55)); }
+
+/* Clasa Tailwind „lowercase” nu există în css/tailwind.css (precompilat, nefolosită până acum) — adăugată aici direct.
+   Folosită la titlul din hero: partea din mijloc scrisă cu litere mici, primul cuvânt și numele companiei rămân neschimbate. */
+.lowercase { text-transform: lowercase; }
