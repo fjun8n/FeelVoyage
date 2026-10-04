@@ -2503,5 +2503,93 @@ const destinations = [
         ],
         description: 'O stațiune mică și autentică din Gorj, cu ape sulfuroase tratate încă din secolul XIX pentru afecțiuni reumatice. Baza de Tratament Săcelu și bazinul natural din apropierea Dealului Negru rămân centrul vieții stațiunii — fără aglomerația stațiunilor mari, dar cu aceleași ape terapeutice, într-o vale liniștită.',
         amenities: ['Hotel 3★ Tratament Balnear', 'Pensiune Completă', 'Acces Baza de Tratament', 'Proceduri Balneare Incluse', 'Transport Inclus']
+    },
+
+    // ===== PARCURI TEMATICE — „În curând" pe FeelVoyage: galerie + formular de anunțare la deschidere,
+    // fără calculator de preț/date (vezi comingSoon în js/app.js → openModal). Minecraft World chiar nu e
+    // construit încă (2027); Disneyland și Legoland există deja, dar pachetele FeelVoyage pentru ele vin în curând. =====
+    {
+        id: 'disneyland-paris',
+        title: 'Disneyland Paris',
+        category: 'parcuri-tematice',
+        extraCategories: ['city-break'],
+        tagLabel: 'Parcuri Tematice • Franța',
+        comingSoon: true,
+        comingSoonNote: 'Pachetele FeelVoyage pentru Disneyland Paris vin în curând',
+        price: 0,
+        priceRon: '',
+        rating: 4.8,
+        currency: '€',
+        period: '3 Nopți / Sejur Standard',
+        images: [
+            'https://images.unsplash.com/photo-1699693368423-6653b5519e9a?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1605443790760-18c6121939d3?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1664206328813-c14febcc8972?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1648915471002-24bed212bfb9?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1602769421676-3c8bfd05b6cf?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1648126938448-0bd656729ddf?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1647901795091-286fd64707d3?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1648159616824-6194c1263156?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1602940634905-b24a98903707?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1629551980761-d8bd1705c253?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1605443792379-ed9d17ff6baf?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1602769921397-e870d926e1e8?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1605713638676-684eb257534a?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1675797334184-9cf50565dede?auto=format&fit=crop&w=1000&q=80'
+        ],
+        description: 'Castelul Frumoasei Adormite, Main Street U.S.A. și paradele zilnice, la doar 2 ore de zbor de România. Lucrăm la pachete complete pentru Disneyland Paris — cazare în resort, bilete de acces în ambele parcuri (Disneyland Park și Walt Disney Studios) și transport. Lasă-ți datele mai jos ca să fii primul anunțat când pachetele devin disponibile pentru rezervare.',
+        amenities: ['Acces Disneyland Park', 'Acces Walt Disney Studios', 'Cazare în Resort', 'Transport Inclus (variantă în lucru)']
+    },
+    {
+        id: 'legoland',
+        title: 'Legoland Billund',
+        category: 'parcuri-tematice',
+        extraCategories: ['city-break'],
+        tagLabel: 'Parcuri Tematice • Danemarca',
+        comingSoon: true,
+        comingSoonNote: 'Pachetele FeelVoyage pentru Legoland vin în curând',
+        price: 0,
+        priceRon: '',
+        rating: 4.7,
+        currency: '€',
+        period: '3 Nopți / Sejur Standard',
+        images: [
+            'https://images.unsplash.com/photo-1699297863328-ae9fb0add4ad?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1729371777460-be41b69e89b2?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1721582698072-82b2910cbb2e?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1653274552507-f1d03c025e67?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1660509001387-741745b51d49?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1763063727663-ca55650058c0?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1764620599401-600ddff2a9e7?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1707024014622-bb27e5611d94?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1749987018202-75e25d545770?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1533364629593-aac3cfebef50?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1788754112353-ab73eb1f10af?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1707024014417-85b53fbd6d87?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1655882382520-ba8d74b267a8?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1661788621025-6f4f92411fe4?auto=format&fit=crop&w=1000&q=80'
+        ],
+        description: 'Legoland Billund, din Danemarca, e primul Legoland din lume, construit lângă fabrica originală LEGO — Miniland reface orașe celebre din milioane de cărămizi, pe lângă roller-coastere și atracții pentru toată familia. Lucrăm la pachete complete pentru Legoland — cazare, bilete de parc și transport. Lasă-ți datele mai jos ca să fii primul anunțat când pachetele devin disponibile pentru rezervare.',
+        amenities: ['Acces Parc Legoland', 'Miniland & Atracții Familie', 'Cazare Inclusă (variantă în lucru)', 'Transport Inclus (variantă în lucru)']
+    },
+    {
+        id: 'minecraft-world',
+        title: 'Minecraft World',
+        category: 'parcuri-tematice',
+        extraCategories: [],
+        tagLabel: 'Parcuri Tematice • Marea Britanie',
+        comingSoon: true,
+        comingSoonNote: 'Parcul însuși se deschide abia în 2027 — fii primul anunțat',
+        comingSoonDate: '2027',
+        price: 0,
+        priceRon: '',
+        rating: 5.0,
+        currency: '€',
+        period: 'Deschidere anunțată: 2027',
+        images: [
+            'https://images.unsplash.com/photo-1660592868727-858d28c3ba52?auto=format&fit=crop&w=1000&q=80'
+        ],
+        description: 'Minecraft World e un land tematic nou, construit de Merlin Entertainments împreună cu Mojang Studios în interiorul Chessington World of Adventures Resort, lângă Londra — o investiție de aproximativ 50 de milioane de lire sterline. Va include roller-coasterul „Escape the Nether" (primul din lume inspirat din Minecraft), zone de joacă create după biomurile jocului (peșteri, mine, câmpii) și un hotel tematic Minecraft World. Deschiderea e anunțată oficial pentru 2027, fără o lună exactă încă — pe măsură ce Merlin Entertainments confirmă detalii noi, le actualizăm aici. Poza de mai sus ilustrează un șantier generic; parcul chiar e în construcție la ora actuală.',
+        amenities: ['Roller-coaster „Escape the Nether"', 'Zone de Joacă pe Biomuri', 'Hotel Tematic Minecraft World', 'Deschidere Oficială: 2027']
     }
 ];

@@ -137,9 +137,14 @@ function buildCard(item) {
                         ${t.tagLabel || item.category}
                     </span>
                     
-                    <div class="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-amber-400 text-slate-900 font-bold text-xs shadow flex items-center gap-1">
-                        <i class="fa-solid fa-star text-slate-900 text-[10px]"></i> ${item.rating || '4.9'}
-                    </div>
+                    ${item.comingSoon ?
+                        `<div class="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-amber-400 text-slate-900 font-extrabold text-[11px] shadow flex items-center gap-1">
+                            <i class="fa-solid fa-hourglass-half text-[10px]"></i> ${tr('card.comingSoon', 'ÎN CURÂND')}
+                        </div>` :
+                        `<div class="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-amber-400 text-slate-900 font-bold text-xs shadow flex items-center gap-1">
+                            <i class="fa-solid fa-star text-slate-900 text-[10px]"></i> ${item.rating || '4.9'}
+                        </div>`
+                    }
 
                     <div class="absolute bottom-3 left-4 right-4 flex justify-between items-end text-white">
                         <span class="text-xs font-medium bg-black/50 px-2.5 py-1 rounded-lg backdrop-blur-sm">
@@ -175,13 +180,19 @@ function buildCard(item) {
                     </div>
 
                     <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] uppercase text-slate-400 font-bold block">${tr('dest.deLa', 'De la')}</span>
-                            <span class="text-2xl font-black text-brand-900">${item.price} ${item.currency}</span><span class="text-xs font-bold text-slate-400 ml-1">/ ${tr('dest.perPerson', 'pers.')}</span>
-                            ${item.priceRon ? `<span class="text-[11px] text-slate-400 font-medium block -mt-1">approx. ${item.priceRon}</span>` : ''}
-                        </div>
-                        <button onclick="openModal('${item.id}')" class="dest-btn px-5 py-3 sm:py-2.5 rounded-xl bg-slate-900 group-hover:bg-brand-600 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5">
-                            ${tr('dest.detaliiBtn', 'Detalii Pachet')} <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        ${item.comingSoon ?
+                            `<div>
+                                <span class="text-[10px] uppercase text-slate-400 font-bold block">${tr('dest.deLa', 'FeelVoyage')}</span>
+                                <span class="text-base font-black text-amber-600">${tr('card.comingSoon', 'ÎN CURÂND')}</span>
+                            </div>` :
+                            `<div>
+                                <span class="text-[10px] uppercase text-slate-400 font-bold block">${tr('dest.deLa', 'De la')}</span>
+                                <span class="text-2xl font-black text-brand-900">${item.price} ${item.currency}</span><span class="text-xs font-bold text-slate-400 ml-1">/ ${tr('dest.perPerson', 'pers.')}</span>
+                                ${item.priceRon ? `<span class="text-[11px] text-slate-400 font-medium block -mt-1">approx. ${item.priceRon}</span>` : ''}
+                            </div>`
+                        }
+                        <button onclick="openModal('${item.id}')" class="dest-btn px-5 py-3 sm:py-2.5 rounded-xl ${item.comingSoon ? 'bg-amber-500 group-hover:bg-amber-600' : 'bg-slate-900 group-hover:bg-brand-600'} text-white font-bold text-xs shadow transition-all flex items-center gap-1.5">
+                            ${item.comingSoon ? tr('card.notifyBtn', 'Anunță-mă') : tr('dest.detaliiBtn', 'Detalii Pachet')} <i class="fa-solid fa-arrow-right text-[10px]"></i>
                         </button>
                     </div>
                 </div>
@@ -545,7 +556,11 @@ function openModal(id, photoIndex) {
     // Set main details
     modalTitle.innerText = t.title;
     modalBadge.innerText = t.tagLabel || item.category;
-    modalPrice.innerText = `${item.price} ${item.currency} (${item.priceRon || ''})`;
+    const comingSoonPriceLabel = tr('modal.comingSoonBadge', 'În curând');
+    modalPrice.innerText = item.comingSoon ? comingSoonPriceLabel : `${item.price} ${item.currency} (${item.priceRon || ''})`;
+    const priceLabelText = item.comingSoon ? tr('modal.comingSoonStatusLabel', 'Status pachet') : tr('modal.priceLabel', 'Preț / persoană');
+    document.getElementById('modalPriceLabel').textContent = priceLabelText;
+    document.getElementById('bkPriceLabel').textContent = priceLabelText;
     modalDesc.innerText = t.description;
     // antetul pentru calculator (același conținut ca pe poza de pe telefon)
     document.getElementById('bkTitle').textContent = t.title;
@@ -580,7 +595,16 @@ function openModal(id, photoIndex) {
         </label>
     `).join('');
 
-    initBookingPricing(item);
+    // Pachet „în curând" (parcuri tematice): formular simplu de anunțare în loc de calculatorul de preț/date
+    const comingSoonBox = document.getElementById('comingSoonBox');
+    const normalBookingBox = document.getElementById('normalBookingBox');
+    comingSoonBox.classList.toggle('hidden', !item.comingSoon);
+    normalBookingBox.classList.toggle('hidden', !!item.comingSoon);
+    if (item.comingSoon) {
+        document.getElementById('comingSoonNoteText').textContent = tr(`dest.${item.id}.comingSoonNote`, item.comingSoonNote || '');
+    } else {
+        initBookingPricing(item);
+    }
 
     // dacă fereastra a fost închisă cu câteva zeci de milisecunde înainte, anulăm ascunderea întârziată (și reblocăm derularea)
     if (bookingModal.classList.contains('hidden') || modalCloseTimer) lockScroll(true);
@@ -1071,6 +1095,59 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     setTimeout(() => {
         document.getElementById('contactSuccess').classList.add('hidden');
     }, 5000);
+});
+
+// Formular „Anunță-mă la lansare" — pachete „în curând” (parcuri tematice): un lead simplu (nume, e-mail, telefon opțional),
+// trimis prin același canal ca formularul de contact (vezi backend.js → submitOrder), legat de pachetul deschis în modal.
+document.getElementById('comingSoonForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const nameVal = document.getElementById('csName').value.trim();
+    const emailVal = document.getElementById('csEmail').value.trim().toLowerCase();
+    const phoneVal = document.getElementById('csPhone').value.trim();
+    const errEl = document.getElementById('csError');
+    const errText = document.getElementById('csErrorText');
+    const nameRegex = /^[A-Za-zĂÂÎȘȚăâîșțÀ-ÿ'\-]{2,}(?:\s+[A-Za-zĂÂÎȘȚăâîșțÀ-ÿ'\-]{2,})+$/;
+    if (!nameRegex.test(nameVal)) {
+        errText.textContent = tr('modal.nameError', 'Te rog introdu Numele și Prenumele (ex: Ion Popescu)');
+        errEl.classList.remove('hidden');
+        document.getElementById('csName').focus();
+        return;
+    }
+    const allowedDomains = ['@gmail.com', '@yahoo.com', '@business.com'];
+    if (!allowedDomains.some(d => emailVal.endsWith(d))) {
+        errText.textContent = tr('modal.emailError', 'Adresă de e-mail invalidă.');
+        errEl.classList.remove('hidden');
+        document.getElementById('csEmail').focus();
+        return;
+    }
+    if (phoneVal && !fvPhoneValid(phoneVal)) {
+        errText.textContent = tr('modal.phoneError', 'Număr de telefon invalid. Folosește formatul internațional (ex: +40 7XX XXX XXX)');
+        errEl.classList.remove('hidden');
+        document.getElementById('csPhone').focus();
+        return;
+    }
+    errEl.classList.add('hidden');
+    const dest = currentBookingDest;
+    const order = {
+        type: 'contact',
+        name: nameVal,
+        phone: phoneVal,
+        email: emailVal,
+        destination: dest ? dest.title : '',
+        message: tr('modal.comingSoonLeadMsg', 'Vrea să fie anunțat când pachetul devine disponibil pentru rezervare.')
+    };
+    setFormBusy(form, true);
+    try {
+        await sendOrder(order);
+    } catch (err) {
+        setFormBusy(form, false);
+        notify(tr('order.error', ORDER_ERROR_RO), 'error');
+        return;
+    }
+    setFormBusy(form, false);
+    notify(tr('modal.comingSoonThanks', 'Mulțumim! Te anunțăm imediat ce pachetul e disponibil.'));
+    form.reset();
 });
 
 // ============ STORAGE SHIM ============

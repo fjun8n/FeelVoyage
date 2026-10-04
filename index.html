@@ -373,6 +373,7 @@
                                 <option value="luna-de-miere" data-i18n="dest.filterLunaMiere">💍 Luna de Miere</option>
                                 <option value="seniori" data-i18n="dest.filterSeniori">🌿 Pentru Seniori</option>
                                 <option value="sfantul-patrick" data-i18n="dest.filterStPatrick">☘️ Sfântul Patrick</option>
+                                <option value="parcuri-tematice" data-i18n="dest.filterParcuriTematice">🎢 Parcuri Tematice</option>
                             </select>
                         </div>
                     </div>
@@ -507,6 +508,9 @@
                 </button>
                 <button data-filter="sfantul-patrick" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all">
                     <span data-i18n="dest.filterStPatrick">☘️ Sfântul Patrick</span>
+                </button>
+                <button data-filter="parcuri-tematice" class="filter-btn shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all">
+                    <span data-i18n="dest.filterParcuriTematice">🎢 Parcuri Tematice</span>
                 </button>
             </div>
 
@@ -890,7 +894,7 @@
                     <h3 id="bkTitle" class="bk-title"></h3>
                 </div>
                 <div class="bk-head-side">
-                    <span class="bk-price-label" data-i18n="modal.priceLabel">Preț / persoană</span>
+                    <span id="bkPriceLabel" class="bk-price-label" data-i18n="modal.priceLabel">Preț / persoană</span>
                     <span id="bkPrice" class="bk-price"></span>
                     <button id="bkGalleryBtn" type="button" class="bk-gallery-btn" hidden><i class="fa-solid fa-images"></i> <span id="bkGalleryBtnLabel"></span></button>
                 </div>
@@ -912,7 +916,7 @@
                             <h3 id="modalTitle" class="text-xl sm:text-3xl font-extrabold font-serif leading-tight"></h3>
                         </div>
                         <div class="sm:text-right">
-                            <span class="text-xs opacity-90 block" data-i18n="modal.priceLabel">Preț / persoană</span>
+                            <span id="modalPriceLabel" class="text-xs opacity-90 block" data-i18n="modal.priceLabel">Preț / persoană</span>
                             <span id="modalPrice" class="text-xl sm:text-3xl font-black text-amber-300"></span>
                         </div>
                     </div>
@@ -957,10 +961,32 @@
                             <i class="fa-solid fa-pen" aria-hidden="true"></i> <span data-i18n="modal.leaveReview">Lasă un review</span>
                         </button>
                     </div>
+                    <!-- Recenziile reale ale acestei destinații (text + poze din vacanță), din aceeași bază ca FeelVoyage Reviews -->
+                    <div id="modalReviewsList" class="mt-3 space-y-4 max-h-80 overflow-y-auto custom-scrollbar pr-1"></div>
+                </div>
+
+                <!-- Pachet „în curând": formular simplu de anunțare, în loc de calculatorul complet de rezervare (vezi comingSoon în js/app.js) -->
+                <div id="comingSoonBox" class="hidden bg-amber-50 p-4 sm:p-5 rounded-2xl border border-amber-200">
+                    <h4 class="font-bold text-slate-900 mb-1.5 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-hourglass-half text-amber-600"></i> <span data-i18n="modal.comingSoonTitle">În curând pe FeelVoyage</span>
+                    </h4>
+                    <p id="comingSoonNoteText" class="text-xs text-slate-600 mb-4 leading-relaxed"></p>
+                    <form id="comingSoonForm" class="space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="text" id="csName" required maxlength="100" placeholder="Nume și Prenume (ex: Ion Popescu)" class="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none" data-i18n-ph="modal.namePlaceholder">
+                            <input type="tel" id="csPhone" maxlength="32" placeholder="Telefon (opțional)" class="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none" data-i18n-ph="modal.comingSoonPhonePlaceholder">
+                        </div>
+                        <input type="email" id="csEmail" required maxlength="120" placeholder="E-mail" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none" data-i18n-ph="modal.emailPlaceholder">
+                        <p id="csError" class="hidden text-[10px] text-red-500 font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i><span id="csErrorText"></span></p>
+                        <button type="submit" id="csSubmitBtn" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow transition flex items-center justify-center gap-2">
+                            <span data-spinner class="hidden"><i class="fa-solid fa-spinner fa-spin"></i></span>
+                            <i class="fa-solid fa-bell" aria-hidden="true"></i> <span data-i18n="modal.comingSoonSubmit">Anunță-mă la lansare</span>
+                        </button>
+                    </form>
                 </div>
 
                 <!-- Booking Form inside Modal -->
-                <div class="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
+                <div id="normalBookingBox" class="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
                     <h4 class="font-bold text-slate-900 mb-3 text-sm flex items-center gap-2">
                         <i class="fa-solid fa-paper-plane text-brand-600"></i> <span data-i18n="modal.bookingTitle">Rezervă sau Solicită Informații Suplimentare</span>
                     </h4>
@@ -1947,6 +1973,14 @@
     <!-- Toast Notification -->
     <div id="fvToast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[110] hidden w-max max-w-[calc(100vw-2rem)] px-5 py-3 rounded-2xl bg-slate-900 text-white text-sm font-semibold shadow-2xl border border-white/10 flex items-center gap-2 text-left" role="status" aria-live="polite"></div>
 
+    <!-- Lightbox: mărește orice poză de recenzie la un click (js/lightbox.js) -->
+    <div id="fvLightbox" class="fixed inset-0 z-[200] hidden bg-slate-950/92 backdrop-blur-sm items-center justify-center p-4 sm:p-8" role="dialog" aria-modal="true" aria-label="Poză mărită">
+        <button id="fvLightboxClose" type="button" aria-label="Închide" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 w-11 h-11 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center backdrop-blur-md transition">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+        <img id="fvLightboxImg" src="" alt="" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl select-none">
+    </div>
+
     <!-- Pop-up de reamintire newsletter: doar pentru vizitatorii cu cont, care nu s-au abonat încă (js/newsletter-popup.js) -->
     <div id="newsletterPopup" class="fixed top-24 right-4 z-[55] hidden w-64 sm:w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transition-all duration-300 opacity-0 -translate-y-2" role="dialog" aria-live="polite" aria-labelledby="newsletterPopupTitle">
         <div class="bg-gradient-to-r from-brand-600 to-sunset-500 px-3.5 py-2 flex items-center justify-between gap-2">
@@ -2008,6 +2042,7 @@
     <script src="js/ai.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/lightbox.js"></script>
     <script src="js/reviews.js"></script>
     <script src="js/newsletter-popup.js"></script>
     <script src="js/infomodal.js"></script>

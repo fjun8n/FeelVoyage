@@ -33,8 +33,9 @@
         shown = true;
         bubble.classList.remove('hidden');
         requestAnimationFrame(function () { bubble.classList.remove('opacity-0', 'translate-y-2'); });
-        // dacă nimeni nu-l atinge, dispare singur după un timp — nu rămâne agățat acolo la nesfârșit
-        setTimeout(function () { if (!bubble.classList.contains('hidden')) { setSnoozed(); hide(); } }, 11000);
+        // dacă nimeni nu-l atinge, dispare singur după un timp — dar NU îl mai punem pe „pauză” 6 ore pentru atâta lucru;
+        // snooze-ul e doar pentru o închidere EXPLICITĂ (X sau deschiderea chatului), ca să reapară la următoarea vizită
+        setTimeout(function () { if (!bubble.classList.contains('hidden')) hide(); }, 11000);
     }
 
     closeBtn.addEventListener('click', function (e) {

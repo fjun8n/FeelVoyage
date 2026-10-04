@@ -518,3 +518,12 @@ Ca de obicei la schimbări de reguli Firebase: **urcă din nou `firebase-rules.j
 - **Pozele destinațiilor sunt colorate din start**, nu doar la trecerea cursorului peste ele.
 - **Poze locale reparate** — 7 destinații (Băile Herculane, Băile Săcelu, Constanța, Sovata, Cluj-Napoca, Craiova, Timișoara) foloseau poze locale (nu Unsplash); folderele lor de poze (`img/`, `img2/`) au fost copiate și în `reviews/`, altfel apăreau sparte acolo.
 - **Linkuri corectate cu adresele reale**: cele două site-uri sunt repo-uri GitHub separate (https://fjun8n.github.io/FeelVoyage/ și https://fjun8n.github.io/FeelVoyage-Reviews/) — linkurile dintre ele foloseau căi relative, greșite pentru această configurație; acum sunt adrese complete, în ambele sensuri.
+
+**Actualizare mare — parcuri tematice, sincronizare recenzii, fix-uri (sesiune curentă):**
+- Secțiune nouă **„Parcuri Tematice"**: Disneyland Paris (14 poze), Legoland Billund (14 poze), Minecraft World (1 poză — parcul chiar e în construcție, deschidere anunțată 2027 la Chessington World of Adventures, UK). Toate 3 apar ca „ÎN CURÂND" — fereastra lor are un formular simplu „Anunță-mă la lansare" în loc de calculatorul complet de preț/date.
+- **Băile Săcelu**: 14 poze locale proprii, deja puse în galerie.
+- **Recenziile (text + poze)** apar acum și pe site-ul principal, în fiecare fereastră de pachet, nu doar pe FeelVoyage Reviews — aceeași sursă Firebase.
+- **Lightbox**: click pe o poză de recenzie o mărește pe tot ecranul, pe ambele site-uri.
+- **Site-ul reviews**: fereastra cu recenziile unei destinații are acum un banner cu poza destinației (nu mai e un antet gol).
+- **Norișorul de chat**: nu se mai „pune pe pauză" 6 ore dacă doar dispare singur — reapare la fiecare vizită nouă.
+- `reviews/js/destinations.js` sincronizat manual cu `js/destinations.js` (identice) — orice destinație nouă trebuie copiată în ambele, la fel ca imaginile locale din `img/`/`img2/`.
