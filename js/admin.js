@@ -110,7 +110,30 @@
         });
         $('adminUserView').addEventListener('click', function (e) {
             const c = e.target.closest('[data-copy-uid]');
-            if (c && selected) copyText(selected.uid);
+            if (c && selected) { copyText(selected.uid); return; }
+            const saveBtn = e.target.closest('#adminNameSaveBtn');
+            if (saveBtn && selected) {
+                const input = $('adminNameInput'), statusEl = $('adminNameStatus');
+                const newName = input.value.trim();
+                if (newName.length < 2) {
+                    statusEl.textContent = trF('admin.nameTooShort', 'Numele trebuie să aibă cel puțin 2 caractere.');
+                    statusEl.className = 'text-[11px] mt-1 text-rose-500';
+                    return;
+                }
+                saveBtn.disabled = true;
+                statusEl.textContent = '';
+                FVBackend.adminSetName(selected.uid, newName).then(function (clean) {
+                    selected.name = clean;
+                    const u2 = users.filter(function (x) { return x.uid === selected.uid; })[0];
+                    if (u2) u2.name = clean;
+                    renderUser(selected);   // re-randează antetul (avatar/inițiale, titlu) cu numele nou
+                    if (typeof fvToast === 'function') fvToast(trF('admin.nameSaved', 'Numele a fost actualizat.'));
+                }).catch(function () {
+                    saveBtn.disabled = false;
+                    statusEl.textContent = trF('admin.errorGeneric', 'A apărut o eroare. Încearcă din nou.');
+                    statusEl.className = 'text-[11px] mt-1 text-rose-500';
+                });
+            }
         });
         $('adminUserView').addEventListener('change', function (e) {
             if (e.target.id !== 'adminNewsletterToggle' || !selected) return;
@@ -359,7 +382,7 @@
         const v = $('adminUserView');
         const muted = function (t) { return '<span class="text-slate-400 italic text-xs">' + esc(t) + '</span>'; };
         v.innerHTML =
-            '<div class="p-3 rounded-2xl bg-blue-50 border border-blue-100 text-[11px] leading-relaxed text-blue-800 flex gap-2"><i class="fa-solid fa-eye mt-0.5"></i><span>' + esc(trF('admin.viewBanner', 'Vezi profilul acestui utilizator așa cum îl vede el. Mod administrator: poți modifica doar abonarea la newsletter de mai jos — restul e doar citire.')) + '</span></div>' +
+            '<div class="p-3 rounded-2xl bg-blue-50 border border-blue-100 text-[11px] leading-relaxed text-blue-800 flex gap-2"><i class="fa-solid fa-eye mt-0.5"></i><span>' + esc(trF('admin.viewBanner', 'Vezi profilul acestui utilizator așa cum îl vede el. Mod administrator: poți modifica numele afișat și abonarea la newsletter de mai jos — restul (telefon, e-mail, ID cont) e doar citire.')) + '</span></div>' +
             // aceeași machetă ca „Profilul meu"
             '<div class="flex items-center gap-4">' +
                 '<div class="' + avatarClass(u.admin, 'w-14 h-14 text-xl') + '">' + esc(initialsOf(u.name)) + '</div>' +
@@ -381,11 +404,20 @@
                 '<p class="text-[10px] uppercase font-bold text-blue-700 tracking-wider"><i class="fa-solid fa-shield-halved mr-1"></i>' + esc(trF('admin.details', 'Detalii cont (le vezi doar tu)')) + '</p>' +
                 detailRow('fa-phone', trF('admin.phone', 'Telefon'), u.phone ? esc(u.phone) : muted(trF('admin.noPhone', 'nespecificat'))) +
                 detailRow('fa-envelope', trF('admin.email', 'E-mail'), u.email ? esc(u.email) : muted(trF('admin.noEmail', 'necunoscut (apare după următoarea autentificare a utilizatorului)'))) +
+                detailRow('fa-signature', trF('admin.nameLabel', 'Nume afișat'), nameEditHtml(u)) +
                 detailRow('fa-calendar-check', trF('admin.since', 'Membru din'), esc(fmtDate(u.createdAt))) +
                 detailRow('fa-file-signature', trF('admin.consents', 'Acceptări documente'), consentsHtml(u)) +
                 detailRow('fa-envelope-open-text', trF('admin.newsletter', 'Abonat la newsletter'), newsletterToggleHtml(u)) +
                 detailRow('fa-fingerprint', trF('admin.uid', 'ID cont'), '<code class="text-[11px] bg-slate-100 rounded px-1.5 py-0.5 break-all">' + esc(u.uid) + '</code> <button type="button" data-copy-uid class="ml-1 text-[11px] font-bold text-blue-600 hover:underline">' + esc(trF('admin.copy', 'Copiază')) + '</button>') +
             '</div>';
+    }
+    // administratorul poate schimba numele afișat al oricărui cont (ex: nume scris greșit, limbaj nepotrivit)
+    function nameEditHtml(u) {
+        return '<div class="flex items-center gap-2">' +
+            '<input type="text" id="adminNameInput" value="' + esc(u.name || '') + '" maxlength="80" class="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">' +
+            '<button type="button" id="adminNameSaveBtn" class="shrink-0 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">' + esc(trF('admin.save', 'Salvează')) + '</button>' +
+            '</div>' +
+            '<p id="adminNameStatus" class="text-[11px] mt-1"></p>';
     }
     // singurul lucru editabil din acest panou altfel doar-citire: administratorul poate (dez)abona pe oricine la newsletter
     function newsletterToggleHtml(u) {

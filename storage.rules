@@ -1,0 +1,22 @@
+// FeelVoyage — reguli de securitate pentru Firebase Storage (poze de profil, js/avatar.js).
+// Deployment: Firebase Console → Storage → Rules → lipește conținutul de mai jos → Publică.
+// (Sau, cu Firebase CLI instalat: firebase deploy --only storage)
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Fiecare utilizator poate încărca/înlocui DOAR propria poză de profil, la calea avatars/<uid-ul lui>.jpg —
+    // niciodată poza altcuiva. Limită: 5 MB (deși js/avatar.js comprimă în browser înainte, mult sub atât),
+    // doar fișiere imagine. Citirea e publică, pentru că pozele de profil apar pe carduri/recenzii/jurnal.
+    match /avatars/{uid}.jpg {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+    // Orice altă cale: interzisă implicit.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

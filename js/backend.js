@@ -156,6 +156,17 @@
             resetPassword: function () { return Promise.reject(FVError('unsupported')); },
             listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
             adminSetNewsletter: function () { return Promise.reject(FVError('unsupported')); },
+            adminSetName: function () { return Promise.reject(FVError('unsupported')); },
+            setPhotoURL: function () { return Promise.reject(FVError('unsupported')); },   // Storage există doar cu Firebase configurat
+            recordContactRequest: function () {
+                const s = readJSON(KEY_SESSION_LOCAL, null);
+                if (!s) return Promise.reject(FVError('forbidden'));
+                const now = Date.now();
+                s.lastContactRequestAt = now;
+                kv.set(KEY_SESSION_LOCAL, JSON.stringify(s));
+                publishSession(s);
+                return Promise.resolve(now);
+            },
             submitReview: function () { return Promise.reject(FVError('unsupported')); },   // review-urile cer cont real Firebase, comun cu FeelVoyage Reviews
             onReviewStats: function (destId, cb) { cb({ avg: 5, count: 0 }); return function () {}; },
             onDestinationReviews: function (destId, cb) { cb([]); return function () {}; },
@@ -190,7 +201,7 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail, adminSetNewsletter: fail, submitReview: fail,
+            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail, adminSetNewsletter: fail, adminSetName: fail, setPhotoURL: fail, recordContactRequest: fail, submitReview: fail,
             onReviewStats: function (destId, cb) { cb({ avg: 5, count: 0 }); return noop; },
             onDestinationReviews: function (destId, cb) { cb([]); return noop; },
             onTopReviews: function (limit, cb) { cb([]); return noop; },
@@ -306,7 +317,9 @@
                 admin: admin,
                 emailVerified: !!user.emailVerified,   // de pe contul Firebase Auth, nu din baza de date; Google vine deja verificat
                 consents: cleanConsents(profile.consents),
-                newsletter: !!profile.newsletter
+                newsletter: !!profile.newsletter,
+                photoURL: profile.photoURL || '',
+                lastContactRequestAt: profile.lastContactRequestAt || 0   // pentru limita de 1 cerere de ofertă / 3 zile (vezi js/contact-limit.js)
             };
         }
 
@@ -461,6 +474,52 @@
                     return !!value;
                 } catch (e) {
                     console.error('[FeelVoyage] Nu pot salva preferința de newsletter:', e);
+                    throw FVError('network', e);
+                }
+            },
+            // Poza de profil: utilizatorul o încarcă în Firebase Storage (js/avatar.js) și doar salvează aici adresa rezultată.
+            setPhotoURL: async function (url) {
+                if (!auth.currentUser || !session) throw FVError('forbidden');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(dbM.ref(db, 'users/' + auth.currentUser.uid + '/photoURL'), String(url || '')), 15000);
+                    session = Object.assign({}, session, { photoURL: String(url || '') });
+                    authSubs.forEach(function (cb) { cb(session); });
+                    return true;
+                } catch (e) {
+                    console.error('[FeelVoyage] Nu pot salva poza de profil:', e);
+                    throw FVError('network', e);
+                }
+            },
+            // Reține momentul trimiterii unei „Cereri de Ofertă” (limita e 1 / 3 zile / cont, vezi js/contact-limit.js).
+            // Administratorii nu apelează niciodată asta (formularul lor nu are limită), deci nu trebuie verificat aici.
+            recordContactRequest: async function () {
+                if (!auth.currentUser || !session) throw FVError('forbidden');
+                const r = dbM.ref(db, 'users/' + auth.currentUser.uid + '/lastContactRequestAt');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(r, dbM.serverTimestamp()), 15000);
+                    const now = Date.now();
+                    session = Object.assign({}, session, { lastContactRequestAt: now });
+                    authSubs.forEach(function (cb) { cb(session); });
+                    return now;
+                } catch (e) {
+                    console.error('[FeelVoyage] Nu pot salva momentul cererii de ofertă:', e);
+                    throw FVError('network', e);
+                }
+            },
+            // Administratorul schimbă numele afișat al unui cont, din panoul de utilizatori (js/admin.js).
+            // Protecția reală e în regulile bazei de date: doar un cont din „admins” poate scrie în câmpul name al altui cont.
+            adminSetName: async function (uid, name) {
+                if (!session || !session.admin) throw FVError('forbidden');
+                const clean = String(name || '').trim();
+                if (!clean) throw FVError('invalid-name');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(dbM.ref(db, 'users/' + uid + '/name'), clean), 15000);
+                    return clean;
+                } catch (e) {
+                    console.error('[FeelVoyage] Nu pot salva numele contului:', e);
                     throw FVError('network', e);
                 }
             },
@@ -682,6 +741,9 @@
         withdrawConsent: function (doc) { return ready.then(function (b) { return b.withdrawConsent(doc); }); },
         setNewsletter: function (value) { return ready.then(function (b) { return b.setNewsletter(value); }); },
         adminSetNewsletter: function (uid, value) { return ready.then(function (b) { return b.adminSetNewsletter(uid, value); }); },
+        adminSetName: function (uid, name) { return ready.then(function (b) { return b.adminSetName(uid, name); }); },
+        setPhotoURL: function (url) { return ready.then(function (b) { return b.setPhotoURL(url); }); },
+        recordContactRequest: function () { return ready.then(function (b) { return b.recordContactRequest(); }); },
         submitReview: function (destId, destTitle, data) { return ready.then(function (b) { return b.submitReview(destId, destTitle, data); }); },
         onReviewStats: function (destId, cb) {
             let unsub = noop, cancelled = false;

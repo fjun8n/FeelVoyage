@@ -142,7 +142,7 @@ function buildCard(item) {
                             <i class="fa-solid fa-hourglass-half text-[10px]"></i> ${tr('card.comingSoon', 'ÎN CURÂND')}
                         </div>` :
                         `<div class="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-amber-400 text-slate-900 font-bold text-xs shadow flex items-center gap-1">
-                            <i class="fa-solid fa-star text-slate-900 text-[10px]"></i> ${item.rating || '4.9'}
+                            <i class="fa-solid fa-star text-slate-900 text-[10px]"></i> ${(window._fvCardStats && window._fvCardStats[item.id] && window._fvCardStats[item.id].count > 0) ? window._fvCardStats[item.id].avg.toFixed(1) : (item.rating || '4.9')}
                         </div>`
                     }
 
@@ -588,7 +588,11 @@ function openModal(id, photoIndex) {
 
     // Render Amenities — bifate implicit (incluse); debifează orice nu vrei și prețul scade (vezi deselectedAmenities mai jos)
     deselectedAmenities = new Set();   // pachet nou deschis: toate facilitățile pornesc bifate
-    currentTransportAmenityIndices = new Set(t.amenities.map((a, i) => [a, i]).filter(([a]) => /^(Transport Inclus|Zbor Inclus)/.test(a)).map(([, i]) => String(i)));
+    currentAmenityExtraKeyMap = new Map();
+    t.amenities.forEach((a, i) => {
+        const rule = AMENITY_TO_EXTRA.find(r => r.test(a));
+        if (rule) currentAmenityExtraKeyMap.set(String(i), rule.key);
+    });
     modalAmenities.innerHTML = t.amenities.map((a, i) => `
         <label class="px-3 py-1 bg-brand-50 text-brand-700 font-bold text-xs rounded-lg border border-brand-200/60 flex items-center gap-1.5 cursor-pointer select-none hover:bg-brand-100 transition">
             <input type="checkbox" name="booking-amenity" data-amenity-index="${i}" checked class="w-3.5 h-3.5 rounded text-brand-600 focus:ring-brand-500 focus:ring-offset-0">
@@ -677,7 +681,18 @@ document.addEventListener('input', (e) => {
 const bookingState = { adults: 2, kids04: 0, kids512: 0 };
 let bookingRange = null;   // selectorul de interval de date (js/daterange.js)
 let deselectedAmenities = new Set();   // indicii facilităților incluse pe care clientul le-a debifat (prețul scade pentru fiecare)
-let currentTransportAmenityIndices = null;   // index-urile din amenities curente care înseamnă „Transport/Zbor Inclus” — vezi listener-ul modalAmenities mai jos
+
+// Potrivire text amenity → cheie din „Alege Serviciile Dorite” (vezi listener-ul modalAmenities mai jos). Fiecare regulă
+// a fost verificată manual pe toate destinațiile din destinations.js, ca să nu prindă din greșeală ceva nepotrivit
+// (ex: „Tur Panoramic Auto” sau „Fără Transport de Bagaje” NU trebuie să atingă serviciile transport/car).
+const AMENITY_TO_EXTRA = [
+    { key: 'transport', test: a => /^(Transport Inclus|Zbor Inclus)/.test(a) },
+    { key: 'meals', test: a => ['Mic Dejun', 'Mic Dejun Inclus', 'Demipensiune', 'Pensiune Completă', 'Pensiune Completă la Bord', 'All Inclusive', 'Premium All Inclusive'].includes(a) },
+    { key: 'guide', test: a => /ghid/i.test(a) },
+    { key: 'transfer', test: a => /transfer/i.test(a) },
+    { key: 'car', test: a => a === 'Rental Auto Incluse' },
+];
+let currentAmenityExtraKeyMap = null;   // Map index-amenity (string) -> cheie extra ('transport'|'meals'|'guide'|'transfer'|'car')
 const EXTRA_LABEL_KEYS = { transport: 'modal.serviceTransport', cazare: 'modal.serviceCazare', transfer: 'modal.serviceTransfer', meals: 'modal.serviceMeals', tickets: 'modal.serviceTickets', insurance: 'modal.serviceInsurance', guide: 'modal.serviceGuide', car: 'modal.serviceCar' };
 const EXTRA_LABELS_RO = { transport: 'Transport (zbor/autocar)', cazare: 'Cazare hotel', transfer: 'Transfer aeroport-hotel', meals: 'Demipensiune / Mic dejun', tickets: 'Bilete la atracții', insurance: 'Asigurare de călătorie', guide: 'Ghid local', car: 'Închiriere auto' };
 const LOCALES = { ro: 'ro-RO', en: 'en-GB', it: 'it-IT', fr: 'fr-FR', es: 'es-ES' };
@@ -839,14 +854,14 @@ modalAmenities.addEventListener('change', (e) => {
     if (e.target.name !== 'booking-amenity') return;
     const idx = e.target.getAttribute('data-amenity-index');
     if (e.target.checked) deselectedAmenities.delete(idx); else deselectedAmenities.add(idx);
-    // „Transport Inclus” / „Zbor Inclus” e aproape mereu și una din facilitățile de mai sus ȘI serviciul
-    // „Transport” bifat/blocat din „Alege Serviciile Dorite” — fără legătura asta, debifarea de aici nu se
-    // vedea deloc în cealaltă listă, deși descriu același lucru (prețul nu e afectat în niciun caz: un
-    // serviciu „inclus” nu se taxează separat oricum — e doar ca lista să nu mai arate transportul ca inclus
-    // după ce tocmai l-ai debifat mai sus).
-    if (currentTransportAmenityIndices && currentTransportAmenityIndices.has(idx)) {
-        const transportInput = document.querySelector('#modalBookingForm [data-extra="transport"] input');
-        if (transportInput && transportInput.disabled) transportInput.checked = e.target.checked;
+    // Multe facilități de mai sus (transport, masă, ghid, transfer, mașină) descriu EXACT același lucru ca un
+    // serviciu bifat/blocat din „Alege Serviciile Dorite” — fără legătura asta, debifarea de aici nu se vedea
+    // deloc în cealaltă listă (prețul nu e afectat în niciun caz: un serviciu „inclus” nu se taxează separat
+    // oricum — e doar ca lista să nu mai arate serviciul ca inclus după ce tocmai l-ai debifat mai sus).
+    const extraKey = currentAmenityExtraKeyMap && currentAmenityExtraKeyMap.get(idx);
+    if (extraKey) {
+        const extraInput = document.querySelector(`#modalBookingForm [data-extra="${extraKey}"] input`);
+        if (extraInput && extraInput.disabled) extraInput.checked = e.target.checked;
     }
     renderBookingQuote();
 });
@@ -1080,6 +1095,12 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
 // Contact Form Submission
 document.getElementById('contactForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    // Formularul necesită cont (vezi js/auth.js → syncContactFormGate); câmpurile sunt oricum blocate vizual,
+    // dar verificăm și aici, ca o a doua barieră, în caz că cineva ar reuși să declanșeze submit altfel.
+    const activeSession = typeof window.fvCurrentSession === 'function' ? window.fvCurrentSession() : null;
+    if (!activeSession) { document.getElementById('contactLoginNotice').classList.remove('hidden'); return; }
+    // Limita de 1 cerere / 3 zile / cont (doar membri — administratorii sunt scutiți): a doua barieră, la fel ca mai sus.
+    if (!activeSession.admin && window.FVContactLimit && FVContactLimit.nextAllowedTime(activeSession.lastContactRequestAt) > Date.now()) return;
     const form = e.target;
     const val = (id) => document.getElementById(id).value.trim();
     const order = {
@@ -1100,6 +1121,11 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
         return;
     }
     setFormBusy(form, false);
+    // Reține momentul trimiterii (doar pentru membri — vezi js/contact-limit.js); dacă nu reușește să se salveze,
+    // cererea tot a ajuns la noi (sendOrder de mai sus a reușit deja), deci nu blocăm succesul pentru atâta lucru.
+    if (!activeSession.admin && window.FVBackend && FVBackend.recordContactRequest) {
+        FVBackend.recordContactRequest().catch(() => {});
+    }
 
     document.getElementById('contactSuccess').classList.remove('hidden');
     form.reset();

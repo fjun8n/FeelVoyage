@@ -306,7 +306,59 @@
             const span = authMobileBtn.querySelector('span');
             if (span) span.textContent = label;
         }
+        syncContactFormGate();
     }
+
+    /* Formularul „Trimite Cerere de Ofertă” (secțiunea Contact): necesită cont — câmpurile rămân blocate și
+       apare un mesaj explicativ până te autentifici; odată logat, se precompletează ca la fereastra de pachet.
+       În plus: limita de 1 cerere / 3 zile / cont (doar conturi membru — administratorii sunt scutiți, vezi
+       js/contact-limit.js), afișată direct pe buton („Mai ai Xh Ym...”), actualizată singură la fiecare minut. */
+    let contactCooldownTimer = null;
+    function syncContactFormGate() {
+        const fields = document.getElementById('contactFormFields');
+        const notice = document.getElementById('contactLoginNotice');
+        const btn = document.getElementById('contactSubmitBtn');
+        const btnLabel = document.getElementById('contactBtnLabel');
+        const btnIcon = document.getElementById('contactBtnIcon');
+        if (!fields || !notice || !btn) return;
+        fields.disabled = !session;
+        notice.classList.toggle('hidden', !!session);
+        if (contactCooldownTimer) { clearInterval(contactCooldownTimer); contactCooldownTimer = null; }
+        if (session) {
+            const cn = document.getElementById('contactName');
+            const ce = document.getElementById('contactEmail');
+            const cp = document.getElementById('contactPhone');
+            if (session.name && cn && !cn.value) cn.value = session.name;
+            if (session.email && ce && !ce.value) ce.value = session.email;
+            if (session.phone && cp && !cp.value) cp.value = session.phone;
+        }
+        function tick() {
+            const defaultLabel = trF('contact.formBtn', 'Trimite Cererea de Ofertă');
+            if (!session || session.admin || !window.FVContactLimit) {
+                btn.disabled = false;
+                if (btnIcon) btnIcon.classList.remove('hidden');
+                if (btnLabel) btnLabel.textContent = defaultLabel;
+                return;
+            }
+            const next = FVContactLimit.nextAllowedTime(session.lastContactRequestAt);
+            const remain = next - Date.now();
+            if (remain <= 0) {
+                btn.disabled = false;
+                if (btnIcon) btnIcon.classList.remove('hidden');
+                if (btnLabel) btnLabel.textContent = defaultLabel;
+                if (contactCooldownTimer) { clearInterval(contactCooldownTimer); contactCooldownTimer = null; }
+                return;
+            }
+            const r = FVContactLimit.formatRemaining(remain);
+            btn.disabled = true;
+            if (btnIcon) btnIcon.classList.add('hidden');
+            if (btnLabel) btnLabel.textContent = trF('contact.cooldown', 'Mai ai {h}h {m}min până poți trimite o cerere nouă').replace('{h}', r.h).replace('{m}', r.m);
+        }
+        tick();
+        if (session && !session.admin) contactCooldownTimer = setInterval(tick, 30000);
+    }
+    const contactLoginNoticeBtn = document.getElementById('contactLoginNoticeBtn');
+    if (contactLoginNoticeBtn) contactLoginNoticeBtn.addEventListener('click', function () { openAuthModal('register'); });
 
     window.openAuthModal = openAuthModal;
     window.closeAuthModal = closeAuthModal;

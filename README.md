@@ -548,3 +548,22 @@ Ca de obicei la schimbări de reguli Firebase: **urcă din nou `firebase-rules.j
 - Poza Minecraft World trimisă a doua oară a fost tot artă oficială de brand (logo + personaje) — nu a fost folosită, din același motiv de drepturi de autor.
 
 **Poză Minecraft World:** ilustrație originală (desenată de Claude, SVG), un parc tematic generic — fără nicio referință la Minecraft (fără cuburi, fără personaje din joc, fără logo). Înlocuiește atât poza Unsplash inițială, cât și desenul trimis de utilizator (care conținea logo-ul oficial „Minecraft World” și personaje din joc — artă de brand protejată, nu putea fi folosită).
+
+**Actualizare — sincronizare facilități, formular cont, stele live (sesiune curentă):**
+- **Sincronizare facilități extinsă**: pe lângă transport, acum se sincronizează automat și mic dejun/pensiune/all inclusive, ghid, transfer și mașină de închiriat — debifarea oricăreia dintre acestea din „Servicii & Facilități Incluse” debifează automat și căsuța corespunzătoare din „Alege Serviciile Dorite” (și invers). Fiecare regulă a fost verificată manual pe toate destinațiile, ca să nu prindă text nepotrivit (ex: „Tur Panoramic Auto” sau „Pensiune Tradițională” ca tip de cazare).
+- **„Trimite Cerere de Ofertă” necesită cont**: câmpurile sunt dezactivate (efectiv, nu doar vizual) până te autentifici, cu mesaj explicativ + buton direct spre înregistrare. O dată logat, numele/e-mailul/telefonul se precompletează automat, la fel ca la pachete.
+- **Stelele de pe carduri sincronizate cu baza de date**: fiecare card (prima pagină + fereastra de destinații) se abonează acum la numărul real de recenzii; cât timp nu există recenzii reale rămâne nota curatoriată din destinations.js, dar se actualizează automat imediat ce apar recenzii adevărate (același mecanism care exista deja pe site-ul reviews).
+- **„Ce spun călătorii noștri” (prima pagină)**: fiecare recenzie arată acum toate 3 câmpurile — „Ce i-a plăcut” (verde), „Ce nu i-a plăcut” (roșu) și „Alte observații” (gri) — la fel ca pe site-ul reviews, nu doar primul disponibil.
+
+## Poză de profil (Firebase Storage) — sesiune curentă
+
+Fiecare cont își poate pune acum o poză de profil (din galerie sau fișiere), cu buton de cameră lângă avatar, în „Profilul meu”. Necesită un pas de activare, o singură dată:
+
+1. În [Firebase Console](https://console.firebase.google.com) → proiectul tău → **Storage** → „Get started” (dacă nu exista deja activat) → alege regiunea.
+2. Verifică numele bucket-ului afișat acolo (ex. `gs://feelvoyage.appspot.com`). Dacă diferă de ce e în `js/firebase-config.js` (`storageBucket`), actualizează valoarea acolo.
+3. Publică regulile din `storage.rules` (din acest folder): Storage → Rules → lipește conținutul → Publică. Fără asta, încărcarea va eșua cu eroare de permisiuni, chiar dacă Storage e activat.
+4. Gata — nu mai e nevoie de nimic în cod. Până activezi Storage, butonul de poză arată un mesaj clar de eroare, nu rămâne agățat la „Se încarcă”.
+
+**Alte actualizări din această sesiune:**
+- **Panoul de admin**: poate schimba acum numele afișat al oricărui cont (buton „Salvează” lângă câmpul de nume, în fișa fiecărui utilizator). ID-ul contului (UID) rămâne needitabil — e cheia primară pentru toate comenzile/recenziile acelui cont; schimbarea lui ar rupe legătura cu istoricul contului, deci nu e ceva editabil în siguranță.
+- **Hash-urile parolelor**: rămân neafișate și nedecodabile — Firebase Authentication nu le expune niciodată, nici către aplicație, nici către administrator (vezi mesajul deja existent din Jurnal).

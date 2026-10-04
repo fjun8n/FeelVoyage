@@ -178,6 +178,20 @@
         if (e && e.detail && e.detail.id) watchDestinationStats(e.detail.id);
     });
 
+    /* ---------- stelele de pe CARDURI (prima pagină + fereastra de destinații) — aceeași notă reală ca în pachet, nu numărul fix din destinations.js ---------- */
+    window._fvCardStats = window._fvCardStats || {};
+    if (typeof buildCard === 'function' && Array.isArray(destinations)) {
+        destinations.forEach(function (d) {
+            window.FVBackend.onReviewStats(d.id, function (stats) {
+                window._fvCardStats[d.id] = stats;
+                if (!stats.count) return;   // fără recenzii reale încă: lăsăm nota curatoriată din destinations.js pe card
+                document.querySelectorAll('[data-dest="' + d.id.replace(/"/g, '') + '"]').forEach(function (oldCard) {
+                    oldCard.replaceWith(buildCard(d));
+                });
+            });
+        });
+    }
+
     /* ---------- secțiunea de pe prima pagină: cele mai bune 3 recenzii, în timp real ---------- */
     const topGrid = document.getElementById('topReviewsGrid');
     const topEmpty = document.getElementById('topReviewsEmpty');
@@ -191,17 +205,28 @@
             return html;
         }
         function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+        function textBlock(label, text, colorClass) {
+            if (!text) return '';
+            const short = text.length > 160 ? text.slice(0, 160) + '…' : text;
+            return '<p class="mt-2.5"><span class="text-[10px] font-extrabold uppercase tracking-wide ' + colorClass + '">' + escHtml(label) + '</span><br><span class="text-slate-600 text-sm leading-relaxed">' + escHtml(short) + '</span></p>';
+        }
         function cardHtml(r) {
-            const text = (r.positive || r.extra || r.negative || '').trim();
+            const hasText = r.positive || r.negative || r.extra;
             const photosJson = (r.photos && r.photos.length) ? escHtml(JSON.stringify(r.photos)) : '';
-            const photosHtml = (r.photos && r.photos.length) ? '<div class="flex gap-2 mb-4">' + r.photos.slice(0, 4).map(function (p, i) {
+            const photosHtml = (r.photos && r.photos.length) ? '<div class="flex gap-2 mb-1">' + r.photos.slice(0, 4).map(function (p, i) {
                 return '<img src="' + escHtml(p) + '" data-photos="' + photosJson + '" data-idx="' + i + '" loading="lazy" alt="" class="w-12 h-12 rounded-lg object-cover border border-slate-200 fv-photo-thumb">';
             }).join('') + '</div>' : '';
             return '<div class="bg-white rounded-2xl p-6 shadow-md border border-slate-100 flex flex-col">' +
-                '<div class="flex items-center gap-0.5 text-amber-500 text-sm mb-3">' + starsHtml(r.rating) + '</div>' +
-                (text ? '<p class="text-slate-600 text-sm leading-relaxed flex-1 mb-4">\u201c' + escHtml(text.length > 180 ? text.slice(0, 180) + '…' : text) + '\u201d</p>' : '<div class="flex-1 mb-4"></div>') +
+                '<div class="flex items-center gap-0.5 text-amber-500 text-sm mb-1">' + starsHtml(r.rating) + '</div>' +
+                '<div class="flex-1 mb-4">' +
+                    (hasText ? (
+                        textBlock(t('review.positiveLabel', 'Ce i-a plăcut'), r.positive, 'text-emerald-700') +
+                        textBlock(t('review.negativeLabel', 'Ce nu i-a plăcut'), r.negative, 'text-rose-700') +
+                        textBlock(t('review.extraLabel', 'Alte observații'), r.extra, 'text-slate-500')
+                    ) : '') +
+                '</div>' +
                 photosHtml +
-                '<div class="flex items-center gap-3 pt-3 border-t border-slate-100">' +
+                '<div class="flex items-center gap-3 pt-3 border-t border-slate-100 mt-1">' +
                     '<div class="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-sunset-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">' + escHtml(initialsOf(r.name)) + '</div>' +
                     '<div class="min-w-0"><p class="font-bold text-slate-800 text-sm truncate">' + escHtml(r.name || 'Călător FeelVoyage') + '</p><p class="text-slate-400 text-xs truncate">' + escHtml(r.destTitle || '') + '</p></div>' +
                 '</div>' +
