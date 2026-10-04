@@ -173,48 +173,10 @@
         });
     }
     // modalul pachetului expune currentBookingDest (js/app.js); urmărim schimbarea lui ascultând deschiderea ferestrei
+    // (recenziile detaliate cu poze NU se mai arată aici — vezi secțiunea „cele mai bune recenzii” de mai jos, de pe prima pagină)
     document.addEventListener('fv:package-open', function (e) {
-        if (e && e.detail && e.detail.id) { watchDestinationStats(e.detail.id); watchDestinationReviews(e.detail.id); }
+        if (e && e.detail && e.detail.id) watchDestinationStats(e.detail.id);
     });
-
-    /* ---------- lista de recenzii a pachetului deschis (text + poze), aceeași sursă ca FeelVoyage Reviews ---------- */
-    const reviewsListEl = document.getElementById('modalReviewsList');
-    let unsubList = null;
-    function escList(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
-    function initialsOfList(name) {
-        return String(name || 'FV').trim().split(/\s+/).filter(Boolean).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase() || 'FV';
-    }
-    function reviewListItemHtml(r) {
-        const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ro-RO') : '';
-        const text = (r.positive || r.extra || r.negative || '').trim();
-        const photosHtml = (r.photos && r.photos.length) ? '<div class="flex gap-2 mt-2 flex-wrap">' + r.photos.map(function (p) { return '<img src="' + escList(p) + '" data-lightbox-src="' + escList(p) + '" class="w-14 h-14 rounded-lg object-cover border border-slate-200 cursor-zoom-in hover:opacity-80 transition" alt="">'; }).join('') + '</div>' : '';
-        return '<div class="pb-4 border-b border-slate-100 last:border-0 last:pb-0">' +
-            '<div class="flex items-start justify-between gap-3">' +
-                '<div class="flex items-center gap-2.5 min-w-0">' +
-                    '<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-600 to-sunset-500 text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0">' + escList(initialsOfList(r.name)) + '</div>' +
-                    '<div class="min-w-0"><p class="font-bold text-xs text-slate-800 truncate">' + escList(r.name || 'Călător FeelVoyage') + '</p><p class="text-[10px] text-slate-400">' + escList(dateStr) + '</p></div>' +
-                '</div>' +
-                '<div class="text-amber-500 text-[11px] shrink-0">' + renderStars(r.rating) + '</div>' +
-            '</div>' +
-            (text ? '<p class="text-xs text-slate-600 leading-relaxed mt-2">' + escList(text) + '</p>' : '') +
-            photosHtml +
-        '</div>';
-    }
-    function watchDestinationReviews(destId) {
-        if (!reviewsListEl) return;
-        if (unsubList) { unsubList(); unsubList = null; }
-        if (!destId || !window.FVBackend) return;
-        reviewsListEl.innerHTML = '';
-        unsubList = window.FVBackend.onDestinationReviews(destId, function (list) {
-            reviewsListEl.innerHTML = list.length ? list.map(reviewListItemHtml).join('') : '';
-        });
-    }
-    if (reviewsListEl) {
-        reviewsListEl.addEventListener('click', function (e) {
-            const pic = e.target.closest('[data-lightbox-src]');
-            if (pic && typeof window.fvOpenLightbox === 'function') window.fvOpenLightbox(pic.getAttribute('data-lightbox-src'), '');
-        });
-    }
 
     /* ---------- secțiunea de pe prima pagină: cele mai bune 3 recenzii, în timp real ---------- */
     const topGrid = document.getElementById('topReviewsGrid');
@@ -231,15 +193,25 @@
         function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
         function cardHtml(r) {
             const text = (r.positive || r.extra || r.negative || '').trim();
+            const photosJson = (r.photos && r.photos.length) ? escHtml(JSON.stringify(r.photos)) : '';
+            const photosHtml = (r.photos && r.photos.length) ? '<div class="flex gap-2 mb-4">' + r.photos.slice(0, 4).map(function (p, i) {
+                return '<img src="' + escHtml(p) + '" data-photos="' + photosJson + '" data-idx="' + i + '" loading="lazy" alt="" class="w-12 h-12 rounded-lg object-cover border border-slate-200 fv-photo-thumb">';
+            }).join('') + '</div>' : '';
             return '<div class="bg-white rounded-2xl p-6 shadow-md border border-slate-100 flex flex-col">' +
                 '<div class="flex items-center gap-0.5 text-amber-500 text-sm mb-3">' + starsHtml(r.rating) + '</div>' +
                 (text ? '<p class="text-slate-600 text-sm leading-relaxed flex-1 mb-4">\u201c' + escHtml(text.length > 180 ? text.slice(0, 180) + '…' : text) + '\u201d</p>' : '<div class="flex-1 mb-4"></div>') +
+                photosHtml +
                 '<div class="flex items-center gap-3 pt-3 border-t border-slate-100">' +
                     '<div class="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-sunset-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">' + escHtml(initialsOf(r.name)) + '</div>' +
                     '<div class="min-w-0"><p class="font-bold text-slate-800 text-sm truncate">' + escHtml(r.name || 'Călător FeelVoyage') + '</p><p class="text-slate-400 text-xs truncate">' + escHtml(r.destTitle || '') + '</p></div>' +
                 '</div>' +
             '</div>';
         }
+        topGrid.addEventListener('click', function (e) {
+            const pic = e.target.closest('[data-photos]');
+            if (!pic || typeof window.fvOpenLightbox !== 'function') return;
+            try { window.fvOpenLightbox(JSON.parse(pic.getAttribute('data-photos')), parseInt(pic.getAttribute('data-idx'), 10) || 0); } catch (err) { }
+        });
         window.FVBackend.onTopReviews(3, function (list) {
             if (!list || !list.length) {
                 topGrid.innerHTML = '';

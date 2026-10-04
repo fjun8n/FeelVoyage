@@ -191,7 +191,7 @@ function buildCard(item) {
                                 ${item.priceRon ? `<span class="text-[11px] text-slate-400 font-medium block -mt-1">approx. ${item.priceRon}</span>` : ''}
                             </div>`
                         }
-                        <button onclick="openModal('${item.id}')" class="dest-btn px-5 py-3 sm:py-2.5 rounded-xl ${item.comingSoon ? 'bg-amber-500 group-hover:bg-amber-600' : 'bg-slate-900 group-hover:bg-brand-600'} text-white font-bold text-xs shadow transition-all flex items-center gap-1.5">
+                        <button onclick="openModal('${item.id}')" class="dest-btn px-5 py-3 sm:py-2.5 rounded-xl ${item.comingSoon ? 'fv-amber-btn' : 'bg-slate-900 group-hover:bg-brand-600'} text-white font-bold text-xs shadow transition-all flex items-center gap-1.5">
                             ${item.comingSoon ? tr('card.notifyBtn', 'Anunță-mă') : tr('dest.detaliiBtn', 'Detalii Pachet')} <i class="fa-solid fa-arrow-right text-[10px]"></i>
                         </button>
                     </div>
@@ -588,6 +588,7 @@ function openModal(id, photoIndex) {
 
     // Render Amenities — bifate implicit (incluse); debifează orice nu vrei și prețul scade (vezi deselectedAmenities mai jos)
     deselectedAmenities = new Set();   // pachet nou deschis: toate facilitățile pornesc bifate
+    currentTransportAmenityIndices = new Set(t.amenities.map((a, i) => [a, i]).filter(([a]) => /^(Transport Inclus|Zbor Inclus)/.test(a)).map(([, i]) => String(i)));
     modalAmenities.innerHTML = t.amenities.map((a, i) => `
         <label class="px-3 py-1 bg-brand-50 text-brand-700 font-bold text-xs rounded-lg border border-brand-200/60 flex items-center gap-1.5 cursor-pointer select-none hover:bg-brand-100 transition">
             <input type="checkbox" name="booking-amenity" data-amenity-index="${i}" checked class="w-3.5 h-3.5 rounded text-brand-600 focus:ring-brand-500 focus:ring-offset-0">
@@ -676,6 +677,7 @@ document.addEventListener('input', (e) => {
 const bookingState = { adults: 2, kids04: 0, kids512: 0 };
 let bookingRange = null;   // selectorul de interval de date (js/daterange.js)
 let deselectedAmenities = new Set();   // indicii facilităților incluse pe care clientul le-a debifat (prețul scade pentru fiecare)
+let currentTransportAmenityIndices = null;   // index-urile din amenities curente care înseamnă „Transport/Zbor Inclus” — vezi listener-ul modalAmenities mai jos
 const EXTRA_LABEL_KEYS = { transport: 'modal.serviceTransport', cazare: 'modal.serviceCazare', transfer: 'modal.serviceTransfer', meals: 'modal.serviceMeals', tickets: 'modal.serviceTickets', insurance: 'modal.serviceInsurance', guide: 'modal.serviceGuide', car: 'modal.serviceCar' };
 const EXTRA_LABELS_RO = { transport: 'Transport (zbor/autocar)', cazare: 'Cazare hotel', transfer: 'Transfer aeroport-hotel', meals: 'Demipensiune / Mic dejun', tickets: 'Bilete la atracții', insurance: 'Asigurare de călătorie', guide: 'Ghid local', car: 'Închiriere auto' };
 const LOCALES = { ro: 'ro-RO', en: 'en-GB', it: 'it-IT', fr: 'fr-FR', es: 'es-ES' };
@@ -837,6 +839,15 @@ modalAmenities.addEventListener('change', (e) => {
     if (e.target.name !== 'booking-amenity') return;
     const idx = e.target.getAttribute('data-amenity-index');
     if (e.target.checked) deselectedAmenities.delete(idx); else deselectedAmenities.add(idx);
+    // „Transport Inclus” / „Zbor Inclus” e aproape mereu și una din facilitățile de mai sus ȘI serviciul
+    // „Transport” bifat/blocat din „Alege Serviciile Dorite” — fără legătura asta, debifarea de aici nu se
+    // vedea deloc în cealaltă listă, deși descriu același lucru (prețul nu e afectat în niciun caz: un
+    // serviciu „inclus” nu se taxează separat oricum — e doar ca lista să nu mai arate transportul ca inclus
+    // după ce tocmai l-ai debifat mai sus).
+    if (currentTransportAmenityIndices && currentTransportAmenityIndices.has(idx)) {
+        const transportInput = document.querySelector('#modalBookingForm [data-extra="transport"] input');
+        if (transportInput && transportInput.disabled) transportInput.checked = e.target.checked;
+    }
     renderBookingQuote();
 });
 bookingRange = FVDateRange.create(document.getElementById('dateRange'), {

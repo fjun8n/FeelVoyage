@@ -48,6 +48,8 @@
     // season: profilul de sezon · transport: transport autocar retur / persoană (doar pachetele din România, unde nu e inclus)
     // carUnavailable: închirierea de mașină nu se oferă (Maldive: nu există mașini; China: turiștii nu pot conduce; safari: jeep cu șofer)
     const OVERRIDES = {
+        'disneyland-paris':     { season: 'city' },
+        'legoland':             { season: 'city' },
         'delta-dunarii':         { season: 'general',  transport: 28 },
         'poiana-brasov':         { season: 'mountain', transport: 15 },
         'bran-brasov':           { season: 'general',  transport: 15 },

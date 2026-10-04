@@ -334,6 +334,58 @@ html.dark .doc-accept-login { color: var(--fv-accent-strong); }
 /* ordinea ferestrelor: pagina < lista de destinații < fereastra pachetului < ferestre legale / cont (z-[90]) */
 .cat-modal { z-index: 60; }
 .fv-z-booking { z-index: 70; }
+/* Lightbox-ul pozelor (js/lightbox.js): trebuie să fie deasupra ABSOLUT a tuturor ferestrelor (pachet 70, recenzii 90/92,
+   toast 110) — scrisă manual, pentru că valoarea nu există în tailwind.css precompilat și z-[200] din HTML pica silențios
+   pe z-index:auto (de asta zoom-ul ieșea în spatele ferestrelor). Acest fișier nu trece prin compilare, deci e sigur. */
+.fv-lightbox-top { z-index: 300; }
+/* Bannerul din fereastra de recenzii (FeelVoyage Reviews): înălțime scrisă manual, din același motiv ca mai sus —
+   h-24/h-36/h-44 (cu sau fără sm:) nu existau în tailwind.css precompilat, deci elementul rămânea fără înălțime reală. */
+.fv-reviews-banner { height: 6rem; }
+@media (min-width: 640px) { .fv-reviews-banner { height: 7rem; } }
+
+/* Butonul amber de pe pachetele „în curând” (card + formular anunță-mă): bg-amber-500/600 nu există în
+   tailwind.css precompilat (același motiv explicat mai sus), deci scrise manual cu culorile reale Tailwind amber. */
+.fv-amber-btn { background: #f59e0b; }
+.fv-amber-btn:hover { background: #d97706; }
+
+/* Butonul „Lasă un review” (panoul de recenzii din pachet) — text-brand-700/hover:bg-brand-50 nu existau compilate. */
+.fv-review-btn { color: #0369a1; }
+.fv-review-btn:hover { background: #f0f7ff; }
+
+/* Miniaturile pozelor de recenzie (prima pagină + site-ul reviews) — cursor-zoom-in/hover:opacity-* nu existau compilate. */
+.fv-photo-thumb { cursor: zoom-in; transition: opacity .15s ease; }
+.fv-photo-thumb:hover { opacity: .8; }
+
+/* Lightbox-ul pozelor (js/lightbox.js) — complet scris manual, din același motiv: fundalul semi-transparent,
+   cadrul alb „profi” din jurul pozei, butoanele de navigare și contorul de poze foloseau combinații de clase
+   Tailwind (opacități, max-w/max-h în vh/vw, poziții sm:) care nu existau deloc în fișierul precompilat. */
+.fv-lb-backdrop { background: rgba(2, 6, 23, .92); padding: 1rem; }
+@media (min-width: 640px) { .fv-lb-backdrop { padding: 2rem; } }
+.fv-lb-btn {
+    position: absolute; width: 2.75rem; height: 2.75rem; border-radius: 9999px; border: 0; cursor: pointer;
+    background: rgba(255, 255, 255, .12); color: #fff; display: flex; align-items: center; justify-content: center;
+    transition: background .15s ease; z-index: 20;
+}
+.fv-lb-btn:hover { background: rgba(255, 255, 255, .25); }
+.fv-lb-btn-close { top: 1rem; right: 1rem; }
+.fv-lb-btn-prev { left: .5rem; top: 50%; transform: translateY(-50%); }
+.fv-lb-btn-next { right: .5rem; top: 50%; transform: translateY(-50%); }
+@media (min-width: 640px) {
+    .fv-lb-btn-close { top: 1.5rem; right: 1.5rem; }
+    .fv-lb-btn-prev { left: 1.25rem; }
+    .fv-lb-btn-next { right: 1.25rem; }
+}
+.fv-lb-frame {
+    background: #fff; border-radius: 1rem; padding: .5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, .5);
+    max-width: 92vw; max-height: 88vh; display: flex; align-items: center; justify-content: center;
+}
+@media (min-width: 640px) { .fv-lb-frame { padding: .75rem; } }
+.fv-lb-img { max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: .6rem; display: block; }
+.fv-lb-counter {
+    position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); color: rgba(255, 255, 255, .92);
+    font-size: .75rem; font-weight: 700; background: rgba(0, 0, 0, .45); padding: .3rem .85rem; border-radius: 9999px;
+}
+@media (min-width: 640px) { .fv-lb-counter { bottom: 1.5rem; } }
 .cat-panel { width: 100%; max-width: 80rem; border: 1px solid rgba(148, 163, 184, 0.28); }
 .cat-scroll { overscroll-behavior: contain; }
 .cat-search-wrap { position: relative; max-width: 26rem; margin: 1.5rem auto 0; }

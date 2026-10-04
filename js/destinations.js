@@ -1849,10 +1849,19 @@ const destinations = [
         currency: '€',
         period: '3 Nopți / Mic Dejun',
         images: [
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Hunedoara_castle.jpg/960px-Hunedoara_castle.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Corvin%27s_Castle_-_Hunedoara.jpg/960px-Corvin%27s_Castle_-_Hunedoara.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Castelul_Corvinilor_-_legenda_fantanii.jpg/960px-Castelul_Corvinilor_-_legenda_fantanii.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Castelul_Corvinilor_-_Curtea_Interioara.jpg/960px-Castelul_Corvinilor_-_Curtea_Interioara.jpg'
+            'img3/destinations/corvin-castle/corvin-castle-01.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-02.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-03.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-04.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-05.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-06.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-07.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-08.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-09.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-10.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-11.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-12.jpg',
+            'img3/destinations/corvin-castle/corvin-castle-13.jpg'
         ],
         description: 'Unul dintre cele mai impresionante castele gotice din Europa, în Hunedoara: săli cu arme medievale, fântâna legendei prizonierilor turci și povestea captivității lui Vlad Țepeș. Un obiectiv aflat constant în topurile internaționale ale celor mai „bântuite" locuri de vizitat de Halloween.',
         amenities: ['Hotel 4★', 'Intrare Castelul Corvinilor', 'Ghid Local', 'Tur Nocturn Opțional', 'Transport Inclus']
@@ -1870,9 +1879,22 @@ const destinations = [
         currency: '€',
         period: '5 Nopți / Demipensiune',
         images: [
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Christmas_celebration_in_Rovaniemi.jpg/960px-Christmas_celebration_in_Rovaniemi.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Tk3_1147_in_Rovaniemi_20120210_01.jpg/960px-Tk3_1147_in_Rovaniemi_20120210_01.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/WinterSolstice2004RovaniemiAirport.JPG/960px-WinterSolstice2004RovaniemiAirport.JPG'
+            'img3/destinations/laponia/laponia-01.jpg',
+            'img3/destinations/laponia/laponia-02.jpg',
+            'img3/destinations/laponia/laponia-03.jpg',
+            'img3/destinations/laponia/laponia-04.jpg',
+            'img3/destinations/laponia/laponia-05.jpg',
+            'img3/destinations/laponia/laponia-06.jpg',
+            'img3/destinations/laponia/laponia-07.jpg',
+            'img3/destinations/laponia/laponia-08.jpg',
+            'img3/destinations/laponia/laponia-09.jpg',
+            'img3/destinations/laponia/laponia-10.jpg',
+            'img3/destinations/laponia/laponia-11.jpg',
+            'img3/destinations/laponia/laponia-12.jpg',
+            'img3/destinations/laponia/laponia-13.jpg',
+            'img3/destinations/laponia/laponia-14.jpg',
+            'img3/destinations/laponia/laponia-15.jpg',
+            'img3/destinations/laponia/laponia-16.jpg'
         ],
         description: 'Rovaniemi, orașul oficial al lui Moș Crăciun, chiar pe Cercul Polar. Vizitezi Satul lui Moș Crăciun, treci granița Cercului Polar, mergi cu sania trasă de husky sau reni prin zăpadă și, cu puțin noroc, prinzi aurora boreală pe cerul nopții polare.',
         amenities: ['Hotel 4★ cu Spa', 'Plimbare cu Sania cu Husky', 'Vizită Satul lui Moș Crăciun', 'Excursie Vânătoare de Aurore', 'Zbor Inclus']
@@ -1890,12 +1912,17 @@ const destinations = [
         currency: '€',
         period: '6 Nopți / Demipensiune',
         images: [
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Klagemauer.JPG/960px-Klagemauer.JPG',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/586.Old_City.Jerusalem.jpg/960px-586.Old_City.Jerusalem.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/At_the_Pool_of_Siloam_%286403665141%29.jpg/960px-At_the_Pool_of_Siloam_%286403665141%29.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Canaanite_and_Israelite_walls_on_Jerusalem%27s_eastern_hill_%286388970869%29.jpg/960px-Canaanite_and_Israelite_walls_on_Jerusalem%27s_eastern_hill_%286388970869%29.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Excavations_in_the_City_of_David_%286388957223%29.jpg/960px-Excavations_in_the_City_of_David_%286388957223%29.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Excavations_south_of_the_temple_mount_%286388924637%29.jpg/960px-Excavations_south_of_the_temple_mount_%286388924637%29.jpg'
+            'img3/destinations/ierusalim/ierusalim-01.jpg',
+            'img3/destinations/ierusalim/ierusalim-02.jpg',
+            'img3/destinations/ierusalim/ierusalim-03.jpg',
+            'img3/destinations/ierusalim/ierusalim-04.jpg',
+            'img3/destinations/ierusalim/ierusalim-05.jpg',
+            'img3/destinations/ierusalim/ierusalim-06.jpg',
+            'img3/destinations/ierusalim/ierusalim-07.jpg',
+            'img3/destinations/ierusalim/ierusalim-08.jpg',
+            'img3/destinations/ierusalim/ierusalim-09.jpg',
+            'img3/destinations/ierusalim/ierusalim-10.jpg',
+            'img3/destinations/ierusalim/ierusalim-11.jpg'
         ],
         description: 'Un pelerinaj de Paște prin Orașul Vechi al Ierusalimului: Zidul Plângerii, Biserica Sfântului Mormânt, drumul Via Dolorosa și săpăturile arheologice din Orașul lui David. O experiență profundă, indiferent de confesiune, mai ales în săptămâna sărbătorilor pascale.',
         amenities: ['Hotel 4★ Ierusalim', 'Ghid Local Specializat', 'Intrări Obiective Religioase', 'Excursie Opțională Betleem', 'Zbor Inclus']
@@ -2514,13 +2541,11 @@ const destinations = [
         category: 'parcuri-tematice',
         extraCategories: ['city-break'],
         tagLabel: 'Parcuri Tematice • Franța',
-        comingSoon: true,
-        comingSoonNote: 'Pachetele FeelVoyage pentru Disneyland Paris vin în curând',
-        price: 0,
-        priceRon: '',
+        price: 780,
+        priceRon: '3.900 lei',
         rating: 4.8,
         currency: '€',
-        period: '3 Nopți / Sejur Standard',
+        period: '3 Nopți / Mic Dejun',
         images: [
             'https://images.unsplash.com/photo-1699693368423-6653b5519e9a?auto=format&fit=crop&w=1000&q=80',
             'https://images.unsplash.com/photo-1605443790760-18c6121939d3?auto=format&fit=crop&w=1000&q=80',
@@ -2537,8 +2562,8 @@ const destinations = [
             'https://images.unsplash.com/photo-1605713638676-684eb257534a?auto=format&fit=crop&w=1000&q=80',
             'https://images.unsplash.com/photo-1675797334184-9cf50565dede?auto=format&fit=crop&w=1000&q=80'
         ],
-        description: 'Castelul Frumoasei Adormite, Main Street U.S.A. și paradele zilnice, la doar 2 ore de zbor de România. Lucrăm la pachete complete pentru Disneyland Paris — cazare în resort, bilete de acces în ambele parcuri (Disneyland Park și Walt Disney Studios) și transport. Lasă-ți datele mai jos ca să fii primul anunțat când pachetele devin disponibile pentru rezervare.',
-        amenities: ['Acces Disneyland Park', 'Acces Walt Disney Studios', 'Cazare în Resort', 'Transport Inclus (variantă în lucru)']
+        description: 'Castelul Frumoasei Adormite, Main Street U.S.A. și paradele zilnice, la doar 2 ore de zbor de România. Pachetul include cazare într-unul din hotelurile tematice Disney, bilet de acces de 2 zile în ambele parcuri (Disneyland Park și Walt Disney Studios) și zbor dus-întors — prețul de bază corespunde unui sejur standard de 3 nopți, în afara perioadelor de vârf (vacanțe școlare, decembrie).',
+        amenities: ['Acces Disneyland Park', 'Acces Walt Disney Studios', 'Cazare Hotel Tematic Disney', 'Mic Dejun Inclus', 'Zbor Inclus']
     },
     {
         id: 'legoland',
@@ -2546,13 +2571,11 @@ const destinations = [
         category: 'parcuri-tematice',
         extraCategories: ['city-break'],
         tagLabel: 'Parcuri Tematice • Danemarca',
-        comingSoon: true,
-        comingSoonNote: 'Pachetele FeelVoyage pentru Legoland vin în curând',
-        price: 0,
-        priceRon: '',
+        price: 850,
+        priceRon: '4.250 lei',
         rating: 4.7,
         currency: '€',
-        period: '3 Nopți / Sejur Standard',
+        period: '3 Nopți / Mic Dejun',
         images: [
             'https://images.unsplash.com/photo-1699297863328-ae9fb0add4ad?auto=format&fit=crop&w=1000&q=80',
             'https://images.unsplash.com/photo-1729371777460-be41b69e89b2?auto=format&fit=crop&w=1000&q=80',
@@ -2569,8 +2592,8 @@ const destinations = [
             'https://images.unsplash.com/photo-1655882382520-ba8d74b267a8?auto=format&fit=crop&w=1000&q=80',
             'https://images.unsplash.com/photo-1661788621025-6f4f92411fe4?auto=format&fit=crop&w=1000&q=80'
         ],
-        description: 'Legoland Billund, din Danemarca, e primul Legoland din lume, construit lângă fabrica originală LEGO — Miniland reface orașe celebre din milioane de cărămizi, pe lângă roller-coastere și atracții pentru toată familia. Lucrăm la pachete complete pentru Legoland — cazare, bilete de parc și transport. Lasă-ți datele mai jos ca să fii primul anunțat când pachetele devin disponibile pentru rezervare.',
-        amenities: ['Acces Parc Legoland', 'Miniland & Atracții Familie', 'Cazare Inclusă (variantă în lucru)', 'Transport Inclus (variantă în lucru)']
+        description: 'Legoland Billund, din Danemarca, e primul Legoland din lume, construit lângă fabrica originală LEGO — Miniland reface orașe celebre din milioane de cărămizi, pe lângă roller-coastere și atracții pentru toată familia. Pachetul include cazare (hotel tematic Legoland sau similar), bilet de parc pe 2 zile și zbor dus-întors — Billund e o destinație mai scumpă ca nivel de prețuri, fiind o stațiune mică, aproape în întregime dedicată parcului.',
+        amenities: ['Acces Parc Legoland', 'Miniland & Atracții Familie', 'Cazare Hotel Legoland', 'Mic Dejun Inclus', 'Zbor Inclus']
     },
     {
         id: 'minecraft-world',
@@ -2587,9 +2610,9 @@ const destinations = [
         currency: '€',
         period: 'Deschidere anunțată: 2027',
         images: [
-            'https://images.unsplash.com/photo-1660592868727-858d28c3ba52?auto=format&fit=crop&w=1000&q=80'
+            'img3/destinations/minecraft-world/minecraft-world-01.jpg'
         ],
-        description: 'Minecraft World e un land tematic nou, construit de Merlin Entertainments împreună cu Mojang Studios în interiorul Chessington World of Adventures Resort, lângă Londra — o investiție de aproximativ 50 de milioane de lire sterline. Va include roller-coasterul „Escape the Nether" (primul din lume inspirat din Minecraft), zone de joacă create după biomurile jocului (peșteri, mine, câmpii) și un hotel tematic Minecraft World. Deschiderea e anunțată oficial pentru 2027, fără o lună exactă încă — pe măsură ce Merlin Entertainments confirmă detalii noi, le actualizăm aici. Poza de mai sus ilustrează un șantier generic; parcul chiar e în construcție la ora actuală.',
+        description: 'Minecraft World e un land tematic nou, construit de Merlin Entertainments împreună cu Mojang Studios în interiorul Chessington World of Adventures Resort, lângă Londra — o investiție de aproximativ 50 de milioane de lire sterline. Va include roller-coasterul „Escape the Nether" (primul din lume inspirat din Minecraft), zone de joacă create după biomurile jocului (peșteri, mine, câmpii) și un hotel tematic Minecraft World. Deschiderea e anunțată oficial pentru 2027, fără o lună exactă încă — pe măsură ce Merlin Entertainments confirmă detalii noi, le actualizăm aici. Poza de mai sus e o ilustrație generică (nu o fotografie reală a parcului) — o vom înlocui cu poze adevărate imediat ce apar.',
         amenities: ['Roller-coaster „Escape the Nether"', 'Zone de Joacă pe Biomuri', 'Hotel Tematic Minecraft World', 'Deschidere Oficială: 2027']
     }
 ];

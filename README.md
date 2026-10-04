@@ -527,3 +527,24 @@ Ca de obicei la schimbări de reguli Firebase: **urcă din nou `firebase-rules.j
 - **Site-ul reviews**: fereastra cu recenziile unei destinații are acum un banner cu poza destinației (nu mai e un antet gol).
 - **Norișorul de chat**: nu se mai „pune pe pauză" 6 ore dacă doar dispare singur — reapare la fiecare vizită nouă.
 - `reviews/js/destinations.js` sincronizat manual cu `js/destinations.js` (identice) — orice destinație nouă trebuie copiată în ambele, la fel ca imaginile locale din `img/`/`img2/`.
+
+**Actualizare — Disneyland/Legoland deschise, poze noi, fix-uri (sesiune curentă):**
+- **Disneyland Paris (780 €/3 nopți) și Legoland Billund (850 €/3 nopți)** sunt acum deschise pentru comenzi reale — prețuri calibrate după cercetare de piață (pachete reale hotel+bilet multi-zi+zbor, nivel „moderat"). Minecraft World rămâne „în curând" (parcul chiar nu există încă, deschidere 2027).
+- **Poză Minecraft World primită de la utilizator NU a fost folosită** — era artă oficială de brand Mojang/Microsoft (logo + personaje), protejată prin drepturi de autor. A rămas poza generică neutră.
+- **Folder nou `img3/`** cu poze proprii ale utilizatorului pentru 3 destinații existente, înlocuind pozele Wikimedia Commons:
+  - `img3/destinations/castelul-corvinilor/` → 13 poze (id destinație: `corvin-castle`)
+  - `img3/destinations/laponia/` → 16 poze
+  - `img3/destinations/ierusalim/` → 11 poze (din 12 primite; una a fost exclusă — foto de presă cu o persoană publică identificabilă)
+- **Fix bife rezervare:** debifarea „Transport Inclus”/„Zbor Inclus” din Servicii & Facilități Incluse acum debifează automat și căsuța „Transport” din Alege Serviciile Dorite (sincronizare vizuală; prețul nu era afectat oricum, un serviciu „inclus” nu se taxează separat).
+- **Panoul „Recenzii Călători”** din fiecare pachet: fundal neutru (gri deschis) în loc de galben-portocaliu vibrant.
+
+**Fix important — descoperire sesiune curentă:** `css/tailwind.css` era un fișier precompilat care NU se regenera automat; orice clasă Tailwind nouă, nefolosită deja undeva în site la ultima compilare, era eliminată silențios (z-index, înălțimi, culori etc. rămâneau fără efect, fără nicio eroare vizibilă). Asta explica bug-ul cu zoom-ul pe poze care nu funcționa. Am reconstruit corect `css/tailwind.css` din `src/tailwind-input.css` cu `npm run build:css` (necesită `npm install` o singură dată) și am mutat tot ce era critic (z-index lightbox, dimensiuni) în reguli scrise manual în `styles.css`, care nu trece prin acest proces și nu mai poate păți la fel. **La orice modificare viitoare a claselor Tailwind folosite, rulează `npm install && npm run build:css` în ambele foldere (principal și `reviews/`) înainte de livrare.**
+
+**Alte reparații sesiune curentă:**
+- **Lightbox rescris**: acum funcționează pe ambele site-uri (z-index corect), are cadru alb „profi” în jurul pozei, săgeți de navigare stânga/dreapta + contor „X / Y”, X rămâne în colțul dreapta-sus.
+- **Recenziile cu poze** au fost mutate din fereastra fiecărui pachet (unde nu trebuiau să apară) în secțiunea dedicată de pe prima pagină („Ce spun călătorii noștri”), pe site-ul principal.
+- **Bannerul din fereastra de recenzii** (site-ul reviews) e mai mic (6-7rem în loc de 9-11rem).
+- Confirmat: modul întunecat există deja, identic, pe ambele site-uri.
+- Poza Minecraft World trimisă a doua oară a fost tot artă oficială de brand (logo + personaje) — nu a fost folosită, din același motiv de drepturi de autor.
+
+**Poză Minecraft World:** ilustrație originală (desenată de Claude, SVG), un parc tematic generic — fără nicio referință la Minecraft (fără cuburi, fără personaje din joc, fără logo). Înlocuiește atât poza Unsplash inițială, cât și desenul trimis de utilizator (care conținea logo-ul oficial „Minecraft World” și personaje din joc — artă de brand protejată, nu putea fi folosită).
