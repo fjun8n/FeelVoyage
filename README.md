@@ -484,3 +484,37 @@ Toate trei verificate funcțional, cu date simulate (panou de admin, listă de a
 **Important — pas manual necesar:** regulile bazei de date (`firebase-rules.json`) au fost actualizate ca să permită administratorului să scrie în câmpul `newsletter` al altor conturi (înainte, fiecare cont își putea modifica doar propriile date). **Trebuie să urci din nou acest fișier în Firebase Console** (Realtime Database → Rules → lipești conținutul din `firebase-rules.json` → Publish), altfel comutatorul din panoul de administrator va da eroare de permisiune pe site-ul real, deși în cod totul e corect.
 
 **Bug reparat — intenția de newsletter nu funcționa pentru contul de administrator:** recunoașterea cuvintelor-cheie („vreau să mă abonez la newsletter" etc.) excludea din greșeală contul de administrator, lăsând mesajul să ajungă la AI — care, necunoscând mecanismul real, inventa un răspuns (o secțiune de abonare în subsol care nu există pe site). Acum funcționează identic pentru orice cont, inclusiv administratorul. Reamintirea AUTOMATĂ (la deschiderea chatului) rămâne sărită pentru admin, intenționat — doar răspunsul la întrebarea explicită a fost reparat.
+
+## Recenzii pe destinații (stele 1-5, text, poze) + site separat „FeelVoyage Reviews"
+
+### Pe site-ul principal
+- Fiecare destinație are acum o secțiune „Recenzii Călători" în fereastra pachetului, cu nota live (medie reală, calculată automat) și un buton „Lasă un review".
+- Fereastra de review (ca la Termeni și Condiții): stele 1-5, nume auto-completat din cont, câmpuri separate pentru ce ți-a plăcut / ce nu ți-a plăcut / alte observații, până la 4 poze (comprimate automat în browser, fără Firebase Storage).
+- **Fără cont, nu poți lăsa recenzie** — mesaj clar, cu buton spre autentificare.
+- **Nota de bază**: fiecare destinație „pornește" cu 5★ (ca un review invizibil); media afișată e calculată automat din acel 5★ plus toate recenziile reale, pe măsură ce apar.
+- Secțiune nouă pe prima pagină, **„Ce spun călătorii noștri"** (între Destinații și Servicii) — cele mai bune 3 recenzii de pe tot site-ul, **în timp real** (apar fără refresh de pagină), cu buton „Vezi mai multe recenzii" spre site-ul separat.
+
+### Site separat „FeelVoyage Reviews" (folder `reviews/`)
+Site nou, complet separat, cu propriul `index.html`/`css`/`js`, gata de propriul repo GitHub dacă vrei:
+- Siglă **„FeelVoyage Reviews"** (globul colorat + text), temă **alb-negru**, aceleași 5 limbi.
+- Aceleași 84 de destinații (`reviews/js/destinations.js` — **copie** din proiectul principal; dacă adaugi destinații noi acolo, copiază din nou fișierul aici ca să rămână sincronizate 1-la-1).
+- **Doar citire** — nu poți lăsa recenzie de pe acest site, exact cum ai cerut; recenziile se adaugă exclusiv de pe FeelVoyage.ro.
+- Folosește **aceeași bază de date Firebase** (`reviews/js/firebase-config.js`, copiat din proiectul principal) — recenziile scrise pe site-ul principal apar aici automat, live.
+- Căutare destinații, click pe oricare → fereastră cu toate recenziile ei (stele, nume, dată, text, poze).
+
+### Decizii tehnice importante, pe care vreau să le știi clar
+1. **Fără autentificare pe site-ul de recenzii** — nu e nevoie, de vreme ce acolo nu poți scrie nimic, doar citești. Dacă vrei totuși login acolo (de exemplu pentru un pas viitor), spune-mi și îl adaug separat.
+2. **Traducerea recenziilor**: NU am făcut traducere automată reală — ar necesita un serviciu plătit (cheie API Google Translate sau similar), cu cost recurent. În schimb, fiecare recenzie se afișează exact cum a fost scrisă, cu o etichetă clară a limbii originale (ex. „🇬🇧 Scris în English"), dacă diferă de limba selectată pe site. E o soluție corectă și de încredere, fără costuri ascunse — dar nu e traducere automată propriu-zisă. Spune-mi dacă vrei să mergem mai departe cu un serviciu plătit de traducere.
+3. **Poze**: comprimate direct în browser (redimensionate, JPEG, sub ~340KB), stocate în baza de date — nu am configurat Firebase Storage (ar necesita cont plătit Google).
+4. **CSS separat**: site-ul de recenzii are propriul `tailwind.config.js`/`package.json` în `reviews/`, independent de cel principal — dacă adaugi clase Tailwind noi acolo, rulează `npm run build:css` din folderul `reviews/`, nu din rădăcina proiectului.
+
+### Pas manual necesar
+Ca de obicei la schimbări de reguli Firebase: **urcă din nou `firebase-rules.json`** în Firebase Console (Realtime Database → Rules → Publish) — am adăugat nodurile `reviews`, `reviewStats` și `reviewsFeed`. Fără asta, recenziile nu se vor putea nici scrie, nici citi pe site-ul real.
+
+## Corecții la site-ul FeelVoyage Reviews (design, logo, poze)
+
+- **Design identic cu site-ul principal** (nu alb-negru cum fusese prima variantă): aceleași culori brand, același logo complet (globul + „Feelvoyage” desenat), cu eticheta „REVIEWS” adăugată lângă el.
+- **Comutator luminos/întunecat** — lipsea, acum există, identic cu cel de pe site-ul principal (`css/dark.css` + `js/theme.js`, copiate de acolo).
+- **Pozele destinațiilor sunt colorate din start**, nu doar la trecerea cursorului peste ele.
+- **Poze locale reparate** — 7 destinații (Băile Herculane, Băile Săcelu, Constanța, Sovata, Cluj-Napoca, Craiova, Timișoara) foloseau poze locale (nu Unsplash); folderele lor de poze (`img/`, `img2/`) au fost copiate și în `reviews/`, altfel apăreau sparte acolo.
+- **Linkuri corectate cu adresele reale**: cele două site-uri sunt repo-uri GitHub separate (https://fjun8n.github.io/FeelVoyage/ și https://fjun8n.github.io/FeelVoyage-Reviews/) — linkurile dintre ele foloseau căi relative, greșite pentru această configurație; acum sunt adrese complete, în ambele sensuri.

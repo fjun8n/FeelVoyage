@@ -156,6 +156,10 @@
             resetPassword: function () { return Promise.reject(FVError('unsupported')); },
             listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
             adminSetNewsletter: function () { return Promise.reject(FVError('unsupported')); },
+            submitReview: function () { return Promise.reject(FVError('unsupported')); },   // review-urile cer cont real Firebase, comun cu FeelVoyage Reviews
+            onReviewStats: function (destId, cb) { cb({ avg: 5, count: 0 }); return function () {}; },
+            onDestinationReviews: function (destId, cb) { cb([]); return function () {}; },
+            onTopReviews: function (limit, cb) { cb([]); return function () {}; },
             loginWithGoogle: function () { return Promise.reject(FVError('unsupported')); },   // autentificarea cu Google există doar cu Firebase configurat
             resendVerification: function () { return Promise.reject(FVError('unsupported')); },   // fără Firebase nu există un e-mail real de trimis
             refreshVerification: function () { return Promise.resolve(readSession()); },
@@ -186,7 +190,10 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail, adminSetNewsletter: fail,
+            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail, adminSetNewsletter: fail, submitReview: fail,
+            onReviewStats: function (destId, cb) { cb({ avg: 5, count: 0 }); return noop; },
+            onDestinationReviews: function (destId, cb) { cb([]); return noop; },
+            onTopReviews: function (limit, cb) { cb([]); return noop; },
             logout: function () { return Promise.resolve(); }
         };
     }
@@ -486,6 +493,85 @@
                     throw FVError('network', e);
                 }
             },
+            // ---- Review-uri (stele + text + poze), aceeași bază de date pentru FeelVoyage și FeelVoyage Reviews ----
+            // Fiecare destinație „pornește” de la o notă de bază de 5 stele (ca și cum ar avea deja un review invizibil
+            // de 5★); fiecare review real adăugat intră în aceeași medie — reviewStats/<destId> = {sum, count}, unde
+            // „1” din count e mereu acel review de bază. Trimis o dată, un review nu mai poate fi editat (doar șters,
+            // de autor sau de administrator) — vezi regulile din firebase-rules.json.
+            submitReview: async function (destId, destTitle, data) {
+                if (!auth.currentUser || !session) throw FVError('forbidden');
+                if (!destId) throw FVError('invalid');
+                const rating = Math.max(1, Math.min(5, Math.round(Number(data && data.rating) || 0)));
+                if (!rating) throw FVError('invalid');
+                const payload = {
+                    uid: auth.currentUser.uid,
+                    name: String((session.name || session.email || 'Călător FeelVoyage')).slice(0, 80),
+                    rating: rating,
+                    positive: String((data && data.positive) || '').slice(0, 1200),
+                    negative: String((data && data.negative) || '').slice(0, 1200),
+                    extra: String((data && data.extra) || '').slice(0, 1200),
+                    lang: String((data && data.lang) || 'ro').slice(0, 5),
+                    createdAt: dbM.serverTimestamp()
+                };
+                if (data && Array.isArray(data.photos) && data.photos.length) payload.photos = data.photos.slice(0, 4);
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    const destRef = dbM.push(dbM.ref(db, 'reviews/' + destId));
+                    const feedPayload = Object.assign({}, payload, { destId: destId, destTitle: String(destTitle || '').slice(0, 160) });
+                    await withTimeout(Promise.all([
+                        dbM.set(destRef, payload),
+                        dbM.set(dbM.ref(db, 'reviewsFeed/' + destRef.key), feedPayload)
+                    ]), 15000);
+                    await dbM.runTransaction(dbM.ref(db, 'reviewStats/' + destId), function (cur) {
+                        const sum = (cur && typeof cur.sum === 'number') ? cur.sum : 5;
+                        const count = (cur && typeof cur.count === 'number') ? cur.count : 1;
+                        return { sum: sum + rating, count: count + 1 };
+                    });
+                    return destRef.key;
+                } catch (e) {
+                    if (!(e && e.code === 'network')) console.error('[FeelVoyage] Nu pot salva review-ul. Ai publicat regulile noi din firebase-rules.json?', e);
+                    throw FVError('network', e);
+                }
+            },
+            // Nota live a unei destinații (medie + număr de review-uri REALE, fără „baza” invizibilă de 5★)
+            onReviewStats: function (destId, cb) {
+                return dbM.onValue(dbM.ref(db, 'reviewStats/' + destId), function (snap) {
+                    const v = snap.val();
+                    const sum = (v && typeof v.sum === 'number') ? v.sum : 5;
+                    const count = (v && typeof v.count === 'number') ? v.count : 1;
+                    cb({ avg: Math.round((sum / count) * 10) / 10, count: Math.max(0, count - 1) });
+                }, function (err) {
+                    console.error('[FeelVoyage] Nu pot citi nota destinației. Ai publicat regulile noi din firebase-rules.json?', err);
+                    cb({ avg: 5, count: 0 });
+                });
+            },
+            // Toate review-urile unei destinații, cele mai noi primele (pentru site-ul de review-uri)
+            onDestinationReviews: function (destId, cb) {
+                return dbM.onValue(dbM.ref(db, 'reviews/' + destId), function (snap) {
+                    const v = snap.val() || {};
+                    const list = Object.keys(v).map(function (id) { return Object.assign({ id: id }, v[id]); });
+                    list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+                    cb(list);
+                }, function (err) {
+                    console.error('[FeelVoyage] Nu pot citi review-urile. Ai publicat regulile noi din firebase-rules.json?', err);
+                    cb([]);
+                });
+            },
+            // Cele mai bune review-uri de pe tot site-ul, ÎN TIMP REAL (secțiunea de pe prima pagină): citim live un
+            // lot mai mare după notă, apoi sortăm și după dată — Firebase nu poate ordona după două câmpuri deodată.
+            // Se actualizează singur quando apare un review nou cu notă mare, fără refresh de pagină.
+            onTopReviews: function (limit, cb) {
+                const q = dbM.query(dbM.ref(db, 'reviewsFeed'), dbM.orderByChild('rating'), dbM.limitToLast(20));
+                return dbM.onValue(q, function (snap) {
+                    const v = snap.val() || {};
+                    const list = Object.keys(v).map(function (id) { return Object.assign({ id: id }, v[id]); });
+                    list.sort(function (a, b) { return (b.rating - a.rating) || ((b.createdAt || 0) - (a.createdAt || 0)); });
+                    cb(list.slice(0, limit || 3));
+                }, function (err) {
+                    console.error('[FeelVoyage] Nu pot citi cele mai bune review-uri. Ai publicat regulile noi din firebase-rules.json?', err);
+                    cb([]);
+                });
+            },
             // Lista utilizatorilor: doar pentru administrator. Protecția reală e în regulile bazei de date (firebase-rules.json):
             // un cont obișnuit primește PERMISSION_DENIED chiar dacă ar apela această funcție.
             listUsers: async function () {
@@ -596,6 +682,22 @@
         withdrawConsent: function (doc) { return ready.then(function (b) { return b.withdrawConsent(doc); }); },
         setNewsletter: function (value) { return ready.then(function (b) { return b.setNewsletter(value); }); },
         adminSetNewsletter: function (uid, value) { return ready.then(function (b) { return b.adminSetNewsletter(uid, value); }); },
+        submitReview: function (destId, destTitle, data) { return ready.then(function (b) { return b.submitReview(destId, destTitle, data); }); },
+        onReviewStats: function (destId, cb) {
+            let unsub = noop, cancelled = false;
+            ready.then(function (b) { if (!cancelled) unsub = b.onReviewStats(destId, cb); });
+            return function () { cancelled = true; unsub(); };
+        },
+        onDestinationReviews: function (destId, cb) {
+            let unsub = noop, cancelled = false;
+            ready.then(function (b) { if (!cancelled) unsub = b.onDestinationReviews(destId, cb); });
+            return function () { cancelled = true; unsub(); };
+        },
+        onTopReviews: function (limit, cb) {
+            let unsub = noop, cancelled = false;
+            ready.then(function (b) { if (!cancelled) unsub = b.onTopReviews(limit, cb); });
+            return function () { cancelled = true; unsub(); };
+        },
         resetPassword: function (e) { return ready.then(function (b) { return b.resetPassword(e); }); },
         submitOrder: function (o) { return ready.then(function (b) { return b.submitOrder(o); }); },
         listUsers: function () { return ready.then(function (b) { return b.listUsers(); }); },
@@ -619,7 +721,7 @@
         ready.then(function (b) { L.info('backend', 'ready', { mode: b && b.mode }); }, function (e) { L.error('backend', 'init-failed', { code: e && e.code }); });
         let lastUid = '';   // identificatorul contului (nu e e-mail): administratorul îl leagă de e-mail în fereastra „Jurnal” (vezi js/logviewer.js)
         try { window.FVBackend.onAuth(function (s) { if (s && s.uid) lastUid = s.uid; }); } catch (e) { /* ignorat */ }
-        ['register', 'login', 'loginWithGoogle', 'logout', 'saveConsent', 'withdrawConsent', 'setNewsletter', 'adminSetNewsletter', 'resetPassword', 'resendVerification', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
+        ['register', 'login', 'loginWithGoogle', 'logout', 'saveConsent', 'withdrawConsent', 'setNewsletter', 'adminSetNewsletter', 'submitReview', 'resetPassword', 'resendVerification', 'listUsers', 'listLogs', 'pruneLogs', 'clearLogs'].forEach(function (m) {
             const orig = window.FVBackend[m];
             if (typeof orig !== 'function') return;
             window.FVBackend[m] = function () {

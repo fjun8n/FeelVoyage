@@ -535,6 +535,7 @@ function openModal(id, photoIndex) {
     if (!item) { if (window.FVLog) FVLog.warn('package', 'unknown', { id: String(id).slice(0, 40) }); return; }
     if (window.FVLog) FVLog.info('package', 'open', { id: id, photo: Number.isInteger(photoIndex) ? photoIndex : 0 });
     currentBookingDest = item;
+    document.dispatchEvent(new CustomEvent('fv:package-open', { detail: { id: item.id } }));   // pentru js/reviews.js: nota live a destinației
     document.getElementById('bookingGateError').classList.add('hidden');   // pachet nou deschis: ascundem eroarea de la o încercare anterioară de trimitere
     refreshBookingConsent();
     if (Number.isInteger(photoIndex)) galleryVisible = true;   // ai apăsat pe o poză (sertar / insignă): galeria se deschide chiar dacă o închisese
