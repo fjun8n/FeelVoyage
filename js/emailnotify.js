@@ -64,12 +64,16 @@
             phone: order.phone || '',
             email: order.email || '',
             destination: order.destinationTitle || order.destination || '',
+            country: order.country || '',
             message: order.message || '',
             period: order.periodText || '',
             travelers: order.travelers != null ? String(order.travelers) : '',
             total_price: order.totalPrice != null ? (order.totalPrice + ' ' + (order.currency || '€') + ' (≈ ' + (order.priceRon || '') + ')') : '',
             services: order.services || '',
             amenities_excluded: order.amenitiesExcluded || '',
+            // „adevărat” doar dacă există cel puțin un detaliu de călătorie — ca secțiunea din e-mail să nu
+            // rămână o casetă goală atunci când niciunul din cele 4 câmpuri de mai sus nu e completat.
+            has_trip_details: !!(order.periodText || order.travelers || order.services || order.amenitiesExcluded),
             sent_at: order.dateText || new Date().toLocaleString('ro-RO')
         };
     }

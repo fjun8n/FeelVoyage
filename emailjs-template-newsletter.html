@@ -1,0 +1,63 @@
+<!--
+  FeelVoyage — șablon EmailJS pentru anunțuri/newsletter (butonul de megafon din panoul de admin).
+  Diferit de emailjs-template-contact.html — ăsta e pentru updateTemplateId (newsletter), nu pentru
+  templateId (notificări de comandă). Variabilele trimise sunt DOAR {{message}} și {{sent_at}} — abonații
+  nu au nume salvat, așa că nu poți personaliza cu „Salut, Ion”.
+
+  CUM ÎL PUI ÎN EMAILJS:
+  1. emailjs.com → Email Templates → template-ul folosit pentru newsletter (updateTemplateId din
+     js/emailjs-config.js) — sau „Create New Template” dacă vrei unul separat de cel de comenzi.
+  2. Butonul „</> Code Editor” (colțul din dreapta sus) — NU „Design Editor”.
+  3. Șterge tot, lipește conținutul acestui fișier.
+  4. „Subject”, pune ceva de genul: Noutăți de la FeelVoyage ✈️
+  5. „Save”.
+-->
+<div style="margin:0; padding:28px 12px; background:#eef2f7; font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; margin:0 auto;">
+
+    <!-- Antet, cu degrade — culoarea solidă e rezerva pentru clienții de mail vechi care nu știu gradient -->
+    <tr>
+      <td style="background-color:#0369a1; background-image:linear-gradient(135deg,#0369a1,#f59e0b); border-radius:18px 18px 0 0; padding:34px 30px; text-align:center;">
+        <p style="margin:0 0 6px; font-size:11px; font-weight:bold; letter-spacing:.14em; text-transform:uppercase; color:#fef3c7;">Anunț FeelVoyage</p>
+        <h1 style="margin:0; font-size:26px; color:#ffffff; font-family:Georgia,'Times New Roman',serif;">✈️ Feel<span style="color:#fef08a;">Voyage</span></h1>
+      </td>
+    </tr>
+
+    <!-- Corp -->
+    <tr>
+      <td style="background:#ffffff; padding:38px 32px 8px; border:1px solid #e2e8f0; border-top:none;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc; border-left:4px solid #f59e0b; border-radius:4px;">
+          <tr>
+            <td style="padding:20px 22px; font-size:16px; line-height:1.75; color:#1e293b; font-weight:600; white-space:pre-wrap;">{{message}}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Buton -->
+    <tr>
+      <td style="background:#ffffff; padding:30px 32px 10px; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0; text-align:center;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+          <tr>
+            <td style="border-radius:999px; background-color:#e11d48; background-image:linear-gradient(135deg,#0369a1,#e11d48);">
+              <a href="https://fjun8n.github.io/FeelVoyage/" style="display:inline-block; padding:15px 38px; font-size:16px; font-weight:bold; color:#ffffff; text-decoration:none;">🌍 Vizitează Site-ul</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Subsol -->
+    <tr>
+      <td style="background:#ffffff; padding:28px 32px 32px; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 18px 18px;">
+        <hr style="border:none; border-top:1px solid #f1f5f9; margin:0 0 18px;">
+        <p style="margin:0; font-size:12px; color:#94a3b8; text-align:center; line-height:1.7;">
+          Primești acest e-mail pentru că ești abonat la newsletter-ul FeelVoyage.<br>
+          Dacă nu mai vrei să primești aceste anunțuri, <a href="mailto:crucrudenis@gmail.com?subject=Dezabonare%20newsletter" style="color:#94a3b8; text-decoration:underline;">scrie-ne aici</a> și te dezabonăm imediat.
+        </p>
+        <p style="margin:14px 0 0; font-size:11px; font-weight:bold; color:#64748b; text-align:center;">{{sent_at}}</p>
+      </td>
+    </tr>
+
+  </table>
+</div>

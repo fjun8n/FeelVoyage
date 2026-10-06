@@ -678,7 +678,7 @@ html.dark .lv-tab.is-on { background: var(--fv-surface); color: #5eead4; box-sha
 .fv-chip-scroll::-webkit-scrollbar { display: none; }
 
 /* Sub-tab-uri în tab-ul „Rapoarte Bug” din Jurnal: site principal vs. site reviews, complet separate, niciodată amestecate. */
-.lv-subtabs { display: flex; gap: .5rem; padding: .75rem 1rem 0; }
+.lv-subtabs { display: flex; gap: .5rem; padding: .75rem 1rem .6rem; }
 .lv-subtab { padding: .4rem .9rem; border-radius: 9999px; border: 1px solid #e2e8f0; background: #fff; color: #64748b; font-size: .72rem; font-weight: 700; cursor: pointer; }
 .lv-subtab-on { background: #0f766e; border-color: #0f766e; color: #fff; }
 html.dark .lv-subtab { background: var(--fv-surface-2); border-color: var(--fv-line-soft); color: var(--fv-text-mid); }

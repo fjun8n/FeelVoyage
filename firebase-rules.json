@@ -230,6 +230,18 @@
         "country": {
           ".validate": "newData.isString() && newData.val().length <= 80"
         },
+        "periodText": {
+          ".validate": "newData.isString() && newData.val().length <= 100"
+        },
+        "travelers": {
+          ".validate": "newData.isString() && newData.val().length <= 150"
+        },
+        "services": {
+          ".validate": "newData.isString() && newData.val().length <= 500"
+        },
+        "amenitiesExcluded": {
+          ".validate": "newData.isString() && newData.val().length <= 500"
+        },
         "message": {
           ".validate": "newData.isString() && newData.val().length <= 2000"
         },

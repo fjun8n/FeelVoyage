@@ -689,3 +689,36 @@ Verificare sistematică: sintaxă, structură date, reguli Firebase vs. cod, HTM
 - **Dropdown țară (și alte hover-uri „albe" din tot site-ul)**: culoarea de hover (`hover:bg-slate-50`) nu avea variantă pentru mod întunecat — se vedea alb/foarte deschis pe fundal închis. Reparat generic, o singură dată, pentru toate cele 3 locuri unde apărea (dropdown țară, butoanele de rol din admin, butonul de login cu Google).
 - **Poza de profil, acum și în antet**: lângă nume, în colțul din dreapta sus, apare acum poza de profil (dacă ai una încărcată), nu doar iconița generică. Se actualizează imediat, fără reîncărcarea paginii, în clipa în care schimbi poza din profil.
 - **Rolurile de pe profil**: am re-verificat codul — sunt deja afișate lângă eticheta Membru/Admin, în ordinea ierarhiei, limitate la maximum 2 chiar dacă ai mai multe roluri. Nu era nimic de reparat aici.
+
+## Șablon EmailJS pentru „Trimite Cerere de Ofertă" (sesiune curentă)
+
+Fișier nou: `emailjs-template-contact.html` — instrucțiunile complete de instalare sunt chiar în comentariul din capul fișierului (EmailJS → template-ul tău → „Code Editor" → lipești tot conținutul).
+
+Funcționează pentru AMBELE tipuri de cereri (cerere simplă de ofertă ȘI rezervare de pachet), cu secțiuni care apar sau dispar automat: la o cerere simplă, vezi doar nume/telefon/e-mail/destinație/țară/mesaj; la o rezervare de pachet, apare și caseta cu perioadă/călători/servicii/preț total. Testat vizual pentru ambele cazuri.
+
+**Bug mic găsit și reparat pe parcurs**: câmpul „Țară / Cetățenie" era salvat corect în baza de date, dar NU era trimis și către e-mail — acum apare și acolo.
+
+## „Trimite Cerere de Ofertă" — acum completă (sesiune curentă)
+
+Formularul de contact are acum aceleași categorii de informații ca rezervarea unui pachet:
+- **Perioadă dorită**: nopți + dată aproximativă de plecare (opțional)
+- **Călători**: adulți, copii 0-4 ani, copii 5-12 ani
+- **Servicii Dorite**: aceleași 8 categorii ca la pachete (Transport, Cazare, Transfer, Mese, Bilete, Asigurare, Ghid, Mașină), ca listă de bife — fără blocaje, fără prețuri, toate nebifate implicit
+
+E-mailul primit arată acum, pentru o cerere simplă: perioadă, călători, **servicii alese** ȘI **facilități nealese** (restul din cele 8, nebifate) — exact simetric cu ce ai la rezervările de pachete. Testat complet, cu date reale.
+
+**Totalul/prețul a fost scos din e-mail** (șablonul `emailjs-template-contact.html`), pentru ambele tipuri de cereri — prețul rămâne să se discute la telefon, cum ai cerut.
+
+**Bug reparat pe parcurs**: am folosit din greșeală `t(...)` în loc de `tr(...)` la primul draft — ar fi dat eroare JS la fiecare trimitere de cerere simplă. Găsit și reparat prin testare directă, înainte de livrare.
+
+**Important**: dacă ai deja instalat `emailjs-template-contact.html` în EmailJS, va trebui să înlocuiești conținutul cu versiunea nouă din această arhivă (secțiunea de total a fost scoasă, iar cea de „detalii călătorie" funcționează acum independent de perioadă).
+
+## Buton de apel direct în e-mail (sesiune curentă)
+
+Pe lângă „Răspunde pe e-mail", acum apare și un buton verde **„Sună pe [Nume]"** (`tel:{{phone}}`) — pe telefon, un singur tap deschide direct aplicația de apeluri, cu numărul deja completat.
+
+**Rafinare mică găsită pe parcurs**: am observat că o cerere veche, fără niciunul din noile câmpuri (perioadă/călători/servicii), lăsa o casetă „Detalii călătorie" goală în e-mail. Reparat — caseta dispare complet când nu are ce arăta, verificat vizual pentru toate 3 situațiile (cerere veche, cerere nouă completă, rezervare de pachet).
+
+## Spațiere reparată în Jurnal (sesiune curentă)
+
+Tab-ul „Rapoarte Bug" din Jurnal: lipsea complet spațiul dintre rândul cu „FeelVoyage / FeelVoyage Reviews" și butonul „Actualizează" de dedesubt — se atingeau direct. Adăugat puțin spațiu, verificat vizual.

@@ -1139,6 +1139,37 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     if (val('contactDest')) order.destination = val('contactDest');
     const countryHidden = document.getElementById('contactCountryCode');
     if (countryHidden && countryHidden.value) order.country = countryHidden.getAttribute('data-name') || countryHidden.value;
+
+    // Perioadă dorită (opțional, aproximativă — nu e legată de un pachet anume, ca la rezervări)
+    const cNights = val('contactNights'), cDate = val('contactDate');
+    const periodParts = [];
+    if (cNights) periodParts.push(`${cNights} ${tr('contact.nightsWord', 'nopți')}`);
+    if (cDate) periodParts.push(`${tr('contact.departureWord', 'plecare aproximativ')} ${FVDateRange.fmt(cDate)}`);
+    if (periodParts.length) order.periodText = periodParts.join(', ');
+
+    // Călători (toate au o valoare implicită în HTML, deci trimitem mereu dacă diferă de "necompletat")
+    const cAdults = parseInt(val('contactAdults'), 10) || 0, cKids04 = parseInt(val('contactKids04'), 10) || 0, cKids512 = parseInt(val('contactKids512'), 10) || 0;
+    if (cAdults > 0 || cKids04 > 0 || cKids512 > 0) {
+        const bits = [];
+        if (cAdults > 0) bits.push(`${cAdults} ${tr('contact.adultsWord', 'adulți')}`);
+        if (cKids04 > 0) bits.push(`${cKids04} ${tr('contact.kids04Word', 'copii 0-4 ani')}`);
+        if (cKids512 > 0) bits.push(`${cKids512} ${tr('contact.kids512Word', 'copii 5-12 ani')}`);
+        order.travelers = bits.join(', ');
+    }
+
+    // Servicii dorite — același set de 8 ca la pachete, dar aici TOATE pornesc nebifate (nu există un pachet de bază);
+    // ce rămâne nebifat se trimite separat, ca „facilități nealese”, exact ca la comenzile de pachete.
+    const allServiceLabels = {
+        transport: tr('modal.serviceTransport', 'Transport (zbor/autocar)'), cazare: tr('modal.serviceCazare', 'Cazare hotel'),
+        transfer: tr('modal.serviceTransfer', 'Transfer aeroport-hotel'), meals: tr('modal.serviceMeals', 'Demipensiune / Mic dejun'),
+        tickets: tr('modal.serviceTickets', 'Bilete la atracții'), insurance: tr('modal.serviceInsurance', 'Asigurare de călătorie'),
+        guide: tr('modal.serviceGuide', 'Ghid local'), car: tr('modal.serviceCar', 'Închiriere auto')
+    };
+    const checkedServices = Array.from(document.querySelectorAll('input[name="contact-service"]:checked')).map(i => i.value);
+    if (checkedServices.length) order.services = checkedServices.map(k => allServiceLabels[k]).join(', ');
+    const uncheckedServices = Object.keys(allServiceLabels).filter(k => !checkedServices.includes(k));
+    if (checkedServices.length && uncheckedServices.length) order.amenitiesExcluded = uncheckedServices.map(k => allServiceLabels[k]).join(', ');
+
     if (val('contactMsg')) order.message = val('contactMsg');
 
     setFormBusy(form, true);

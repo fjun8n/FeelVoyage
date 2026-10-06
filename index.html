@@ -731,9 +731,86 @@
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formPeriod">Perioadă Dorită</label>
+                                <input type="text" id="contactPeriod" maxlength="100" placeholder="ex: mijlocul lui iulie, 5-7 nopți" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed" data-i18n-ph="contact.formPeriodPlaceholder">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formTravelers">Număr de Persoane</label>
+                                <input type="text" id="contactTravelers" maxlength="40" placeholder="ex: 2 adulți și 1 copil" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed" data-i18n-ph="contact.formTravelersPlaceholder">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formNights">Nopți Dorite</label>
+                                <input type="number" id="contactNights" min="1" max="30" placeholder="ex: 7" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formDate">Dată Aproximativă Plecare</label>
+                                <input type="date" id="contactDate" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formAdults">Adulți</label>
+                                <input type="number" id="contactAdults" min="1" max="12" value="2" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formKids04">Copii 0-4 ani</label>
+                                <input type="number" id="contactKids04" min="0" max="8" value="0" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formKids512">Copii 5-12 ani</label>
+                                <input type="number" id="contactKids512" min="0" max="8" value="0" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">
+                                <i class="fa-solid fa-sliders text-brand-600 mr-1"></i> <span data-i18n="contact.formServicesTitle">Servicii Dorite (opțional)</span>
+                            </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="contact-service" value="transport" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-plane text-brand-500"></i> <span data-i18n="modal.serviceTransport">Transport (zbor/autocar)</span></span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="contact-service" value="cazare" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-bed text-brand-500"></i> <span data-i18n="modal.serviceCazare">Cazare hotel</span></span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="contact-service" value="transfer" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-taxi text-brand-500"></i> <span data-i18n="modal.serviceTransfer">Transfer aeroport-hotel</span></span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="contact-service" value="meals" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-utensils text-brand-500"></i> <span data-i18n="modal.serviceMeals">Demipensiune / Mic dejun</span></span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="contact-service" value="tickets" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-ticket text-brand-500"></i> <span data-i18n="modal.serviceTickets">Bilete la atracții</span></span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="contact-service" value="insurance" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-brand-500"></i> <span data-i18n="modal.serviceInsurance">Asigurare de călătorie</span></span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="contact-service" value="guide" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-user-tie text-brand-500"></i> <span data-i18n="modal.serviceGuide">Ghid local</span></span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
+                                    <input type="checkbox" name="contact-service" value="car" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed">
+                                    <span class="text-xs text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-car text-brand-500"></i> <span data-i18n="modal.serviceCar">Închiriere auto</span></span>
+                                </label>
+                            </div>
+                        </div>
+
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formMsg">Mesaj sau Detalii Călătorie</label>
-                            <textarea id="contactMsg" rows="4" maxlength="2000" placeholder="Specifică numărul de persoane, perioada estimată, bugetul sau orice altă cerință specială..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed" data-i18n-ph="contact.formMsgPlaceholder"></textarea>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formMsg">Mesaj sau Alte Detalii</label>
+                            <textarea id="contactMsg" rows="4" maxlength="2000" placeholder="Buget estimat sau orice altă cerință specială..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed" data-i18n-ph="contact.formMsgPlaceholder"></textarea>
                         </div>
 
                         <button type="submit" id="contactSubmitBtn" class="w-full py-4 rounded-xl bg-gradient-to-r from-brand-600 via-brand-500 to-sunset-500 text-white font-bold text-base shadow-lg hover:opacity-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:grayscale">
