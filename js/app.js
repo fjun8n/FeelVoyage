@@ -696,6 +696,7 @@ document.addEventListener('input', (e) => {
 // ============ CALCULATORUL DE PREȚ AL REZERVĂRII (regulile sunt în js/pricing.js) ============
 const bookingState = { adults: 2, kids04: 0, kids512: 0 };
 let bookingRange = null;   // selectorul de interval de date (js/daterange.js)
+let contactRange = null;   // același selector, pentru „Trimite Cerere de Ofertă” — nu poate fi aleasă o dată din trecut
 let deselectedAmenities = new Set();   // indicii facilităților incluse pe care clientul le-a debifat (prețul scade pentru fiecare)
 
 // Potrivire text amenity → cheie din „Alege Serviciile Dorite” (vezi listener-ul modalAmenities mai jos). Fiecare regulă
@@ -897,8 +898,14 @@ bookingRange = FVDateRange.create(document.getElementById('dateRange'), {
     getLang: () => currentLang,
     onChange: () => renderBookingQuote()
 });
+contactRange = FVDateRange.create(document.getElementById('contactDateRange'), {
+    t: (key, fallback) => tr(key, fallback),
+    getLang: () => currentLang,
+    onChange: () => { }
+});
 document.addEventListener('fv:language', () => {
     if (bookingRange) bookingRange.refresh();
+    if (contactRange) contactRange.refresh();
     if (currentBookingDest) { refreshExtraChips(currentBookingDest); renderBookingQuote(); }
 });
 
@@ -1120,6 +1127,22 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
 });
 
 // Contact Form Submission
+// Ascunde mesajul de eroare de îndată ce alegi un serviciu, ca să nu rămână acolo degeaba
+document.getElementById('contactServicesPanel').addEventListener('change', function (e) {
+    if (e.target.name === 'contact-service' && e.target.checked) document.getElementById('contactServicesHint').classList.add('hidden');
+});
+
+// Lista de servicii dorite rămâne ascunsă până o deschizi — nu mai sare în ochi ca la pachete.
+document.getElementById('contactServicesToggle').addEventListener('click', function () {
+    const panel = document.getElementById('contactServicesPanel');
+    const chevron = document.getElementById('contactServicesChevron');
+    const open = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !open);
+    panel.classList.toggle('grid', open);
+    chevron.classList.toggle('rotate-180', open);
+    this.setAttribute('aria-expanded', String(open));
+});
+
 document.getElementById('contactForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     // Formularul necesită cont (vezi js/auth.js → syncContactFormGate); câmpurile sunt oricum blocate vizual,
@@ -1130,6 +1153,28 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     if (!activeSession.admin && window.FVContactLimit && FVContactLimit.nextAllowedTime(activeSession.lastContactRequestAt) > Date.now()) return;
     const form = e.target;
     const val = (id) => document.getElementById(id).value.trim();
+
+    // Țara (dropdown propriu, nu un <select> nativ — required nu funcționează singur aici)
+    const countryHiddenCheck = document.getElementById('contactCountryCode');
+    if (!countryHiddenCheck || !countryHiddenCheck.value) {
+        document.getElementById('contactCountryBtn').focus();
+        document.getElementById('contactCountryBtn').classList.add('ring-2', 'ring-rose-400');
+        setTimeout(() => document.getElementById('contactCountryBtn').classList.remove('ring-2', 'ring-rose-400'), 2000);
+        return;
+    }
+    // Cel puțin un serviciu ales (bifele, ascunse până le deschizi — nu pot fi verificate cu required)
+    const anyServiceChecked = document.querySelectorAll('input[name="contact-service"]:checked').length > 0;
+    if (!anyServiceChecked) {
+        const panel = document.getElementById('contactServicesPanel'), hint = document.getElementById('contactServicesHint');
+        panel.classList.remove('hidden'); panel.classList.add('grid');
+        document.getElementById('contactServicesToggle').setAttribute('aria-expanded', 'true');
+        document.getElementById('contactServicesChevron').classList.add('rotate-180');
+        hint.textContent = tr('contact.servicesRequired', 'Alege cel puțin un serviciu dorit.');
+        hint.classList.remove('hidden');
+        document.getElementById('contactServicesToggle').scrollIntoView({ block: 'center', behavior: 'smooth' });
+        return;
+    }
+
     const order = {
         type: 'contact',
         name: val('contactName'),
@@ -1141,11 +1186,18 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     if (countryHidden && countryHidden.value) order.country = countryHidden.getAttribute('data-name') || countryHidden.value;
 
     // Perioadă dorită (opțional, aproximativă — nu e legată de un pachet anume, ca la rezervări)
-    const cNights = val('contactNights'), cDate = val('contactDate');
-    const periodParts = [];
-    if (cNights) periodParts.push(`${cNights} ${tr('contact.nightsWord', 'nopți')}`);
-    if (cDate) periodParts.push(`${tr('contact.departureWord', 'plecare aproximativ')} ${FVDateRange.fmt(cDate)}`);
-    if (periodParts.length) order.periodText = periodParts.join(', ');
+    // Perioadă dorită — același calendar ca la pachete (js/daterange.js): nu poți alege o dată din trecut.
+    const contactDateErr = contactRange ? contactRange.validate() : 'missing';
+    if (contactDateErr) {
+        if (contactRange) {
+            contactRange.showError(tr('modal.dateRequired', 'Alege data plecării și data întoarcerii.'));
+            contactRange.open(contactRange.getRange().start ? 'end' : 'start');
+            document.getElementById('contactDateRange').scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+        return;
+    }
+    const contactDateRangeVal = contactRange.getRange();
+    order.periodText = `${FVDateRange.fmt(contactDateRangeVal.start)} – ${FVDateRange.fmt(contactDateRangeVal.end)} (${contactDateRangeVal.nights} nopți)`;
 
     // Călători (toate au o valoare implicită în HTML, deci trimitem mereu dacă diferă de "necompletat")
     const cAdults = parseInt(val('contactAdults'), 10) || 0, cKids04 = parseInt(val('contactKids04'), 10) || 0, cKids512 = parseInt(val('contactKids512'), 10) || 0;
@@ -1190,6 +1242,7 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     document.getElementById('contactSuccess').classList.remove('hidden');
     form.reset();
     if (typeof window.fvResetCountrySelect === 'function') window.fvResetCountrySelect();
+    if (contactRange) contactRange.reset(true);
     setTimeout(() => {
         document.getElementById('contactSuccess').classList.add('hidden');
     }, 5000);

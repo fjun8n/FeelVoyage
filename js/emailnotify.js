@@ -56,24 +56,28 @@
     function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
     // „order" vine din js/app.js → sendOrder (aceleași câmpuri trimise și către baza de date)
+    // De la zero, cât mai simplu posibil: DOAR variabile simple {{...}}, fără {{#if}}, fără triple-acolade
+    // {{{...}}}, fără HTML construit în cod — exact tiparul newsletter-ului, care a mers dintotdeauna fără
+    // nicio problemă. Fiecare câmp gol devine „—” (nu rămâne gol de tot, ca să se vadă clar în e-mail că
+    // acel criteriu n-a fost completat, nu doar un rând „ciudat”, gol).
+    function orDash(v) { return (v === null || v === undefined || v === '') ? '—' : String(v); }
+
     function buildParams(order) {
+        const totalPrice = order.totalPrice != null ? (order.totalPrice + ' ' + (order.currency || '€') + ' (≈ ' + (order.priceRon || '') + ')') : '';
         return {
             to_email: cfg.toEmail,
             order_type: order.type === 'booking' ? 'Rezervare pachet' : 'Mesaj de contact',
-            name: order.name || '',
-            phone: order.phone || '',
-            email: order.email || '',
-            destination: order.destinationTitle || order.destination || '',
-            country: order.country || '',
-            message: order.message || '',
-            period: order.periodText || '',
-            travelers: order.travelers != null ? String(order.travelers) : '',
-            total_price: order.totalPrice != null ? (order.totalPrice + ' ' + (order.currency || '€') + ' (≈ ' + (order.priceRon || '') + ')') : '',
-            services: order.services || '',
-            amenities_excluded: order.amenitiesExcluded || '',
-            // „adevărat” doar dacă există cel puțin un detaliu de călătorie — ca secțiunea din e-mail să nu
-            // rămână o casetă goală atunci când niciunul din cele 4 câmpuri de mai sus nu e completat.
-            has_trip_details: !!(order.periodText || order.travelers || order.services || order.amenitiesExcluded),
+            name: orDash(order.name),
+            phone: orDash(order.phone),
+            email: orDash(order.email),
+            destination: orDash(order.destinationTitle || order.destination),
+            country: orDash(order.country),
+            message: orDash(order.message),
+            period: orDash(order.periodText),
+            travelers: orDash(order.travelers),
+            services: orDash(order.services),
+            amenities_excluded: orDash(order.amenitiesExcluded),
+            total_price: totalPrice,
             sent_at: order.dateText || new Date().toLocaleString('ro-RO')
         };
     }

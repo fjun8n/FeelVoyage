@@ -740,3 +740,55 @@ Rezolvă exact problema semnalată: logica veche ținea cont doar de dispozitiv 
 - Dacă **ești logat și contul tău NU are țară** → te întreabă, chiar dacă pe alt dispozitiv ai răspuns cândva „nu, mulțumesc" (situația de cont-fără-țară e nouă și merită întrebată din nou) — testat.
 - **Opțiune nouă: alegere manuală** — dacă geolocația browserului nu merge sau o refuzi, apare un buton „Aleg manual țara" cu o listă simplă din care alegi — testat, salvează corect atât local cât și pe cont.
 - **O singură dată, cu adevărat**: regula din Firebase a fost schimbată să permită scrierea câmpului `country` al propriului cont DOAR dacă nu există deja o valoare — practic imposibil de schimbat din aplicație a doua oară, exact cum ai cerut; doar un admin o poate schimba, direct din baza de date.
+
+## Servicii restrânse + validare completă (sesiune curentă)
+
+„Servicii Dorite" nu mai apare ca listă deschisă (ca la pachete) — e acum un buton cu săgetuță; apeși, se deschide; nu apeși, rămâne ascunsă. Testat vizual, ambele stări.
+
+**Validare completă la trimitere** — nu mai poți trimite cererea până nu completezi TOT, mai puțin „Mesaj sau Alte Detalii" (rămâne opțional, cum ai cerut):
+- Lipsește țara → butonul de țară se marchează cu roșu și primește focus
+- Niciun serviciu bifat → panoul se deschide singur, cu mesaj clar „Alege cel puțin un serviciu dorit"
+- Restul (destinație, nopți, dată, adulți, copii) — validare nativă de browser
+
+Testat complet, pas cu pas: blocare fără țară, blocare fără serviciu, trimitere reușită cu tot completat.
+
+**Bug real găsit și reparat pe parcurs**: existau două câmpuri VECHI, moarte, din o versiune anterioară — „Perioadă Dorită" (text liber) și „Număr de Persoane" (text liber) — complet neconectate la cod (nu se citeau, nu se trimiteau nicăieri), rămase dublate față de câmpurile noi, structurate (Nopți/Dată/Adulți/Copii) pe care le-am construit sesiunea trecută. Le-am eliminat — formularul arată acum curat, fără duplicate confuze.
+
+## Reparație critică: e-mailul care nu se trimitea (sesiune curentă)
+
+**Cauza exactă**: EmailJS NU suportă deloc sintaxa `{{#if}}` (am verificat în documentația lor oficială) — e doar înlocuire simplă de variabile, nu Handlebars complet. Orice `{{#if}}` din template producea exact eroarea „Template: One or more dynamic variables are corrupted".
+
+**Reparat la rădăcină**: am mutat toată logica condițională (destinație/țară/mesaj/detalii călătorie apar-sau-nu) direct în `js/emailnotify.js`, care acum construiește bucățile de HTML corespunzătoare și le trimite gata făcute. Template-ul (`emailjs-template-contact.html`) a fost complet rescris, fără niciun `{{#if}}` — doar `{{variabilă}}` simplă și `{{{variabilă}}}` cu triple-acolade pentru HTML (sintaxă oficială EmailJS, documentată). Testat cu funcția reală din cod (nu o aproximare) — arată identic vizual cu înainte, pentru ambele situații (cerere completă și cerere fără detalii).
+
+**Important**: trebuie să înlocuiești din nou conținutul template-ului din EmailJS cu versiunea nouă din acest fișier — cea veche va continua să dea eroarea „corrupted" oricât ai aștepta.
+
+## Țara se completează automat din profil (sesiune curentă)
+
+Dacă ești logat și contul tău are deja o țară salvată, câmpul „Țară / Cetățenie" din „Trimite Cerere de Ofertă" se completează singur — rămâne editabilă, dacă vrei să specifici alta pentru cererea respectivă. Testat: completare automată corectă, și confirmat că NU suprascrie o alegere manuală deja făcută.
+
+(Nu am găsit câmpuri duplicate la „numărul de persoane” sau „nopți dorite” — au fost deja curățate sesiunea trecută.)
+
+## E-mail reparat din nou, mai robust de data asta (sesiune curentă)
+
+Am găsit un incident real, documentat public, cu exact aceeași eroare EmailJS — care arăta că problema poate veni și din câmpul **„To Email"** din dashboard-ul EmailJS, nu doar din corpul șablonului.
+
+Am refăcut totul mai defensiv: în loc de 3 bucăți de HTML inserate separat în mijlocul unui tabel (risc ca editorul EmailJS să le „repare" structura la salvare), acum e **un singur bloc complet** (`{{{body_html}}}`), construit integral în `js/emailnotify.js`, cu tabele de sine stătătoare — nimic fragmentat.
+
+**Verificat riguros, câmp cu câmp, cu funcția reală din cod**: nume, telefon, e-mail, destinație, țară, mesaj, perioadă, călători, servicii alese, facilități nealese — toate 10 confirmate prezente.
+
+**Te rog verifică și în dashboard-ul EmailJS**, pe lângă conținutul din fișier: câmpul „To Email" trebuie să fie exact `{{to_email}}` — dacă e altceva (sau gol), poate da aceeași eroare „corrupted", indiferent cât de corect e restul șablonului.
+
+## E-mail refăcut complet de la zero (sesiune curentă)
+
+Pentru că eroarea „corrupted” persista și cu variantele anterioare, am renunțat COMPLET la orice sintaxă specială — nici `{{#if}}`, nici triple-acolade `{{{...}}}`. Noul template folosește DOAR variabile simple `{{...}}`, exact ca newsletter-ul care a mers dintotdeauna. Fiecare criteriu are rândul lui, mereu vizibil — dacă nu a fost completat, apare „—” în loc de valoare, nu dispare rândul.
+
+**Dacă tot persistă eroarea** după acest fișier, problema nu mai e în conținutul șablonului (l-am redus la sintaxa minimă posibilă) — verifică în dashboard-ul EmailJS: „To Email” trebuie să fie `{{to_email}}`, și mai ales confirmă că `templateId` din `js/emailjs-config.js` e EXACT id-ul template-ului în care ai lipit conținutul nou.
+
+## Formular „Trimite Cerere de Ofertă” — perioadă reală de calendar (sesiune curentă)
+
+- **„Nopți Dorite” a dispărut** — era un câmp separat, acum eliminat.
+- **„Perioadă Dorită” e acum identică cu „Perioadă Estimată” de la pachete** — același calendar dublu (Plecare/Întoarcere), aceeași componentă de cod, exact același aspect.
+- **Nu poți alege o dată din trecut** — zilele dinaintea lui azi sunt dezactivate în calendar (de fapt, ca la pachete, nici măcar ziua de azi nu e selectabilă — minim mâine), testat vizual.
+- **Țara se completează automat din profil** (reconfirmat că funcționează, neschimbat față de ultima sesiune).
+
+Testat complet: blocare corectă dacă perioada lipsește, trimitere reușită cu toate câmpurile completate — `periodText` arată acum „03/11/2026 – 06/11/2026 (3 nopți)”, construit din calendarul real, nu din text liber.

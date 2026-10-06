@@ -56,6 +56,13 @@
         if (labelEl) { labelEl.textContent = labelEl.getAttribute('data-placeholder') || 'Selectează țara...'; labelEl.classList.add('text-slate-400'); labelEl.classList.remove('text-slate-800'); }
     }
     window.fvResetCountrySelect = reset;
+    // Completare automată din profil (js/auth.js, când ești logat și contul tău are deja o țară salvată) —
+    // doar dacă nu a fost deja aleasă manual ceva (nu suprascriem o alegere făcută chiar acum pentru cererea asta).
+    window.fvAutofillCountry = function (code) {
+        if (hidden.value) return;
+        const c = countries.find(function (x) { return x.code === code; });
+        if (c) select(c.code, c.name);
+    };
 
     btn.addEventListener('click', function () { panel.classList.contains('hidden') ? open() : close(); });
     if (search) search.addEventListener('input', function () { renderList(search.value); });

@@ -362,6 +362,7 @@
             const cp = document.getElementById('contactPhone');
             if (session.name && cn && !cn.value) cn.value = session.name;
             if (session.email && ce && !ce.value) ce.value = session.email;
+            if (session.country && window.fvAutofillCountry) window.fvAutofillCountry(session.country);
             if (session.phone && cp && !cp.value) cp.value = session.phone;
         }
         function tick() {

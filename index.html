@@ -713,7 +713,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formDest">Destinație Dorită</label>
-                                <input type="text" id="contactDest" maxlength="150" placeholder="ex: Maldive, Santorini, etc." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed" data-i18n-ph="contact.formDestPlaceholder">
+                                <input type="text" id="contactDest" required maxlength="150" placeholder="ex: Maldive, Santorini, etc." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed" data-i18n-ph="contact.formDestPlaceholder">
                             </div>
                         </div>
 
@@ -731,48 +731,49 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formPeriod">Perioadă Dorită</label>
-                                <input type="text" id="contactPeriod" maxlength="100" placeholder="ex: mijlocul lui iulie, 5-7 nopți" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed" data-i18n-ph="contact.formPeriodPlaceholder">
+                        <div id="contactDateRange">
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="modal.periodLabel">Perioadă Estimată</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" data-date-field="start" aria-haspopup="true" aria-expanded="false" class="text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-brand-300 transition focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer disabled:bg-slate-100 disabled:cursor-not-allowed">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="modal.dateFrom">Plecare</span>
+                                    <span data-date-value class="block text-sm font-medium text-slate-400">zz/ll/aaaa</span>
+                                </button>
+                                <button type="button" data-date-field="end" aria-haspopup="true" aria-expanded="false" class="text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-brand-300 transition focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer disabled:bg-slate-100 disabled:cursor-not-allowed">
+                                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="modal.dateTo">Întoarcere</span>
+                                    <span data-date-value class="block text-sm font-medium text-slate-400">zz/ll/aaaa</span>
+                                </button>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formTravelers">Număr de Persoane</label>
-                                <input type="text" id="contactTravelers" maxlength="40" placeholder="ex: 2 adulți și 1 copil" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed" data-i18n-ph="contact.formTravelersPlaceholder">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formNights">Nopți Dorite</label>
-                                <input type="number" id="contactNights" min="1" max="30" placeholder="ex: 7" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formDate">Dată Aproximativă Plecare</label>
-                                <input type="date" id="contactDate" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
-                            </div>
+                            <input type="hidden" id="contactDateStart" data-date-input="start">
+                            <input type="hidden" id="contactDateEnd" data-date-input="end">
+                            <p data-date-hint class="mt-1.5 text-[11px] text-slate-400 leading-relaxed">Alege data plecării din calendar.</p>
+                            <div data-date-calendar class="hidden mt-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"></div>
+                            <p data-date-error class="hidden mt-1.5 text-xs text-red-500 font-medium">Alege data plecării și data întoarcerii.</p>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formAdults">Adulți</label>
-                                <input type="number" id="contactAdults" min="1" max="12" value="2" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
+                                <input type="number" id="contactAdults" required min="1" max="12" value="2" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formKids04">Copii 0-4 ani</label>
-                                <input type="number" id="contactKids04" min="0" max="8" value="0" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
+                                <input type="number" id="contactKids04" required min="0" max="8" value="0" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formKids512">Copii 5-12 ani</label>
-                                <input type="number" id="contactKids512" min="0" max="8" value="0" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
+                                <input type="number" id="contactKids512" required min="0" max="8" value="0" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed">
                             </div>
                         </div>
 
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">
-                                <i class="fa-solid fa-sliders text-brand-600 mr-1"></i> <span data-i18n="contact.formServicesTitle">Servicii Dorite (opțional)</span>
-                            </label>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div class="bg-slate-50 rounded-xl border border-slate-200">
+                            <button type="button" id="contactServicesToggle" aria-expanded="false" class="w-full flex items-center justify-between gap-2 p-4 text-left disabled:cursor-not-allowed">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <i class="fa-solid fa-sliders text-brand-600 mr-1"></i> <span data-i18n="contact.formServicesTitle">Servicii Dorite (alege cel puțin una)</span>
+                                </span>
+                                <i id="contactServicesChevron" class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform"></i>
+                            </button>
+                            <p id="contactServicesHint" class="hidden px-4 -mt-2 pb-2 text-[11px] text-rose-500"></p>
+                            <div id="contactServicesPanel" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 px-4 pb-4">
                                 <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition border border-transparent hover:border-brand-200">
                                     <input type="checkbox" name="contact-service" value="transport" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed">
                                     <span class="text-xs text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-plane text-brand-500"></i> <span data-i18n="modal.serviceTransport">Transport (zbor/autocar)</span></span>
