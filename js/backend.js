@@ -12,7 +12,11 @@
     const SDK_BASE = 'https://www.gstatic.com/firebasejs/12.19.0/';
     const COUNTER_PATH = 'happyTravelers';
     const ACCOUNTS_PATH = 'accountIds';   // câte un marcaj anonim (uid → true) per cont creat; numărul lor = „Conturi Create"
-    const ORDERS_PATH = 'orders';
+    const ORDERS_PATH = 'orders';                  // comenzi reale de pachete (type: 'booking') — date de călătorie, persoane, preț etc.
+    const CONTACT_REQUESTS_PATH = 'contactRequests';   // cereri simple, fără pachet ales (type: 'contact') — formularul „Trimite Cerere de Ofertă”
+    const BUG_REPORTS_PATH = 'bugReports';   // butonul „Raportează un bug” din subsol (js/bugreport.js) — scriere permisă oricui, fără cont
+    // și formularul „Anunță-mă” al pachetelor „în curând”: nume, telefon, e-mail, destinație dorită, mesaj. Separate intenționat
+    // de „orders”, ca să nu se amestece cele două tipuri de cereri — vezi și firebase-rules.json.
     const LOGS_PATH = 'logs';   // jurnalul tehnic: oricine poate crea intrări validate, doar administratorul le citește / șterge (firebase-rules.json)
     const KEY_ORDERS_LOCAL = 'fv_orders_local';
     const KEY_COUNTER_LOCAL = 'fv_happy_travelers';
@@ -157,6 +161,8 @@
             listUsers: function () { return Promise.reject(FVError('unsupported')); },   // rolul de administrator există doar cu Firebase (regulile bazei de date îl protejează)
             adminSetNewsletter: function () { return Promise.reject(FVError('unsupported')); },
             adminSetName: function () { return Promise.reject(FVError('unsupported')); },
+            adminResetContactCooldown: function () { return Promise.reject(FVError('unsupported')); },
+            adminSetRole: function () { return Promise.reject(FVError('unsupported')); },
             setPhotoURL: function () { return Promise.reject(FVError('unsupported')); },   // Storage există doar cu Firebase configurat
             recordContactRequest: function () {
                 const s = readJSON(KEY_SESSION_LOCAL, null);
@@ -185,6 +191,18 @@
                 list.push(Object.assign({ key: key, status: 'nou', createdAt: Date.now() }, order));
                 kv.set(KEY_ORDERS_LOCAL, JSON.stringify(list));
                 return Promise.resolve(key);
+            },
+            submitBugReport: function () { return Promise.resolve('local-' + Date.now()); },   // fără Firebase, doar simulăm succesul
+            listBugReports: function () { return Promise.resolve([]); },
+            saveAnnouncementTemplate: function () { return Promise.reject(FVError('unsupported')); },
+            listAnnouncementTemplates: function () { return Promise.resolve([]); },
+            setCountry: function (code) {
+                var s = readJSON(KEY_SESSION_LOCAL, null);
+                if (!s) return Promise.reject(FVError('forbidden'));
+                s.country = String(code || '');
+                kv.set(KEY_SESSION_LOCAL, JSON.stringify(s));
+                publishSession(s);
+                return Promise.resolve(true);
             }
         };
     }
@@ -201,7 +219,7 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail, adminSetNewsletter: fail, adminSetName: fail, setPhotoURL: fail, recordContactRequest: fail, submitReview: fail,
+            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail, adminSetNewsletter: fail, adminSetName: fail, adminResetContactCooldown: fail, adminSetRole: fail, setPhotoURL: fail, recordContactRequest: fail, submitBugReport: fail, listBugReports: fail, setCountry: fail, saveAnnouncementTemplate: fail, listAnnouncementTemplates: fail, submitReview: fail,
             onReviewStats: function (destId, cb) { cb({ avg: 5, count: 0 }); return noop; },
             onDestinationReviews: function (destId, cb) { cb([]); return noop; },
             onTopReviews: function (limit, cb) { cb([]); return noop; },
@@ -319,7 +337,10 @@
                 consents: cleanConsents(profile.consents),
                 newsletter: !!profile.newsletter,
                 photoURL: profile.photoURL || '',
-                lastContactRequestAt: profile.lastContactRequestAt || 0   // pentru limita de 1 cerere de ofertă / 3 zile (vezi js/contact-limit.js)
+                lastContactRequestAt: profile.lastContactRequestAt || 0,   // pentru limita de 1 cerere de ofertă / 3 zile (vezi js/contact-limit.js)
+                orderCount: Number(profile.orderCount) || 0,   // total comenzi (pachete + cereri simple) — pentru rolul „Călător Loial” (vezi js/roles.js)
+                country: profile.country || '',   // cod ISO (ex: 'RO'), detectat prin geolocație (js/geo.js) — doar țara, nimic mai precis
+                roles: (profile.roles && typeof profile.roles === 'object') ? profile.roles : {}   // roluri vizuale: loyal / beta / bugfinder / helper (vezi js/roles.js)
             };
         }
 
@@ -420,7 +441,9 @@
                     try {
                         const snap = await dbM.get(dbM.ref(db, 'users/' + user.uid));
                         if (!snap.val()) {
-                            await dbM.set(dbM.ref(db, 'users/' + user.uid), { name: user.displayName || (user.email || '').split('@')[0], email: user.email || '', createdAt: dbM.serverTimestamp() });
+                            // la primul login cu Google, poza de profil pornește de la cea din contul Google —
+                            // utilizatorul o poate schimba oricând după (vezi js/avatar.js, Cloudinary)
+                            await dbM.set(dbM.ref(db, 'users/' + user.uid), { name: user.displayName || (user.email || '').split('@')[0], email: user.email || '', photoURL: user.photoURL || '', createdAt: dbM.serverTimestamp() });
                         }
                     } catch (e) { console.warn('[FeelVoyage] Profilul Google nu a putut fi salvat (verifică regulile din firebase-rules.json):', e); }
                     return await refresh(auth.currentUser || user);
@@ -477,6 +500,67 @@
                     throw FVError('network', e);
                 }
             },
+            // Țara contului (doar țara, nimic mai precis), detectată prin geolocație (js/geo.js) — folosită pe profil și vizibilă pentru admin.
+            setCountry: async function (code) {
+                if (!auth.currentUser || !session) throw FVError('forbidden');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(dbM.ref(db, 'users/' + auth.currentUser.uid + '/country'), String(code || '')), 15000);
+                    session = Object.assign({}, session, { country: String(code || '') });
+                    authSubs.forEach(function (cb) { cb(session); });
+                    return true;
+                } catch (e) {
+                    console.error('[FeelVoyage] Nu pot salva țara contului:', e);
+                    throw FVError('network', e);
+                }
+            },
+            // Șabloane de anunț create de administrator (pe lângă cele predefinite din cod) — js/admin.js, butonul de megafon.
+            saveAnnouncementTemplate: async function (tpl) {
+                if (!session || !session.admin) throw FVError('forbidden');
+                const title = String((tpl && tpl.title) || '').trim().slice(0, 80);
+                const text = String((tpl && tpl.text) || '').trim().slice(0, 1000);
+                if (!title || !text) throw FVError('invalid');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    const newRef = dbM.push(dbM.ref(db, 'announcementTemplates'));
+                    await withTimeout(dbM.set(newRef, { title: title, text: text, createdAt: dbM.serverTimestamp() }), 15000);
+                    return newRef.key;
+                } catch (e) { throw FVError('network', e); }
+            },
+            listAnnouncementTemplates: async function () {
+                if (!session || !session.admin) throw FVError('forbidden');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    const snap = await withTimeout(dbM.get(dbM.ref(db, 'announcementTemplates')), 15000);
+                    const v = snap.val() || {};
+                    return Object.keys(v).map(function (id) { return Object.assign({ id: id }, v[id]); }).sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
+                } catch (e) { throw FVError('network', e); }
+            },
+            // Butonul „Raportează un bug” din subsol — merge oricui, logat sau nu (js/bugreport.js).
+            submitBugReport: async function (report) {
+                const payload = { text: String(report.text || '').slice(0, 2000), status: 'nou', createdAt: dbM.serverTimestamp(), site: 'main', page: String((report.page || '').slice(0, 200)) };
+                if (report.email) payload.email = String(report.email).slice(0, 120);
+                if (auth.currentUser) { payload.uid = auth.currentUser.uid; if (session && session.name) payload.name = session.name; }
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    const newRef = dbM.push(dbM.ref(db, BUG_REPORTS_PATH));
+                    await withTimeout(dbM.set(newRef, payload), 15000);
+                    return newRef.key;
+                } catch (e) {
+                    console.error('[FeelVoyage] Raportul de bug nu a putut fi trimis:', e);
+                    throw FVError('network', e);
+                }
+            },
+            // Lista rapoartelor de bug, doar pentru administrator (js/admin.js / js/logviewer.js).
+            listBugReports: async function () {
+                if (!session || !session.admin) throw FVError('forbidden');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    const snap = await withTimeout(dbM.get(dbM.ref(db, BUG_REPORTS_PATH)), 15000);
+                    const v = snap.val() || {};
+                    return Object.keys(v).map(function (id) { return Object.assign({ id: id }, v[id]); }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+                } catch (e) { throw FVError('network', e); }
+            },
             // Poza de profil: utilizatorul o încarcă în Firebase Storage (js/avatar.js) și doar salvează aici adresa rezultată.
             setPhotoURL: async function (url) {
                 if (!auth.currentUser || !session) throw FVError('forbidden');
@@ -523,6 +607,34 @@
                     throw FVError('network', e);
                 }
             },
+            // Administratorul resetează manual limita de 3 zile a cuiva la „Trimite Cerere de Ofertă” (js/admin.js).
+            // Protecția reală e în regulile bazei de date: doar un cont din „admins” poate scrie în câmpul altui cont.
+            adminResetContactCooldown: async function (uid) {
+                if (!session || !session.admin) throw FVError('forbidden');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(dbM.ref(db, 'users/' + uid + '/lastContactRequestAt'), 0), 15000);
+                    return true;
+                } catch (e) {
+                    console.error('[FeelVoyage] Nu pot reseta limita cererii de ofertă:', e);
+                    throw FVError('network', e);
+                }
+            },
+            // Administratorul dă/retrage un rol vizual (loyal/beta/bugfinder/helper) oricui, din panoul de utilizatori (js/admin.js).
+            // Protecția reală e în regulile bazei de date: doar un cont din „admins” poate scrie direct true/false aici
+            // (excepție: propriul cont poate pune singur „loyal” pe true, dar NUMAI când orderCount >= 10 — vezi submitOrder mai sus).
+            adminSetRole: async function (uid, roleKey, value) {
+                if (!session || !session.admin) throw FVError('forbidden');
+                if (['loyal', 'beta', 'bugfinder', 'helper'].indexOf(roleKey) === -1) throw FVError('invalid');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(dbM.ref(db, 'users/' + uid + '/roles/' + roleKey), !!value), 15000);
+                    return true;
+                } catch (e) {
+                    console.error('[FeelVoyage] Nu pot salva rolul:', e);
+                    throw FVError('network', e);
+                }
+            },
             // Administratorul (dez)abonează pe altcineva la newsletter, din panoul de utilizatori (js/admin.js).
             // Protecția reală e în regulile bazei de date: doar un cont din „admins” poate scrie în câmpul newsletter al altui cont.
             adminSetNewsletter: async function (uid, value) {
@@ -540,10 +652,22 @@
             submitOrder: async function (order) {
                 const payload = Object.assign({}, order, { status: 'nou', createdAt: dbM.serverTimestamp() });
                 if (auth.currentUser) payload.uid = auth.currentUser.uid;   // dacă e logat, comanda se leagă de contul lui
+                // cererile simple (fără pachet ales) merg într-un nod separat — vezi nota de la CONTACT_REQUESTS_PATH mai sus
+                const path = order.type === 'contact' ? CONTACT_REQUESTS_PATH : ORDERS_PATH;
                 try {
                     if (!(await waitConnected(6000))) throw FVError('network');
-                    const newRef = dbM.push(dbM.ref(db, ORDERS_PATH));
+                    const newRef = dbM.push(dbM.ref(db, path));
                     await withTimeout(dbM.set(newRef, payload), 15000);
+                    // Contorul de comenzi al contului (pachete + cereri simple, la fel) — pentru rolul „Călător Loial”
+                    // (10+ comenzi), vezi js/roles.js. Fără tranzacție: miza e doar un ecuson vizual, nu ceva critic.
+                    if (auth.currentUser) {
+                        const countRef = dbM.ref(db, 'users/' + auth.currentUser.uid + '/orderCount');
+                        dbM.get(countRef).then(function (snap) {
+                            const newCount = (Number(snap.val()) || 0) + 1;
+                            dbM.set(countRef, newCount).catch(function () { });
+                            if (newCount >= 10) dbM.set(dbM.ref(db, 'users/' + auth.currentUser.uid + '/roles/loyal'), true).catch(function () { });
+                        }).catch(function () { });
+                    }
                     return newRef.key;
                 } catch (e) {
                     if (!(e && e.code === 'network')) {
@@ -640,7 +764,7 @@
                     const users = res[0].val() || {}, admins = res[1].val() || {};
                     return Object.keys(users).map(function (uid) {
                         const u = users[uid] || {};
-                        return { uid: uid, name: String(u.name || ''), email: String(u.email || ''), phone: String(u.phone || ''), createdAt: Number(u.createdAt) || 0, admin: admins[uid] === true, consents: cleanConsents(u.consents), newsletter: !!u.newsletter };
+                        return { uid: uid, name: String(u.name || ''), email: String(u.email || ''), phone: String(u.phone || ''), createdAt: Number(u.createdAt) || 0, admin: admins[uid] === true, consents: cleanConsents(u.consents), newsletter: !!u.newsletter, lastContactRequestAt: Number(u.lastContactRequestAt) || 0, photoURL: String(u.photoURL || ''), orderCount: Number(u.orderCount) || 0, roles: (u.roles && typeof u.roles === 'object') ? u.roles : {}, country: String(u.country || '') };
                     }).sort(function (a, b) { return (b.createdAt - a.createdAt) || a.name.localeCompare(b.name); });
                 } catch (e) {
                     if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
@@ -742,6 +866,13 @@
         setNewsletter: function (value) { return ready.then(function (b) { return b.setNewsletter(value); }); },
         adminSetNewsletter: function (uid, value) { return ready.then(function (b) { return b.adminSetNewsletter(uid, value); }); },
         adminSetName: function (uid, name) { return ready.then(function (b) { return b.adminSetName(uid, name); }); },
+        adminResetContactCooldown: function (uid) { return ready.then(function (b) { return b.adminResetContactCooldown(uid); }); },
+        submitBugReport: function (report) { return ready.then(function (b) { return b.submitBugReport(report); }); },
+        setCountry: function (code) { return ready.then(function (b) { return b.setCountry(code); }); },
+        saveAnnouncementTemplate: function (tpl) { return ready.then(function (b) { return b.saveAnnouncementTemplate(tpl); }); },
+        listAnnouncementTemplates: function () { return ready.then(function (b) { return b.listAnnouncementTemplates(); }); },
+        listBugReports: function () { return ready.then(function (b) { return b.listBugReports(); }); },
+        adminSetRole: function (uid, roleKey, value) { return ready.then(function (b) { return b.adminSetRole(uid, roleKey, value); }); },
         setPhotoURL: function (url) { return ready.then(function (b) { return b.setPhotoURL(url); }); },
         recordContactRequest: function () { return ready.then(function (b) { return b.recordContactRequest(); }); },
         submitReview: function (destId, destTitle, data) { return ready.then(function (b) { return b.submitReview(destId, destTitle, data); }); },

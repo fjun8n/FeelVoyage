@@ -13,7 +13,7 @@
 (function (root) {
     'use strict';
 
-    const EUR_RON = 5.0;        // cursul folosit pe site (340 € = 1.700 lei)
+    let EUR_RON = 5.0;        // curs de rezervă (dacă nu s-a încărcat încă / nu s-a putut încărca cel real — vezi js/exchange-rate.js)
     const CAR_SEATS = 4;        // locuri per mașină închiriată
     const MAX_ADULTS = 10;
     const MAX_KIDS = 6;
@@ -229,7 +229,10 @@
             nightsFixed: fixedTour,
             minNights: fixedTour ? nights : Math.min(cat.minNights, nights),
             maxNights: fixedTour ? nights : Math.max(cat.maxNights, nights),
-            fixedShare: cat.fixedShare,
+            // dest.price reprezintă acum doar partea de teren (hotel/masă) — scalează integral cu nopțile. Zborul
+            // e mereu separat (dest.flightPriceRT), o sumă fixă care nu depinde de durata sejurului. fixedShare
+            // a fost recalibrat o dată, direct în dest.price (vezi README.md), nu mai e nevoie de el aici.
+            fixedShare: 0,
             category: dest.category,
             kids: cat.kids,
             singlePerNight: ov.singlePerNight !== undefined ? ov.singlePerNight : cat.singlePerNight,
@@ -244,7 +247,7 @@
             carUnavailable: !!ov.carUnavailable,
             board: boardOf(dest.period),
             guideIncluded: fixedTour,
-            transportIncluded: dest.category !== 'romania',
+            transportIncluded: dest.country !== 'RO',
             seasonal: seasonalInfo(dest)
         };
     }
@@ -270,9 +273,12 @@
     }
 
     // Prețul unui adult pentru n nopți: partea fixă (zbor/transport) + partea care crește cu nopțile. La n = nopțile pachetului = prețul din card.
-    function adultPrice(base, packageNights, n, fixedShare) {
-        if (n === packageNights) return base;
-        return Math.round(base * (fixedShare + (1 - fixedShare) * (n / packageNights)));
+    // „base” (dest.price) e prețul de teren (hotel/masă) pentru durata standard — se scalează integral cu nopțile.
+    // „flightRT” e prețul REAL de zbor dus-întors (cercetat, dest.flightPriceRT): o sumă FIXĂ, care nu depinde de
+    // câte nopți stai. (Parametrul fixedShare a rămas doar pentru compatibilitate — e mereu 0, vezi profile() mai sus.)
+    function adultPrice(base, packageNights, n, fixedShare, flightRT) {
+        if (n === packageNights) return Math.round(base + flightRT);
+        return Math.round(base * (n / packageNights) + flightRT);
     }
 
     function seasonFactor(seasonName, dateStr) {
@@ -293,7 +299,8 @@
         const kids = kids04 + kids512;
         const travelers = adults + kids;
         const nights = clamp(int(opts.nights, p.nights), p.minNights, p.maxNights);
-        const base = adultPrice(dest.price, p.nights, nights, p.fixedShare);   // prețul unui adult pentru durata aleasă
+        const flightRT = Number(dest.flightPriceRT) || 0;
+        const base = adultPrice(dest.price, p.nights, nights, p.fixedShare, flightRT);   // prețul unui adult pentru durata aleasă
 
         const soloParent = adults === 1 && kids > 0;          // copilul cazat cu un singur adult plătește preț întreg
         const pct04 = soloParent ? 1 : p.kids[0];
@@ -303,6 +310,12 @@
         const add = function (type, data, amount) { lines.push(Object.assign({ type: type, amount: amount }, data)); };
 
         add('adults', { count: adults, unit: base }, adults * base);
+
+        // Clientul e deja în țara destinației (geolocație, js/geo.js): zborul (preț real, dest.flightPriceRT) se
+        // scade, per adult — e o sumă FIXĂ (nu depinde de numărul de nopți).
+        if (opts.skipTransport && flightRT > 0) {
+            add('transport_skip', { count: adults, unit: flightRT }, -adults * flightRT);
+        }
         if (kids04) { const u = Math.round(base * pct04); add('kids04', { count: kids04, unit: u, pct: Math.round(pct04 * 100) }, kids04 * u); }
         if (kids512) { const u = Math.round(base * pct512); add('kids512', { count: kids512, unit: u, pct: Math.round(pct512 * 100) }, kids512 * u); }
 
@@ -384,9 +397,14 @@
     function fmtEUR(n) { return group(n) + ' €'; }
     function fmtRON(n) { return group(n) + ' lei'; }
     function toRON(eur) { return Math.round(eur * EUR_RON); }
+    // Cursul live (BCE, prin js/exchange-rate.js) înlocuiește rezerva de mai sus — prețurile în lei se recalculează
+    // automat cu cursul de azi; prețurile în euro nu se schimbă (acelea reflectă costurile reale, nu cursul valutar).
+    function setEurRon(rate) { if (typeof rate === 'number' && rate > 0 && isFinite(rate)) EUR_RON = rate; }
+    function getEurRon() { return EUR_RON; }
 
     const api = {
-        EUR_RON: EUR_RON, MAX_ADULTS: MAX_ADULTS, MAX_KIDS: MAX_KIDS, CAR_SEATS: CAR_SEATS,
+        get EUR_RON() { return EUR_RON; }, setEurRon: setEurRon, getEurRon: getEurRon,
+        MAX_ADULTS: MAX_ADULTS, MAX_KIDS: MAX_KIDS, CAR_SEATS: CAR_SEATS,
         profile: profile, extrasFor: extrasFor, quote: quote, seasonFactor: seasonFactor, adultPrice: adultPrice,
         fmtEUR: fmtEUR, fmtRON: fmtRON, toRON: toRON, SERVICE_ORDER: SERVICE_ORDER,
         seasonalInfo: seasonalInfo, isDateAllowed: isDateAllowed, offSeasonDiscount: offSeasonDiscount,

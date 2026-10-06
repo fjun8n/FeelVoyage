@@ -11,8 +11,8 @@
 (function (root) {
     'use strict';
     var doc = root.document;
-    var modal = null, adminOn = false, src = 'device', filt = { level: 'all', cat: 'all', q: '' }, openIds = {};
-    var cache = { server: null, serverErr: '', users: null, usersErr: '', loading: false, pruned: false };
+    var modal = null, adminOn = false, helperOn = false, src = 'device', filt = { level: 'all', cat: 'all', q: '' }, openIds = {};
+    var cache = { server: null, serverErr: '', users: null, usersErr: '', bugs: null, bugsErr: '', loading: false, pruned: false };
 
     function trF(k, fb) { return (typeof root.tr === 'function') ? root.tr(k, fb) : fb; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -86,25 +86,27 @@
         b.setAttribute('aria-label', trF('log.btn', 'Jurnal'));
     }
     // starea de administrator vine din auth.js: fv:admin (la fiecare autentificare / reîncărcare / ieșire) și fv:profile (la afișarea profilului)
-    function setAdmin(flag) {
-        var was = adminOn;
+    // „helper”: rol vizual care primește și el acces la Jurnal, dar DOAR de citire — fără tab-ul de conturi, fără ștergere (vezi mai jos)
+    function setAdmin(flag, helperFlag) {
+        var was = adminOn || helperOn;
         adminOn = !!flag;
-        if (adminOn) {
+        helperOn = !adminOn && !!helperFlag;   // dacă e și administrator, contează doar ca administrator (acces complet)
+        if (adminOn || helperOn) {
             mountButton();
             // curățare: la autentificarea administratorului, o dată pe sesiune, se șterg de pe server intrările mai vechi de 30 de zile
-            if (backendOk() && !cache.pruned) { cache.pruned = true; root.FVBackend.pruneLogs(30).then(function (n) { if (root.FVLog) root.FVLog.info('admin', 'log.pruned', { n: n }); }, function () { }); }
+            if (adminOn && backendOk() && !cache.pruned) { cache.pruned = true; root.FVBackend.pruneLogs(30).then(function (n) { if (root.FVLog) root.FVLog.info('admin', 'log.pruned', { n: n }); }, function () { }); }
         } else {
-            removeButton(); close(); cache = { server: null, serverErr: '', users: null, usersErr: '', loading: false, pruned: false };
+            removeButton(); close(); cache = { server: null, serverErr: '', users: null, usersErr: '', bugs: null, bugsErr: '', loading: false, pruned: false };
             if (was && root.FVLog) root.FVLog.info('admin', 'log.access-removed');
         }
     }
-    doc.addEventListener('fv:admin', function (e) { setAdmin(e.detail && e.detail.admin); });
+    doc.addEventListener('fv:admin', function (e) { setAdmin(e.detail && e.detail.admin, e.detail && e.detail.helper); });
+    doc.addEventListener('fv:profile', function (e) { setAdmin(e.detail && e.detail.admin, e.detail && e.detail.helper); });
     // evenimentul poate fi fost trimis înainte ca acest script să se încarce: citim și starea curentă
     function syncFromAuth() { if (typeof root.fvIsAdmin === 'function' && root.fvIsAdmin() !== adminOn) setAdmin(root.fvIsAdmin()); }
     if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', syncFromAuth); else syncFromAuth();
     root.addEventListener('load', syncFromAuth);
-    doc.addEventListener('fv:profile', function (e) { setAdmin(e.detail && e.detail.admin); });
-    doc.addEventListener('fv:language', function () { if (adminOn) mountButton(); if (isOpen()) { build(); render(); } });
+    doc.addEventListener('fv:language', function () { if (adminOn || helperOn) mountButton(); if (isOpen()) { build(); render(); } });
 
     /* ------------------------------------------------------------ fereastra */
     function isOpen() { return !!modal && !modal.classList.contains('hidden'); }
@@ -128,12 +130,13 @@
                 renderList();
             });
         }
-        var tabs = [['device', trF('log.tabDevice', 'Acest dispozitiv')], ['server', trF('log.tabServer', 'Server')], ['accounts', trF('log.tabAccounts', 'Conturi')]];
+        var tabs = [['device', trF('log.tabDevice', 'Acest dispozitiv')], ['server', trF('log.tabServer', 'Server')]];
+        if (adminOn) { tabs.push(['accounts', trF('log.tabAccounts', 'Conturi')]); tabs.push(['bugs', trF('log.tabBugs', 'Rapoarte Bug')]); }   // „helper” nu vede niciodată conturile sau rapoartele
         modal.innerHTML =
             '<div class="lv-panel" id="lvPanel">' +
                 '<div class="lv-head">' +
                     '<div class="lv-head-icon"><i class="fa-solid fa-clipboard-list"></i></div>' +
-                    '<div class="lv-head-text"><h3 id="lvTitle">' + esc(trF('log.title', 'Jurnalul site-ului')) + '</h3><p>' + esc(trF('log.adminOnly', 'Doar pentru administrator. Fără date personale în jurnal; parolele nu se pot vedea.')) + '</p></div>' +
+                    '<div class="lv-head-text"><h3 id="lvTitle">' + esc(trF('log.title', 'Jurnalul site-ului')) + '</h3><p>' + esc(adminOn ? trF('log.adminOnly', 'Doar pentru administrator. Fără date personale în jurnal; parolele nu se pot vedea.') : trF('log.helperOnly', 'Acces Helper: doar vizualizare — fără conturi, fără ștergere.')) + '</p></div>' +
                     '<button type="button" class="lv-x" data-lv="close" aria-label="' + esc(trF('about.close', 'Închide')) + '"><i class="fa-solid fa-xmark"></i></button>' +
                 '</div>' +
                 '<div class="lv-tabs" role="tablist">' + tabs.map(function (t) { return '<button type="button" role="tab" class="lv-tab' + (src === t[0] ? ' is-on' : '') + '" data-lv-tab="' + t[0] + '" aria-selected="' + (src === t[0]) + '">' + esc(t[1]) + '</button>'; }).join('') + '</div>' +
@@ -153,9 +156,9 @@
             '</div>' +
             '<div class="lv-actions">' +
                 '<button type="button" class="lv-act" data-lv="refresh"><i class="fa-solid fa-rotate"></i> ' + esc(trF('log.refresh', 'Actualizează')) + '</button>' +
-                '<button type="button" class="lv-act" data-lv="json"><i class="fa-solid fa-download"></i> JSON</button>' +
-                '<button type="button" class="lv-act" data-lv="csv"><i class="fa-solid fa-file-csv"></i> CSV</button>' +
-                (src === 'server'
+                (adminOn ? '<button type="button" class="lv-act" data-lv="json"><i class="fa-solid fa-download"></i> JSON</button>' +
+                '<button type="button" class="lv-act" data-lv="csv"><i class="fa-solid fa-file-csv"></i> CSV</button>' : '') +
+                (!adminOn ? '' : src === 'server'
                     ? '<button type="button" class="lv-act lv-danger" data-lv="prune"><i class="fa-solid fa-broom"></i> ' + esc(trF('log.pruneOld', 'Șterge peste 30 de zile')) + '</button>' +
                       '<button type="button" class="lv-act lv-danger" data-lv="clear-server"><i class="fa-solid fa-trash"></i> ' + esc(trF('log.clearServer', 'Șterge tot de pe server')) + '</button>'
                     : '<button type="button" class="lv-act lv-danger" data-lv="clear"><i class="fa-solid fa-trash"></i> ' + esc(trF('log.clear', 'Șterge')) + '</button>') +
@@ -169,7 +172,9 @@
         if (!modal) return;
         var body = $('lvBody');
         var sc = keepScroll && $('lvList') ? $('lvList').scrollTop : 0;
+        if ((src === 'accounts' || src === 'bugs') && !adminOn) src = 'device';   // „helper” nu are aceste tab-uri — nicio stare veche nu-l poate duce acolo
         if (src === 'accounts') { body.innerHTML = '<div id="lvAccounts"></div>'; renderAccounts(); return; }
+        if (src === 'bugs') { body.innerHTML = '<div id="lvBugs"></div>'; renderBugs(); return; }
         body.innerHTML = logView();
         var note = $('lvNote');
         if (src === 'server') {
@@ -273,19 +278,51 @@
         }).join('') : '<p class="lv-muted">' + esc(trF('log.noAccounts', 'Niciun cont în baza de date.')) + '</p>') + '</div>';
     }
 
+    var bugSiteFilter = 'main';   // „main” sau „reviews” — cele două site-uri NU se amestecă niciodată în listă (vezi mai jos)
+    function renderBugs() {
+        var box = $('lvBugs');
+        if (!box) return;
+        if (cache.loading) { box.innerHTML = '<p class="lv-muted">' + esc(trF('log.loading', 'Se încarcă de pe server…')) + '</p>'; return; }
+        if (cache.bugsErr) { box.innerHTML = '<div class="lv-note lv-note-bad">' + esc(errText(cache.bugsErr)) + '</div>'; return; }
+        var all = cache.bugs || [];
+        var bugs = all.filter(function (b) { return (bugSiteFilter === 'reviews') === (b.site === 'reviews'); });
+        var mainCount = all.filter(function (b) { return b.site !== 'reviews'; }).length;
+        var reviewsCount = all.length - mainCount;
+        var siteTabs = '<div class="lv-subtabs">' +
+            '<button type="button" data-bug-site="main" class="lv-subtab' + (bugSiteFilter === 'main' ? ' lv-subtab-on' : '') + '">FeelVoyage (' + mainCount + ')</button>' +
+            '<button type="button" data-bug-site="reviews" class="lv-subtab' + (bugSiteFilter === 'reviews' ? ' lv-subtab-on' : '') + '">FeelVoyage Reviews (' + reviewsCount + ')</button>' +
+        '</div>';
+        var actions = '<div class="lv-actions"><button type="button" class="lv-act" data-lv="refresh"><i class="fa-solid fa-rotate"></i> ' + esc(trF('log.refresh', 'Actualizează')) + '</button></div>';
+        var count = '<p class="lv-count">' + bugs.length + ' ' + esc(trF('log.bugCount', 'rapoarte')) + '</p>';
+        box.innerHTML = siteTabs + actions + count + '<div class="lv-list">' + (bugs.length ? bugs.map(function (b) {
+            return '<div class="lv-acc">' +
+                '<div class="lv-acc-main"><b>' + esc(fullDate(b.createdAt)) + '</b></div>' +
+                '<div class="lv-acc-meta" style="white-space:pre-wrap">' + esc(b.text || '') + '</div>' +
+                (b.email ? '<div class="lv-acc-meta">' + esc(trF('log.bugEmail', 'E-mail')) + ': ' + esc(b.email) + '</div>' : '') +
+                (b.name ? '<div class="lv-acc-meta">' + esc(trF('log.bugName', 'Cont')) + ': ' + esc(b.name) + '</div>' : '') +
+                (b.page ? '<div class="lv-acc-meta">' + esc(trF('log.bugPage', 'Pagina')) + ': ' + esc(b.page) + '</div>' : '') +
+            '</div>';
+        }).join('') : '<p class="lv-muted">' + esc(trF('log.noBugs', 'Niciun raport de bug încă.')) + '</p>') + '</div>';
+    }
+
     /* ------------------------------------------------------------ încărcare din server */
     function loadServer(force) {
-        if (!adminOn) return Promise.resolve();
+        if (!adminOn && !helperOn) return Promise.resolve();
         if (!backendOk()) { cache.serverErr = 'unsupported'; cache.usersErr = 'unsupported'; render(); return Promise.resolve(); }
         if (cache.loading) return Promise.resolve();
-        if (!force && cache.server && cache.users) { render(); return Promise.resolve(); }
+        if (!force && cache.server && (!adminOn || cache.users)) { render(); return Promise.resolve(); }
         cache.loading = true; cache.serverErr = ''; cache.usersErr = ''; render();
         var pLogs = root.FVBackend.listLogs(400).then(function (list) { cache.server = list.map(fromServer); }, function (e) { cache.serverErr = (e && e.code) || 'network'; cache.server = []; });
-        var pUsers = root.FVBackend.listUsers().then(function (list) { cache.users = list; }, function (e) { cache.usersErr = (e && e.code) || 'network'; cache.users = []; });
-        return Promise.all([pLogs, pUsers]).then(function () {
+        // „helper” vede jurnalul, dar NICIODATĂ lista de conturi sau rapoartele de bug — nici cererile nu pleacă pentru el
+        var tasks = [pLogs];
+        if (adminOn) {
+            tasks.push(root.FVBackend.listUsers().then(function (list) { cache.users = list; }, function (e) { cache.usersErr = (e && e.code) || 'network'; cache.users = []; }));
+            tasks.push(root.FVBackend.listBugReports().then(function (list) { cache.bugs = list; }, function (e) { cache.bugsErr = (e && e.code) || 'network'; cache.bugs = []; }));
+        }
+        return Promise.all(tasks).then(function () {
             cache.loading = false;
-            // curățare automată: o dată pe sesiune, intrările mai vechi de 30 de zile se șterg de pe server
-            if (!cache.pruned && !cache.serverErr) {
+            // curățare automată: o dată pe sesiune, intrările mai vechi de 30 de zile se șterg de pe server (doar administratorul poate șterge)
+            if (adminOn && !cache.pruned && !cache.serverErr) {
                 cache.pruned = true;
                 root.FVBackend.pruneLogs(30).then(function (n) { if (root.FVLog) root.FVLog.info('admin', 'log.pruned', { n: n }); }, function () { });
             }
@@ -302,6 +339,8 @@
         if (e.target === modal) return close();
         var tab = e.target.closest && e.target.closest('[data-lv-tab]');
         if (tab) { src = tab.getAttribute('data-lv-tab'); filt = { level: 'all', cat: 'all', q: '' }; build(); if (src === 'device') { render(); loadUsersOnly(); } else loadServer(false); return; }
+        var bugSite = e.target.closest && e.target.closest('[data-bug-site]');
+        if (bugSite) { bugSiteFilter = bugSite.getAttribute('data-bug-site'); renderBugs(); return; }
         var t = e.target.closest && e.target.closest('[data-lv]');
         if (!t) return;
         var a = t.getAttribute('data-lv');
@@ -328,7 +367,7 @@
     var locked = false, hideTimer = null;
     function open() {
         // doar administratorul: butonul apare doar pentru el, iar cine apelează funcția din consolă fără să fie administrator primește un refuz (și o urmă în jurnal)
-        if (!adminOn || !root.FVLog) { if (root.FVLog) root.FVLog.warn('admin', 'log.denied'); return false; }
+        if ((!adminOn && !helperOn) || !root.FVLog) { if (root.FVLog) root.FVLog.warn('admin', 'log.denied'); return false; }
         build(); render();
         clearTimeout(hideTimer);
         modal.classList.remove('hidden');

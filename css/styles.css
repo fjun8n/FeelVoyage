@@ -348,6 +348,54 @@ html.dark .doc-accept-login { color: var(--fv-accent-strong); }
 .fv-amber-btn { background: #f59e0b; }
 .fv-amber-btn:hover { background: #d97706; }
 
+/* Poza de profil: treci cu mouse-ul (sau apeși pe telefon) direct pe poză ca s-o schimbi — fără buton separat de cameră. */
+.fv-avatar-btn { position: relative; display: block; width: 100%; height: 100%; border-radius: 9999px; overflow: hidden; border: 0; padding: 0; cursor: pointer; }
+.fv-avatar-overlay {
+    position: absolute; inset: 0; border-radius: 9999px; display: flex; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, 0); opacity: 0; transition: background .15s ease, opacity .15s ease; color: #fff; pointer-events: none;
+}
+.fv-avatar-btn:hover .fv-avatar-overlay, .fv-avatar-btn:focus-visible .fv-avatar-overlay, .fv-avatar-btn:active .fv-avatar-overlay {
+    background: rgba(0, 0, 0, .45); opacity: 1;
+}
+
+/* Bannerul discret de cerere a locației (js/geo.js) — o singură dată, înainte de promptul real al browserului. */
+#fvGeoBanner {
+    position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%) translateY(20px); opacity: 0; z-index: 250;
+    display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; max-width: calc(100vw - 2rem);
+    background: #0f172a; color: #fff; padding: .85rem 1.1rem; border-radius: 1rem; box-shadow: 0 20px 40px -12px rgba(0,0,0,.4);
+    font-size: .8rem; transition: opacity .25s ease, transform .25s ease;
+}
+#fvGeoBanner.fv-geo-in { opacity: 1; transform: translateX(-50%) translateY(0); }
+#fvGeoBanner .fv-geo-text { display: flex; align-items: center; gap: .5rem; max-width: 420px; }
+#fvGeoBanner .fv-geo-actions { display: flex; gap: .5rem; margin-left: auto; }
+.fv-geo-btn { padding: .4rem .9rem; border-radius: 9999px; font-weight: 700; font-size: .75rem; border: 0; cursor: pointer; }
+.fv-geo-btn-yes { background: #0284c7; color: #fff; }
+.fv-geo-btn-yes:hover { background: #0369a1; }
+.fv-geo-btn-no { background: rgba(255,255,255,.1); color: #cbd5e1; }
+.fv-geo-btn-no:hover { background: rgba(255,255,255,.18); }
+
+/* Ecusoanele de rol (js/roles.js) — doar vizuale, fără nicio funcție ascunsă (excepție: „helper” vede Jurnalul, doar-citire). */
+.fv-role-chip { display: inline-flex; align-items: center; gap: .3rem; padding: .18rem .6rem; border-radius: 9999px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; }
+.fv-role-loyal { background: #f3e8ff; color: #7e22ce; }
+.fv-role-helper { background: #e0e7ff; color: #4338ca; }
+.fv-role-bugfinder { background: #ffe4e6; color: #be123c; }
+.fv-role-beta { background: #ccfbf1; color: #0f766e; }
+html.dark .fv-role-loyal { background: rgba(168, 85, 247, .18); color: #d8b4fe; }
+html.dark .fv-role-helper { background: rgba(99, 102, 241, .18); color: #a5b4fc; }
+html.dark .fv-role-bugfinder { background: rgba(244, 63, 94, .18); color: #fda4af; }
+html.dark .fv-role-beta { background: rgba(20, 184, 166, .18); color: #5eead4; }
+
+/* Bara de scroll, în culorile site-ului (nu gri simplu) — Firefox (scrollbar-color) + Chrome/Safari/Edge (::-webkit-scrollbar). */
+html { scrollbar-color: #0ea5c7 #eef2f7; scrollbar-width: thin; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: #eef2f7; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #0284c7, #0369a1); border-radius: 9999px; border: 2px solid #eef2f7; }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #0369a1, #075985); }
+html.dark { scrollbar-color: #38bdf8 #111a2e; }
+html.dark ::-webkit-scrollbar-track { background: #111a2e; }
+html.dark ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #38bdf8, #0ea5c7); border-color: #111a2e; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #7dd3fc, #38bdf8); }
+
 /* Butonul „Lasă un review” (panoul de recenzii din pachet) — text-brand-700/hover:bg-brand-50 nu existau compilate. */
 .fv-review-btn { color: #0369a1; }
 .fv-review-btn:hover { background: #f0f7ff; }
@@ -622,6 +670,17 @@ html.motion-off .bk-gallery { animation: none; }
 html.dark .lv-tabs { background: var(--fv-surface-2); border-bottom-color: var(--fv-line-soft); }
 html.dark .lv-tab { color: var(--fv-text-mid); }
 html.dark .lv-tab.is-on { background: var(--fv-surface); color: #5eead4; box-shadow: inset 0 -3px 0 #2dd4bf; }
+
+/* Rândul de filtre „N★+” din fereastra de recenzii (site-ul reviews) — derulare orizontală pe telefon, fără bară de scroll vizibilă. */
+.fv-chip-scroll { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.fv-chip-scroll::-webkit-scrollbar { display: none; }
+
+/* Sub-tab-uri în tab-ul „Rapoarte Bug” din Jurnal: site principal vs. site reviews, complet separate, niciodată amestecate. */
+.lv-subtabs { display: flex; gap: .5rem; padding: .75rem 1rem 0; }
+.lv-subtab { padding: .4rem .9rem; border-radius: 9999px; border: 1px solid #e2e8f0; background: #fff; color: #64748b; font-size: .72rem; font-weight: 700; cursor: pointer; }
+.lv-subtab-on { background: #0f766e; border-color: #0f766e; color: #fff; }
+html.dark .lv-subtab { background: var(--fv-surface-2); border-color: var(--fv-line-soft); color: var(--fv-text-mid); }
+html.dark .lv-subtab-on { background: #0f766e; border-color: #0f766e; color: #fff; }
 html.dark .lv-note { background: rgba(56, 189, 248, .12); color: var(--fv-accent-strong); }
 html.dark .lv-note-bad { background: rgba(220, 38, 38, .16); color: #fca5a5; }
 html.dark .lv-note-pw { background: rgba(245, 158, 11, .14); color: #fcd34d; }

@@ -1,8 +1,7 @@
-/* FeelVoyage — poză de profil personalizată (din galerie sau fișierele telefonului/calculatorului).
-   Necesită Firebase Storage activat în proiect (vezi README.md → „Poză de profil (Firebase Storage)”);
-   dacă nu e activat, afișează o eroare clară în loc să rămână agățat la „Se încarcă...”.
-   Poza e redimensionată/comprimată în browser (pătrat, max 480×480, JPEG) înainte de a fi trimisă, ca
-   să nu încarci fișiere uriașe direct de pe telefon. */
+/* FeelVoyage — poză de profil personalizată (din galerie sau fișierele telefonului/calculatorului), găzduită gratuit
+   pe Cloudinary (vezi js/cloudinary-config.js pentru pasul de configurare, o singură dată).
+   Poza e redimensionată/comprimată în browser (pătrat, max 480×480, JPEG) înainte de a fi trimisă, ca să nu
+   încarci fișiere uriașe direct de pe telefon — Cloudinary primește deja fișierul mic. */
 (function () {
     'use strict';
 
@@ -14,7 +13,6 @@
 
     const MAX_SIDE = 480;
     const MAX_RAW_BYTES = 15 * 1024 * 1024;   // 15 MB — doar ca să nu încercăm să citim ceva absurd de mare
-    let storageModule = null, storageInstance = null;
 
     function trF(key, fallback) { return (typeof tr === 'function') ? tr(key, fallback) : fallback; }
     function setStatus(text, isError) {
@@ -61,13 +59,19 @@
         });
     }
 
-    async function ensureStorage() {
-        if (storageInstance) return storageInstance;
-        const app = await FVBackend.firebaseApp();
-        if (!app) throw new Error('no-app');
-        if (!storageModule) storageModule = await FVBackend.importSDK('storage');
-        storageInstance = storageModule.getStorage(app);
-        return storageInstance;
+    // Upload „unsigned” direct din browser către Cloudinary — fără cheie secretă în cod (vezi js/cloudinary-config.js).
+    async function uploadToCloudinary(blob) {
+        const cfg = window.FV_CLOUDINARY_CONFIG || {};
+        if (!cfg.cloudName || !cfg.uploadPreset) throw new Error('not-configured');
+        const form = new FormData();
+        form.append('file', blob, 'avatar.jpg');
+        form.append('upload_preset', cfg.uploadPreset);
+        // nu mai trimitem „folder” separat — preset-ul „FeelVoyage” din Cloudinary are deja asset folder-ul
+        // „feelvoyage_avatars” fixat în el (vezi js/cloudinary-config.js)
+        const resp = await fetch('https://api.cloudinary.com/v1_1/' + cfg.cloudName + '/image/upload', { method: 'POST', body: form });
+        const data = await resp.json().catch(function () { return null; });
+        if (!resp.ok || !data || !data.secure_url) throw new Error((data && data.error && data.error.message) || 'upload-failed');
+        return data.secure_url;
     }
 
     btn.addEventListener('click', function () { input.click(); });
@@ -85,19 +89,16 @@
         btn.disabled = true;
         try {
             const blob = await prepareImage(file);
-            const storage = await ensureStorage();
-            const fileRef = storageModule.ref(storage, 'avatars/' + session.uid + '.jpg');
-            await storageModule.uploadBytes(fileRef, blob, { contentType: 'image/jpeg' });
-            const url = await storageModule.getDownloadURL(fileRef);
+            const url = await uploadToCloudinary(blob);
             await FVBackend.setPhotoURL(url);
             renderAvatar(url, null);
             setStatus(trF('auth.photoSaved', 'Poză actualizată.'), false);
             setTimeout(function () { setStatus(''); }, 3000);
         } catch (err) {
             console.error('[FeelVoyage] Poza de profil nu a putut fi încărcată:', err);
-            const notConfigured = err && (err.code === 'storage/unknown' || /bucket/i.test(String(err.message || '')) || err.message === 'no-app');
+            const notConfigured = err && err.message === 'not-configured';
             setStatus(notConfigured
-                ? trF('auth.photoErrorStorage', 'Încărcarea pozelor nu e încă activată pe acest site (Firebase Storage). Spune-i administratorului.')
+                ? trF('auth.photoErrorStorage', 'Încărcarea pozelor nu e încă configurată pe acest site (Cloudinary). Spune-i administratorului.')
                 : trF('auth.photoErrorGeneric', 'Poza nu a putut fi încărcată. Încearcă din nou.'), true);
         } finally {
             btn.disabled = false;

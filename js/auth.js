@@ -141,20 +141,44 @@
         document.getElementById('profileName').textContent = session.name || '';
         document.getElementById('profileEmail').textContent = session.email || '';
         applyProfileRole();
+        // Țara (doar țara — nimic mai precis), detectată prin geolocație (js/geo.js); dacă încă nu există pe cont
+        // dar avem una detectată pe acest dispozitiv, o salvăm acum (ex: a fost detectată înainte de autentificare).
+        const countryChip = document.getElementById('profileCountry');
+        if (countryChip) {
+            const code = session.country || (window.FVGeo && FVGeo.getCountry()) || '';
+            if (code && window.FV_COUNTRIES) {
+                const c = FV_COUNTRIES.find(function (x) { return x.code === code; });
+                if (c) {
+                    document.getElementById('profileCountryFlag').src = 'https://flagcdn.com/24x18/' + code.toLowerCase() + '.png';
+                    document.getElementById('profileCountryName').textContent = c.name;
+                    countryChip.classList.remove('hidden'); countryChip.classList.add('inline-flex');
+                }
+            } else {
+                countryChip.classList.add('hidden'); countryChip.classList.remove('inline-flex');
+            }
+            if (!session.country && code && window.FVBackend && FVBackend.setCountry) FVBackend.setCountry(code).catch(function () { });
+        }
         // panoul de administrator (js/admin.js, se încarcă doar pentru administrator) își pune butonul lângă nume
-        document.dispatchEvent(new CustomEvent('fv:profile', { detail: { admin: !!session.admin } }));
+        document.dispatchEvent(new CustomEvent('fv:profile', { detail: { admin: !!session.admin, helper: !!(session.roles && session.roles.helper) } }));
     }
+    // Dacă țara se detectează CÂT TIMP ești deja logat (banner acceptat acum, nu la înregistrare), o salvăm imediat pe cont.
+    document.addEventListener('fv:geo-country', function (e) {
+        if (session && window.FVBackend && FVBackend.setCountry && e.detail && e.detail.country) FVBackend.setCountry(e.detail.country).catch(function () { });
+    });
 
     // Membru = insignă verde; Administrator = insignă albastră (și avatar albastru)
     function applyProfileRole() {
         const admin = !!(session && session.admin);
         const chip = document.getElementById('profileChip'), icon = document.getElementById('profileChipIcon'), text = document.getElementById('profileChipText');
         const avatar = document.getElementById('profileAvatar');
-        chip.className = 'inline-flex items-center gap-1 mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ' + (admin ? 'text-white bg-blue-600' : 'text-emerald-600 bg-emerald-50');
+        chip.className = 'inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ' + (admin ? 'text-white bg-blue-600' : 'text-emerald-600 bg-emerald-50');
         icon.className = 'fa-solid ' + (admin ? 'fa-shield-halved' : 'fa-circle-check');
         text.setAttribute('data-i18n', admin ? 'auth.adminChip' : 'auth.memberChip');
         text.textContent = trF(admin ? 'auth.adminChip' : 'auth.memberChip', admin ? 'Administrator' : 'Membru FeelVoyage');
         avatar.className = 'w-14 h-14 rounded-full bg-gradient-to-tr text-white flex items-center justify-center text-xl font-black shadow-md ' + (admin ? 'from-blue-700 to-sky-400 ring-4 ring-blue-200' : 'from-brand-600 to-sunset-500');
+        // Ecusoanele de rol (Călător Loial / Helper / Bug Finder / Beta Tester) — cel mult 2, cele mai importante (js/roles.js)
+        const badges = document.getElementById('profileRoleBadges');
+        if (badges) badges.innerHTML = (window.FVRoles && session) ? FVRoles.badgesHtml(session.roles) : '';
     }
 
     // Fereastra „Mai ai un singur pas”: înlocuiește complet profilul cât timp session.emailVerified === false (vezi openAuthModal).
@@ -227,7 +251,7 @@
         if (window.FVAI && typeof FVAI.setAdmin === 'function') FVAI.setAdmin(admin);   // chatul: fără restricție de subiect doar pentru administrator
         if (admin) loadAdminModule().catch(function (e) { console.warn('[FeelVoyage]', e); });
         else if (window.FVAdmin) window.FVAdmin.sync(null);
-        document.dispatchEvent(new CustomEvent('fv:admin', { detail: { admin: admin } }));
+        document.dispatchEvent(new CustomEvent('fv:admin', { detail: { admin: admin, helper: !!(s && s.roles && s.roles.helper) } }));
     }
     // starea curentă de administrator, pentru modulele încărcate după ce evenimentul fv:admin a fost deja trimis (ex. fereastra „Jurnal”)
     window.fvIsAdmin = function () { return !!(session && session.admin); };

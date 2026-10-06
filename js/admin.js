@@ -111,6 +111,37 @@
         $('adminUserView').addEventListener('click', function (e) {
             const c = e.target.closest('[data-copy-uid]');
             if (c && selected) { copyText(selected.uid); return; }
+            const roleBtn = e.target.closest('[data-role-toggle]');
+            if (roleBtn && selected) {
+                const key = roleBtn.getAttribute('data-role-toggle');
+                const next = !(selected.roles && selected.roles[key] === true);
+                roleBtn.disabled = true;
+                FVBackend.adminSetRole(selected.uid, key, next).then(function () {
+                    selected.roles = Object.assign({}, selected.roles, { [key]: next });
+                    const u2 = users.filter(function (x) { return x.uid === selected.uid; })[0];
+                    if (u2) u2.roles = selected.roles;
+                    renderUser(selected);
+                }).catch(function () {
+                    roleBtn.disabled = false;
+                    if (typeof fvToast === 'function') fvToast(trF('admin.errorGeneric', 'A apărut o eroare. Încearcă din nou.'));
+                });
+                return;
+            }
+            const resetBtn = e.target.closest('#adminCooldownResetBtn');
+            if (resetBtn && selected) {
+                resetBtn.disabled = true;
+                FVBackend.adminResetContactCooldown(selected.uid).then(function () {
+                    selected.lastContactRequestAt = 0;
+                    const u2 = users.filter(function (x) { return x.uid === selected.uid; })[0];
+                    if (u2) u2.lastContactRequestAt = 0;
+                    renderUser(selected);
+                    if (typeof fvToast === 'function') fvToast(trF('admin.cooldownResetDone', 'Limita a fost resetată.'));
+                }).catch(function () {
+                    resetBtn.disabled = false;
+                    if (typeof fvToast === 'function') fvToast(trF('admin.errorGeneric', 'A apărut o eroare. Încearcă din nou.'));
+                });
+                return;
+            }
             const saveBtn = e.target.closest('#adminNameSaveBtn');
             if (saveBtn && selected) {
                 const input = $('adminNameInput'), statusEl = $('adminNameStatus');
@@ -223,6 +254,18 @@
 
     /* ------------------------------------------------------------------ trimite actualizare (newsletter) */
     let broadcasting = false;
+    // Șabloane predefinite (scrise o dată, în engleză — vezi cererea utilizatorului), disponibile mereu, pe lângă
+    // cele create de administrator din mers (salvate în Firebase, vezi loadTemplates mai jos).
+    const BUILT_IN_TEMPLATES = [
+        { id: 'builtin-update', title: 'New Update', text: "🚀 We've just rolled out a fresh update to FeelVoyage! Smoother browsing, new features, and more ways to plan your perfect trip. Come take a look!" },
+        { id: 'builtin-destinations', title: 'New Destinations', text: '🌍 New destinations just landed on FeelVoyage! Fresh places, fresh adventures — check out what\'s new and start dreaming about your next trip.' },
+        { id: 'builtin-offer', title: 'Special Offer', text: "✨ Limited-time offer! For a short while, selected FeelVoyage packages come with special pricing. Don't miss out — browse the deals before they're gone!" },
+        { id: 'builtin-seasonal', title: 'Seasonal Greeting', text: '🎉 Wishing you wonderful travels ahead! Whatever the season, FeelVoyage has a getaway waiting for you. See what\'s trending right now.' },
+        { id: 'builtin-feedback', title: "We'd Love Your Feedback", text: "💬 We're always working to make FeelVoyage better. Got a minute? We'd love to hear what you think — and don't forget to check out our latest packages while you're here!" }
+    ];
+    let customTemplates = [], templatesLoaded = false;
+    function allTemplates() { return BUILT_IN_TEMPLATES.concat(customTemplates); }
+
     function showBroadcast() {
         if (!modal) return;
         $('adminListView').classList.add('hidden');
@@ -230,16 +273,78 @@
         $('adminBroadcastView').classList.remove('hidden');
         $('adminBack').classList.remove('hidden');   // deja merge la showList() — ascultătorul e pus o singură dată în ensureModal()
         $('adminIcon').classList.add('hidden');
+        renderTemplatePicker();
+        if (!templatesLoaded && FVBackend.listAnnouncementTemplates) {
+            FVBackend.listAnnouncementTemplates().then(function (list) { customTemplates = list; templatesLoaded = true; if ($('adminBroadcastView') && !$('adminBroadcastView').classList.contains('hidden') && $('lvTplList')) renderTemplatePicker(); }).catch(function () { templatesLoaded = true; });
+        }
+    }
+    // Pasul 1: alege un șablon predefinit, unul creat de tine mai devreme, scrie un mesaj propriu, sau creează un șablon nou.
+    function renderTemplatePicker() {
+        const view = $('adminBroadcastView');
+        if (!view) return;
         $('adminTitle').textContent = trF('admin.broadcast.title', 'Trimite actualizare');
-        $('adminSub').textContent = trF('admin.broadcast.sub', 'Doar celor abonați la newsletter');
-        renderBroadcast();
+        $('adminSub').textContent = trF('admin.broadcast.pickSub', 'Alege un mesaj predefinit sau scrie unul propriu');
+        view.innerHTML =
+            '<div id="lvTplList" class="space-y-2">' +
+                allTemplates().map(function (t) {
+                    return '<button type="button" data-tpl-id="' + esc(t.id) + '" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50/40 transition">' +
+                        '<p class="font-bold text-sm text-slate-800">' + esc(t.title) + '</p>' +
+                        '<p class="text-xs text-slate-500 mt-0.5 line-clamp-2">' + esc(t.text) + '</p>' +
+                    '</button>';
+                }).join('') +
+                (!templatesLoaded ? '<p class="text-xs text-slate-400 text-center py-1">' + esc(trF('admin.broadcast.loadingTemplates', 'Se încarcă șabloanele tale…')) + '</p>' : '') +
+            '</div>' +
+            '<button type="button" id="adminTplNew" class="w-full py-2.5 rounded-xl border border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-600 text-xs font-bold transition"><i class="fa-solid fa-plus mr-1"></i>' + esc(trF('admin.broadcast.newTemplate', 'Creează șablon nou')) + '</button>' +
+            '<button type="button" id="adminTplCustom" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition"><i class="fa-solid fa-pen mr-1.5"></i>' + esc(trF('admin.broadcast.writeOwn', 'Scrie mesaj propriu')) + '</button>';
+        $('lvTplList').addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-tpl-id]');
+            if (!btn) return;
+            const t = allTemplates().find(function (x) { return x.id === btn.getAttribute('data-tpl-id'); });
+            if (t) renderBroadcast(t.text);
+        });
+        $('adminTplCustom').addEventListener('click', function () { renderBroadcast(''); });
+        $('adminTplNew').addEventListener('click', renderTemplateForm);
+    }
+    // Formular mic: titlu + text, salvate ca șablon nou (Firebase), disponibil de atunci încolo în listă.
+    function renderTemplateForm() {
+        const view = $('adminBroadcastView');
+        $('adminSub').textContent = trF('admin.broadcast.newTemplate', 'Creează șablon nou');
+        view.innerHTML =
+            '<input type="text" id="adminTplTitle" maxlength="80" placeholder="' + esc(trF('admin.broadcast.tplTitlePh', 'Titlu scurt (ex: Summer Sale)')) + '" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">' +
+            '<textarea id="adminTplText" rows="4" maxlength="1000" placeholder="' + esc(trF('admin.broadcast.tplTextPh', 'Message text…')) + '" class="w-full px-3.5 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>' +
+            '<p id="adminTplStatus" class="text-xs hidden"></p>' +
+            '<div class="flex gap-2">' +
+                '<button type="button" id="adminTplCancel" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition">' + esc(trF('admin.cancel', 'Renunță')) + '</button>' +
+                '<button type="button" id="adminTplSave" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition">' + esc(trF('admin.save', 'Salvează')) + '</button>' +
+            '</div>';
+        $('adminTplCancel').addEventListener('click', renderTemplatePicker);
+        $('adminTplSave').addEventListener('click', function () {
+            const title = $('adminTplTitle').value.trim(), text = $('adminTplText').value.trim();
+            const statusEl = $('adminTplStatus');
+            if (title.length < 2 || text.length < 2) {
+                statusEl.textContent = trF('admin.broadcast.tplInvalid', 'Completează titlul și textul mesajului.');
+                statusEl.className = 'text-xs text-rose-500'; statusEl.classList.remove('hidden');
+                return;
+            }
+            $('adminTplSave').disabled = true;
+            FVBackend.saveAnnouncementTemplate({ title: title, text: text }).then(function (id) {
+                customTemplates.push({ id: id, title: title, text: text });
+                renderTemplatePicker();
+            }).catch(function () {
+                statusEl.textContent = trF('admin.errorGeneric', 'A apărut o eroare. Încearcă din nou.');
+                statusEl.className = 'text-xs text-rose-500'; statusEl.classList.remove('hidden');
+                $('adminTplSave').disabled = false;
+            });
+        });
     }
     function subscriberEmails() {
         return users.filter(function (u) { return u.newsletter && u.email; }).map(function (u) { return u.email; });
     }
-    function renderBroadcast() {
+    // Pasul 2 (neschimbat ca flux): textarea + trimitere — prefill opțional, venit dintr-un șablon ales la pasul 1.
+    function renderBroadcast(prefill) {
         const view = $('adminBroadcastView');
         if (!view) return;
+        $('adminSub').textContent = trF('admin.broadcast.sub', 'Doar celor abonați la newsletter');
         const ready = window.FVEmailNotify && window.FVEmailNotify.updateConfigured;
         const emails = loaded ? subscriberEmails() : [];
         if (!ready) {
@@ -251,6 +356,7 @@
             return;
         }
         view.innerHTML =
+            '<button type="button" id="adminTplBack" class="text-xs text-slate-400 hover:text-slate-600 font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>' + esc(trF('admin.broadcast.backToTemplates', 'Înapoi la șabloane')) + '</button>' +
             '<p class="text-xs text-slate-500">' + esc(trF('admin.broadcast.hint', 'Scrie un mesaj scurt (ex. „Am adăugat 5 destinații noi!"). Îl primesc doar cei abonați la newsletter.')) + '</p>' +
             '<p id="adminBroadcastCount" class="text-xs font-bold text-slate-700"></p>' +
             '<textarea id="adminBroadcastText" rows="5" class="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none" placeholder="' + esc(trF('admin.broadcast.placeholder', 'Ce e nou pe site?')) + '"></textarea>' +
@@ -258,12 +364,14 @@
             '<button id="adminBroadcastSend" type="button" class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-700 to-sky-500 text-white font-bold text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">' +
                 '<i class="fa-solid fa-paper-plane"></i> <span>' + esc(trF('admin.broadcast.send', 'Trimite')) + '</span>' +
             '</button>';
+        $('adminTplBack').addEventListener('click', renderTemplatePicker);
         const countEl = $('adminBroadcastCount');
         countEl.textContent = loaded
             ? trF('admin.broadcast.count', '{n} abonați vor primi mesajul').replace('{n}', emails.length)
             : trF('admin.broadcast.loading', 'Se încarcă lista de abonați…');
         const sendBtn = $('adminBroadcastSend');
         const textEl = $('adminBroadcastText');
+        if (prefill) textEl.value = prefill;
         sendBtn.disabled = broadcasting || !loaded || emails.length === 0;
         sendBtn.addEventListener('click', function () {
             const msg = textEl.value.trim();
@@ -405,6 +513,9 @@
                 detailRow('fa-phone', trF('admin.phone', 'Telefon'), u.phone ? esc(u.phone) : muted(trF('admin.noPhone', 'nespecificat'))) +
                 detailRow('fa-envelope', trF('admin.email', 'E-mail'), u.email ? esc(u.email) : muted(trF('admin.noEmail', 'necunoscut (apare după următoarea autentificare a utilizatorului)'))) +
                 detailRow('fa-signature', trF('admin.nameLabel', 'Nume afișat'), nameEditHtml(u)) +
+                detailRow('fa-hourglass-half', trF('admin.cooldownLabel', 'Cerere de ofertă'), contactCooldownHtml(u)) +
+                detailRow('fa-award', trF('admin.rolesLabel', 'Roluri'), rolesToggleHtml(u)) +
+                detailRow('fa-earth-europe', trF('admin.countryLabel', 'Țară'), countryHtml(u)) +
                 detailRow('fa-calendar-check', trF('admin.since', 'Membru din'), esc(fmtDate(u.createdAt))) +
                 detailRow('fa-file-signature', trF('admin.consents', 'Acceptări documente'), consentsHtml(u)) +
                 detailRow('fa-envelope-open-text', trF('admin.newsletter', 'Abonat la newsletter'), newsletterToggleHtml(u)) +
@@ -418,6 +529,38 @@
             '<button type="button" id="adminNameSaveBtn" class="shrink-0 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">' + esc(trF('admin.save', 'Salvează')) + '</button>' +
             '</div>' +
             '<p id="adminNameStatus" class="text-[11px] mt-1"></p>';
+    }
+    // țara contului (doar țara — detectată prin geolocație, js/geo.js), doar de citire
+    function countryHtml(u) {
+        if (!u.country || !window.FV_COUNTRIES) return '<span class="text-xs text-slate-400">' + esc(trF('admin.countryUnknown', 'Nedetectată încă')) + '</span>';
+        const c = FV_COUNTRIES.find(function (x) { return x.code === u.country; });
+        if (!c) return '<span class="text-xs text-slate-400">' + esc(u.country) + '</span>';
+        return '<span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700"><img src="https://flagcdn.com/24x18/' + u.country.toLowerCase() + '.png" alt="" class="w-4 h-auto rounded-sm">' + esc(c.name) + '</span>';
+    }
+    // comutatoare pentru cele 4 roluri vizuale (js/roles.js) — „loyal” se poate și retrage de aici, chiar dacă s-a acordat singur la 10 comenzi
+    function rolesToggleHtml(u) {
+        if (!window.FVRoles) return '';
+        const roles = u.roles || {};
+        return '<div class="flex flex-wrap gap-2">' + FVRoles.ROLES.map(function (r) {
+            const on = roles[r.key] === true;
+            return '<button type="button" data-role-toggle="' + r.key + '" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition ' +
+                (on ? r.chipClass + ' border-transparent' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300') + '">' +
+                '<i class="fa-solid ' + r.icon + '"></i> ' + esc(r.label) + (on ? ' <i class="fa-solid fa-check ml-0.5"></i>' : '') +
+                '</button>';
+        }).join('') + '</div>' +
+        (roles.loyal === true && (u.orderCount || 0) < 10 ? '<p class="text-[11px] text-purple-500 mt-1.5">' + esc(trF('admin.loyalManual', 'Acordat manual de administrator (sub 10 comenzi).')) + '</p>' : '');
+    }
+    // starea curentă a limitei de 3 zile la „Trimite Cerere de Ofertă” + buton de resetare manuală (admin.js)
+    function contactCooldownHtml(u) {
+        const next = (window.FVContactLimit && FVContactLimit.nextAllowedTime) ? FVContactLimit.nextAllowedTime(u.lastContactRequestAt) : 0;
+        const remain = next - Date.now();
+        const statusText = remain > 0
+            ? (function () { const r = FVContactLimit.formatRemaining(remain); return trF('admin.cooldownActive', 'Mai are {h}h {m}min').replace('{h}', r.h).replace('{m}', r.m); })()
+            : trF('admin.cooldownNone', 'Poate trimite oricând');
+        return '<div class="flex items-center gap-2 flex-wrap">' +
+            '<span id="adminCooldownStatus" class="text-xs ' + (remain > 0 ? 'text-amber-600 font-semibold' : 'text-slate-400') + '">' + esc(statusText) + '</span>' +
+            (remain > 0 ? '<button type="button" id="adminCooldownResetBtn" class="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">' + esc(trF('admin.cooldownReset', 'Resetează')) + '</button>' : '') +
+            '</div>';
     }
     // singurul lucru editabil din acest panou altfel doar-citire: administratorul poate (dez)abona pe oricine la newsletter
     function newsletterToggleHtml(u) {

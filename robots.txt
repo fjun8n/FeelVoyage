@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fjun8n.github.io/FeelVoyage/sitemap.xml

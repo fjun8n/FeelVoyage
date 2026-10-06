@@ -6,6 +6,28 @@
     <meta name="theme-color" content="#f8fafc">
     <meta name="color-scheme" content="light dark">
     <title>FeelVoyage - Descoperă Lumea Fără Limite | Agenție de Turism Globală</title>
+    <meta name="description" content="FeelVoyage — agenție de turism din Târgu-Jiu: pachete de vacanță în România și în toată lumea, sejururi exotice, city-break-uri, oferte de Crăciun și Paște, recenzii reale de la călători.">
+    <link rel="canonical" href="https://fjun8n.github.io/FeelVoyage/">
+    <!-- Date structurate (Schema.org), pentru rezultate mai bogate în Google (nume, adresă, telefon) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "TravelAgency",
+        "name": "FeelVoyage",
+        "url": "https://fjun8n.github.io/FeelVoyage/",
+        "logo": "https://fjun8n.github.io/FeelVoyage/img/og-preview.png",
+        "description": "Agenție de turism națională și internațională — pachete de vacanță, sejururi exotice, city-break-uri și circuite în toată lumea.",
+        "telephone": "+40799927590",
+        "email": "crucrudenis@gmail.com",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Strada Tudor Vladimirescu, nr. 127",
+            "addressLocality": "Târgu Jiu",
+            "addressCountry": "RO"
+        },
+        "sameAs": ["https://facebook.com/FeelVoyage"]
+    }
+    </script>
 
     <!-- Previzualizare link (WhatsApp, Telegram, Facebook etc.) — fără aceste etichete, aplicațiile de mesagerie afișează
          un card generic (de aceea apărea o pictogramă necunoscută la distribuirea link-ului). „og:url” și „og:image”
@@ -694,6 +716,20 @@
                             </div>
                         </div>
 
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formCountry">Țară / Cetățenie</label>
+                            <button type="button" id="contactCountryBtn" aria-haspopup="listbox" aria-expanded="false" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm text-left flex items-center gap-2 bg-white disabled:bg-slate-100 disabled:cursor-not-allowed">
+                                <img id="contactCountryFlag" src="" alt="" class="w-5 h-auto rounded-sm hidden">
+                                <span id="contactCountryLabel" class="text-slate-400" data-i18n="contact.formCountryPlaceholder" data-placeholder="Selectează țara...">Selectează țara...</span>
+                                <i class="fa-solid fa-chevron-down text-slate-400 text-xs ml-auto"></i>
+                            </button>
+                            <input type="hidden" id="contactCountryCode" value="">
+                            <div id="contactCountryPanel" class="hidden absolute z-30 mt-1.5 w-full bg-white rounded-xl border border-slate-200 shadow-xl max-h-72 overflow-hidden flex flex-col">
+                                <input type="text" id="contactCountrySearch" placeholder="Caută o țară..." data-i18n-ph="contact.formCountrySearch" autocomplete="off" class="px-3 py-2.5 border-b border-slate-100 text-sm focus:outline-none">
+                                <div id="contactCountryList" class="overflow-y-auto flex-1"></div>
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="contact.formMsg">Mesaj sau Detalii Călătorie</label>
                             <textarea id="contactMsg" rows="4" maxlength="2000" placeholder="Specifică numărul de persoane, perioada estimată, bugetul sau orice altă cerință specială..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm disabled:bg-slate-100 disabled:cursor-not-allowed" data-i18n-ph="contact.formMsgPlaceholder"></textarea>
@@ -786,6 +822,7 @@
                     <a href="#termeni" class="hover:text-slate-400" data-i18n="footer.terms">Termeni și Condiții</a>
                     <a href="#confidentialitate" class="hover:text-slate-400" data-i18n="footer.privacy">Politica de Confidențialitate</a>
                     <a href="#anpc" class="hover:text-slate-400" data-i18n="footer.anpc">ANPC / SAL</a>
+                    <button type="button" id="bugReportBtn" class="hover:text-slate-400 inline-flex items-center gap-1"><i class="fa-solid fa-bug text-[10px]"></i> <span data-i18n="footer.reportBug">Raportează un bug</span></button>
                     <button type="button" data-perf-toggle class="perf-toggle" aria-pressed="false" title="Reduce efectele și animațiile pentru un site mai fluid pe telefoane mai vechi"><i class="fa-solid fa-gauge-high"></i> <span data-perf-label>Mod rapid: oprit</span></button>
                     <span class="text-slate-700">•</span>
                     <span class="text-slate-500">Made by <span class="font-semibold text-slate-300">DeDe</span></span>
@@ -944,6 +981,7 @@
                         <i class="fa-solid fa-circle-info text-brand-600"></i> <span data-i18n="modal.descTitle">Descriere Pachet & Destinație</span>
                     </h4>
                     <p id="modalDesc" class="text-slate-600 text-sm leading-relaxed"></p>
+                    <p id="modalAirport" class="hidden text-xs text-slate-500 font-semibold mt-2 items-center gap-1.5"><i class="fa-solid fa-plane-up text-brand-500"></i> <span data-i18n="dest.nearestAirport">Cel mai apropiat aeroport</span>: <span id="modalAirportName"></span></p>
                 </div>
 
                 <div>
@@ -1929,9 +1967,9 @@
             <div id="profileView" class="p-5 sm:p-6 space-y-5 hidden">
                 <div class="flex items-center gap-4">
                     <div class="relative w-14 h-14 shrink-0">
-                        <div id="profileAvatar" class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-600 to-sunset-500 text-white flex items-center justify-center text-xl font-black shadow-md overflow-hidden">FV</div>
-                        <button type="button" id="profileAvatarBtn" aria-label="Schimbă poza de profil" data-i18n-aria="auth.changePhoto" class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-brand-600 hover:border-brand-300 transition">
-                            <i class="fa-solid fa-camera text-[10px]"></i>
+                        <button type="button" id="profileAvatarBtn" aria-label="Schimbă poza de profil" data-i18n-aria="auth.changePhoto" class="fv-avatar-btn">
+                            <div id="profileAvatar" class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-600 to-sunset-500 text-white flex items-center justify-center text-xl font-black shadow-md">FV</div>
+                            <div class="fv-avatar-overlay"><i class="fa-solid fa-camera text-xs"></i></div>
                         </button>
                         <input type="file" id="profileAvatarInput" accept="image/png, image/jpeg, image/webp" class="hidden">
                     </div>
@@ -1940,7 +1978,14 @@
                             <h4 id="profileName" class="font-bold text-slate-900 truncate min-w-0">—</h4>
                         </div>
                         <p id="profileEmail" class="text-xs text-slate-500 truncate">—</p>
-                        <span id="profileChip" class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><i id="profileChipIcon" class="fa-solid fa-circle-check"></i> <span id="profileChipText" data-i18n="auth.memberChip">Membru FeelVoyage</span></span>
+                        <div class="flex items-center gap-1.5 flex-wrap mt-1">
+                            <span id="profileChip" class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><i id="profileChipIcon" class="fa-solid fa-circle-check"></i> <span id="profileChipText" data-i18n="auth.memberChip">Membru FeelVoyage</span></span>
+                            <span id="profileRoleBadges" class="inline-flex items-center gap-1.5"></span>
+                            <span id="profileCountry" class="hidden items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                                <img id="profileCountryFlag" src="" alt="" class="w-3.5 h-auto rounded-sm">
+                                <span id="profileCountryName"></span>
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <p id="profileAvatarStatus" class="hidden text-[11px] text-slate-400"></p>
@@ -1983,6 +2028,23 @@
 
     <!-- Toast Notification -->
     <div id="fvToast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[110] hidden w-max max-w-[calc(100vw-2rem)] px-5 py-3 rounded-2xl bg-slate-900 text-white text-sm font-semibold shadow-2xl border border-white/10 flex items-center gap-2 text-left" role="status" aria-live="polite"></div>
+
+    <!-- Raportează un bug (subsol): formular simplu, fără cont necesar (js/bugreport.js) -->
+    <div id="bugReportModal" class="fixed inset-0 z-[95] hidden items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+            <button type="button" id="bugReportClose" aria-label="Închide" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 transition"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-lg text-slate-900 mb-1" data-i18n="bug.title">Raportează un bug</h3>
+            <p class="text-xs text-slate-500 mb-4" data-i18n="bug.subtitle">Spune-ne ce nu a mers — orice detaliu ajută.</p>
+            <form id="bugReportForm" class="space-y-3">
+                <textarea id="bugReportText" required rows="4" maxlength="2000" placeholder="Ce s-a întâmplat? Ce încercai să faci?" data-i18n-ph="bug.textPlaceholder" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                <input type="email" id="bugReportEmail" maxlength="120" placeholder="E-mail (opțional, dacă vrei un răspuns)" data-i18n-ph="bug.emailPlaceholder" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                <button type="submit" id="bugReportSubmitBtn" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition disabled:opacity-60">
+                    <span data-i18n="bug.submit">Trimite raportul</span>
+                </button>
+                <p id="bugReportStatus" class="hidden text-xs text-center"></p>
+            </form>
+        </div>
+    </div>
 
     <!-- Lightbox: mărește orice poză de recenzie la un click (js/lightbox.js). Stilizat manual în css/styles.css (.fv-lb-*),
          nu cu clase Tailwind arbitrare — vezi nota din styles.css despre tailwind.css precompilat. -->
@@ -2052,6 +2114,7 @@
     <script src="js/translations-es.js"></script>
     <script src="js/destinations.js"></script>
     <script src="js/pricing.js"></script>
+    <script src="js/exchange-rate.js"></script>
     <script src="js/daterange.js"></script>
     <script src="js/app.js"></script>
     <script src="js/chat.js"></script>
@@ -2063,7 +2126,13 @@
     <script src="js/ai.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/contact-limit.js"></script>
+    <script src="js/roles.js"></script>
+    <script src="js/countries.js"></script>
+    <script src="js/country-select.js"></script>
+    <script src="js/geo.js"></script>
+    <script src="js/bugreport.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/cloudinary-config.js"></script>
     <script src="js/avatar.js"></script>
     <script src="js/lightbox.js"></script>
     <script src="js/reviews.js"></script>

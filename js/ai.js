@@ -25,7 +25,7 @@
         maxQuestionsPerSession: 30,   // câte întrebări poate pune un vizitator într-o sesiune
         maxInputChars: 400,           // lungimea maximă a unei întrebări
         maxOutputChars: 1500,         // lungimea maximă afișată dintr-un răspuns
-        maxOutputTokens: 700,
+        maxOutputTokens: 450,         // redus de la 700: răspunsuri ceva mai scurte, dar generate vizibil mai repede
         timeoutMs: 25000,
         maxHistoryTurns: 12,          // mesajele păstrate în memoria conversației
         adminMaxInputChars: 4000,     // administratorul: întrebări mai lungi

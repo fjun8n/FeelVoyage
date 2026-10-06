@@ -213,7 +213,7 @@
         function cardHtml(r) {
             const hasText = r.positive || r.negative || r.extra;
             const photosJson = (r.photos && r.photos.length) ? escHtml(JSON.stringify(r.photos)) : '';
-            const photosHtml = (r.photos && r.photos.length) ? '<div class="flex gap-2 mb-1">' + r.photos.slice(0, 4).map(function (p, i) {
+            const photosHtml = (r.photos && r.photos.length) ? '<div class="flex gap-2 mb-1 flex-wrap">' + r.photos.map(function (p, i) {
                 return '<img src="' + escHtml(p) + '" data-photos="' + photosJson + '" data-idx="' + i + '" loading="lazy" alt="" class="w-12 h-12 rounded-lg object-cover border border-slate-200 fv-photo-thumb">';
             }).join('') + '</div>' : '';
             return '<div class="bg-white rounded-2xl p-6 shadow-md border border-slate-100 flex flex-col">' +
@@ -222,7 +222,7 @@
                     (hasText ? (
                         textBlock(t('review.positiveLabel', 'Ce i-a plăcut'), r.positive, 'text-emerald-700') +
                         textBlock(t('review.negativeLabel', 'Ce nu i-a plăcut'), r.negative, 'text-rose-700') +
-                        textBlock(t('review.extraLabel', 'Alte observații'), r.extra, 'text-slate-500')
+                        textBlock(t('review.extraLabel', 'Alte observații'), r.extra, 'text-blue-700')
                     ) : '') +
                 '</div>' +
                 photosHtml +

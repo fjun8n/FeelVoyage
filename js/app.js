@@ -110,12 +110,17 @@ function nDest(key, roText, n) {
     return roText.replace('{n}', n + de);
 }
 
+// scoate diacriticele (ă/â/î/ș/ț etc.) ca „Baile Herculane” (fără semne) să găsească „Băile Herculane” — numele
+// afișat NU se schimbă niciodată, doar comparația la căutare ignoră semnele diacritice
+function stripDiacritics(s) {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
 // o destinație se potrivește dacă are categoria cerută (principală sau în extraCategories), textul căutat și se încadrează în buget
 function destinationMatches(item, f) {
     const t = getDestinationText(item);
-    const q = (f.query || '').trim().toLowerCase();
+    const q = stripDiacritics((f.query || '').trim());
     const inCategory = f.filter === 'all' || item.category === f.filter || (Array.isArray(item.extraCategories) && item.extraCategories.includes(f.filter));
-    const inText = !q || item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q) || t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
+    const inText = !q || stripDiacritics(item.title).includes(q) || stripDiacritics(item.description).includes(q) || stripDiacritics(t.title).includes(q) || stripDiacritics(t.description).includes(q);
     const inBudget = f.budget === 'all' || item.price <= parseInt(f.budget);
     return inCategory && inText && inBudget;
 }
@@ -171,7 +176,8 @@ function buildCard(item) {
                 
                 <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-xl font-bold font-serif text-slate-900 mb-2 group-hover:text-brand-600 transition-colors">${t.title}</h3>
+                        <h3 class="text-xl font-bold font-serif text-slate-900 mb-1 group-hover:text-brand-600 transition-colors">${t.title}</h3>
+                        ${item.nearestAirport ? `<p class="text-[11px] text-slate-400 font-semibold mb-2 flex items-center gap-1"><i class="fa-solid fa-plane-up"></i> ${tr('dest.nearestAirport', 'Cel mai apropiat aeroport')}: ${item.nearestAirport}</p>` : ''}
                         <p class="text-slate-600 text-xs line-clamp-3 mb-4 leading-relaxed">${t.description}</p>
                         
                         <div class="flex flex-wrap gap-1.5 mb-6">
@@ -541,6 +547,10 @@ document.addEventListener('keydown', (e) => {
 
 // Open Modal Function with Multi-Image Support & Dynamic Gallery
 let currentBookingDest = null;   // destinația pentru care e deschisă fereastra de rezervare
+// dacă țara se detectează CÂT TIMP un pachet e deja deschis, actualizăm imediat starea biletului de avion
+document.addEventListener('fv:geo-country', () => { if (currentBookingDest && !currentBookingDest.comingSoon) { initBookingExtras(currentBookingDest); refreshExtraChips(currentBookingDest); } });
+// cursul EUR/RON (js/exchange-rate.js) s-a actualizat cât timp un pachet era deschis — reafișăm prețul în lei
+document.addEventListener('fv:exchange-rate', () => { if (currentBookingDest && !currentBookingDest.comingSoon) renderBookingQuote(); });
 function openModal(id, photoIndex) {
     const item = destinations.find(d => d.id === id);
     if (!item) { if (window.FVLog) FVLog.warn('package', 'unknown', { id: String(id).slice(0, 40) }); return; }
@@ -562,6 +572,12 @@ function openModal(id, photoIndex) {
     document.getElementById('modalPriceLabel').textContent = priceLabelText;
     document.getElementById('bkPriceLabel').textContent = priceLabelText;
     modalDesc.innerText = t.description;
+    const airportEl = document.getElementById('modalAirport');
+    if (airportEl) {
+        airportEl.classList.toggle('hidden', !item.nearestAirport);
+        airportEl.classList.toggle('flex', !!item.nearestAirport);
+        if (item.nearestAirport) document.getElementById('modalAirportName').textContent = item.nearestAirport;
+    }
     // antetul pentru calculator (același conținut ca pe poza de pe telefon)
     document.getElementById('bkTitle').textContent = t.title;
     document.getElementById('bkBadge').textContent = t.tagLabel || item.category;
@@ -717,7 +733,8 @@ function currentQuote() {
     return FVPricing.quote(currentBookingDest, {
         adults: bookingState.adults, kids04: bookingState.kids04, kids512: bookingState.kids512,
         extras: selectedServiceKeys(), date: range.start, nights: currentNights(),
-        amenitiesRemoved: deselectedAmenities.size
+        amenitiesRemoved: deselectedAmenities.size,
+        skipTransport: travelerAlreadyInDestCountry(currentBookingDest)   // geolocație (js/geo.js): ești deja în țara destinației
     });
 }
 
@@ -728,6 +745,7 @@ function quoteLineText(l, localized) {
     const name = (key) => t(EXTRA_LABEL_KEYS[key], EXTRA_LABELS_RO[key]);
     switch (l.type) {
         case 'adults': return fmtTpl(t('quote.adultsLine', '{n} × adult ({unit})'), { n: l.count, unit: priceEUR(l.unit) });
+        case 'transport_skip': return fmtTpl(t('quote.transportSkipLine', 'Fără zbor — ești deja acolo ({n} × {unit})'), { n: l.count, unit: priceEUR(l.unit) });
         case 'kids04': return fmtTpl(t('quote.kids04Line', '{n} × copil 0–4 ani ({pct}% din preț)'), { n: l.count, pct: l.pct });
         case 'kids512': return fmtTpl(t('quote.kids512Line', '{n} × copil 5–12 ani ({pct}% din preț)'), { n: l.count, pct: l.pct });
         case 'single': return fmtTpl(t('quote.singleLine', 'Supliment cameră single ({perNight} × {nights} nopți)'), { perNight: priceEUR(l.perNight), nights: l.nights });
@@ -745,13 +763,20 @@ function quoteLineText(l, localized) {
 }
 
 // Servicii: incluse în pachet (bifate, blocate) / opționale (cu preț) / indisponibile
+// Dacă vizitatorul (detectat prin geolocație, js/geo.js) e deja în țara destinației, biletul de avion nu mai
+// are sens — îl arătăm nebifat, cu explicație, în loc de „Inclus” blocat (vezi și cardul: item.nearestAirport).
+function travelerAlreadyInDestCountry(item) {
+    return !!(item.country && window.FVGeo && FVGeo.getCountry() === item.country);
+}
 function refreshExtraChips(item) {
+    const skipTransport = travelerAlreadyInDestCountry(item);
     FVPricing.extrasFor(item, currentNights()).forEach(ex => {
         const label = document.querySelector(`#modalBookingForm [data-extra="${ex.key}"]`);
         if (!label) return;
         const chip = label.querySelector('[data-extra-chip]');
         let text = '', color = 'text-slate-400';
-        if (ex.status === 'included') { text = tr('modal.included', 'Inclus'); color = 'text-emerald-600'; }
+        if (ex.key === 'transport' && skipTransport && ex.status === 'included') { text = tr('modal.transportNotNeeded', 'Nu ai nevoie — ești deja acolo'); color = 'text-slate-400'; }
+        else if (ex.status === 'included') { text = tr('modal.included', 'Inclus'); color = 'text-emerald-600'; }
         else if (ex.status === 'unavailable') { text = tr('modal.unavailable', 'Indisponibil'); }
         else {
             const unit = ex.unit === 'group' ? tr('modal.unitGroup', '/ grup') : ex.unit === 'car' ? tr('modal.unitDay', '/ zi') : tr('modal.unitPerson', '/ pers.');
@@ -762,15 +787,17 @@ function refreshExtraChips(item) {
     });
 }
 function initBookingExtras(item) {
+    const skipTransport = travelerAlreadyInDestCountry(item);
     FVPricing.extrasFor(item, currentNights()).forEach(ex => {
         const label = document.querySelector(`#modalBookingForm [data-extra="${ex.key}"]`);
         if (!label) return;
         const input = label.querySelector('input');
-        input.checked = ex.status === 'included';
-        input.disabled = ex.status !== 'optional';
-        label.classList.toggle('opacity-60', ex.status === 'unavailable');
-        label.classList.toggle('cursor-not-allowed', ex.status !== 'optional');
-        label.classList.toggle('cursor-pointer', ex.status === 'optional');
+        const forcedSkip = ex.key === 'transport' && skipTransport && ex.status === 'included';
+        input.checked = forcedSkip ? false : ex.status === 'included';
+        input.disabled = forcedSkip ? true : ex.status !== 'optional';
+        label.classList.toggle('opacity-60', forcedSkip || ex.status === 'unavailable');
+        label.classList.toggle('cursor-not-allowed', forcedSkip || ex.status !== 'optional');
+        label.classList.toggle('cursor-pointer', !forcedSkip && ex.status === 'optional');
     });
     refreshExtraChips(item);
 }
@@ -1110,6 +1137,8 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
         email: val('contactEmail').toLowerCase()
     };
     if (val('contactDest')) order.destination = val('contactDest');
+    const countryHidden = document.getElementById('contactCountryCode');
+    if (countryHidden && countryHidden.value) order.country = countryHidden.getAttribute('data-name') || countryHidden.value;
     if (val('contactMsg')) order.message = val('contactMsg');
 
     setFormBusy(form, true);
@@ -1129,6 +1158,7 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
 
     document.getElementById('contactSuccess').classList.remove('hidden');
     form.reset();
+    if (typeof window.fvResetCountrySelect === 'function') window.fvResetCountrySelect();
     setTimeout(() => {
         document.getElementById('contactSuccess').classList.add('hidden');
     }, 5000);

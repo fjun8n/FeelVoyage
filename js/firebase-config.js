@@ -6,10 +6,6 @@ window.FV_FIREBASE_CONFIG = {
     authDomain: "feelvoyage.firebaseapp.com",
     databaseURL: "https://feelvoyage-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "feelvoyage",
-    // Poza de profil (js/avatar.js) are nevoie de Storage activat în consola Firebase — vezi README.md.
-    // Numele standard pentru un proiect "feelvoyage" e cel de mai jos; verifică-l în Firebase Console → Storage
-    // (e scris chiar sub titlu, ex. "gs://feelvoyage.appspot.com") și corectează-l aici dacă diferă.
-    storageBucket: "feelvoyage.appspot.com",
     appId: "1:581280196931:web:49aeaa93ec326ea75fa7f6"
 };
 

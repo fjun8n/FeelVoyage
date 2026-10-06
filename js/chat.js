@@ -81,7 +81,7 @@ function showQuickReplies(replies) {
 function sendBotReply(text, quickReplies = [], packages = []) {
     typingIndicator.classList.remove('hidden');
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    const delay = 600 + Math.random() * 600;
+    const delay = 350 + Math.random() * 350;   // redus de la 600-1200ms: raspuns clasic (fara AI) mai alert
     setTimeout(() => {
         typingIndicator.classList.add('hidden');
         addBotMessage(text, quickReplies, packages);

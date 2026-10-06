@@ -567,3 +567,99 @@ Fiecare cont își poate pune acum o poză de profil (din galerie sau fișiere),
 **Alte actualizări din această sesiune:**
 - **Panoul de admin**: poate schimba acum numele afișat al oricărui cont (buton „Salvează” lângă câmpul de nume, în fișa fiecărui utilizator). ID-ul contului (UID) rămâne needitabil — e cheia primară pentru toate comenzile/recenziile acelui cont; schimbarea lui ar rupe legătura cu istoricul contului, deci nu e ceva editabil în siguranță.
 - **Hash-urile parolelor**: rămân neafișate și nedecodabile — Firebase Authentication nu le expune niciodată, nici către aplicație, nici către administrator (vezi mesajul deja existent din Jurnal).
+
+## Poză de profil — acum pe Cloudinary (nu Firebase Storage)
+
+Am renunțat la Firebase Storage (necesită card, din 2026) — poza de profil se încarcă acum pe **Cloudinary**, gratuit, fără card:
+
+1. Cont nou pe [cloudinary.com](https://cloudinary.com) (gratuit).
+2. Dashboard → numele de cloud e afișat sus → copiază-l.
+3. Settings → Upload → Upload presets → Add upload preset: **Signing Mode: Unsigned**, Folder: `feelvoyage_avatars`, Allowed formats: `jpg`, Max file size: 2 MB.
+4. Pune cele două valori (cloud name + preset name) în `js/cloudinary-config.js`.
+
+Interacțiunea s-a schimbat și ea: nu mai e un buton separat de cameră — treci cu mouse-ul (sau apeși, pe telefon) direct pe poza de profil.
+
+**Despre ștergerea automată a pozelor vechi**: nu e sigur de implementat momentan. Ștergerea pe Cloudinary necesită un apel semnat cu cheia secretă a contului, care NU trebuie niciodată pusă în cod vizibil (oricine ar putea șterge orice poză din tot contul). Fără un mic server care să țină cheia secretă în siguranță, varianta sigură e să lăsăm pozele vechi (nefolosite) acolo — ocupă loc neglijabil (o poză comprimată are ~50-100 KB; chiar și 1000 de schimbări de poză ar însuma sub 100 MB, din cei 25 GB gratuiți). Dacă vrei totuși curățare automată, following opțiune e un mic „Cloudflare Worker" (gratuit, fără card) care ține cheia secretă — spune-mi dacă vrei să mergem pe acolo.
+
+## Actualizări sesiune curentă (progres parțial — vezi mesajul din chat pentru lista completă)
+- Căutare fără diacritice pe ambele site-uri („Baile Herculane” găsește „Băile Herculane”)
+- Bară de scroll personalizată (culorile site-ului), pe ambele site-uri, inclusiv mod întunecat
+- Filtru după stele (5★+, 4★+ etc.) pentru recenziile fiecărui pachet, pe site-ul reviews
+- „RECENZII VERIFICATE”: galben în loc de portocaliu închis
+- „Alte observații” (prima pagină): albastru în loc de gri
+- Limita de 4 poze per recenzie eliminată (prima pagină)
+
+## Roluri — sesiune curentă
+
+Pe lângă „Membru”, acum există 4 roluri vizuale (cel mult 2 se arată pe profil, cele mai importante):
+1. **Călător Loial** (mov, monedă) — automat la 10+ comenzi (pachete + cereri simple, la fel), SAU manual de la admin, oricând.
+2. **Helper** (indigo, căști) — manual de la admin. Singurul rol cu o funcție reală: vede Jurnalul (doar citire — fără tab-ul de Conturi, fără ștergere).
+3. **Bug Finder** (roșu, insectă) — manual de la admin, doar vizual.
+4. **Beta Tester** (turcoaz, eprubetă) — manual de la admin, doar vizual.
+
+Admin poate da/retrage oricare dintre ele din fișa fiecărui utilizator (panoul „Utilizatori”). „Membru” nu e un rol de dat manual — ține de existența contului.
+
+## Țară / cetățenie — sesiune curentă
+
+Formularul „Trimite Cerere de Ofertă” are acum un câmp nou, „Țară / Cetățenie” — dropdown căutabil, cu steag pentru fiecare din cele 192 de țări (listă în `js/countries.js`), fără diacritice la căutare. Salvat în Firebase la `contactRequests/{id}/country`.
+
+## Aeroport apropiat + bilet de avion inteligent (geolocație) — sesiune curentă
+
+Fiecare destinație are acum o țară (`country`, cod ISO) și un aeroport cel mai apropiat (`nearestAirport`) în `destinations.js` — afișate pe fiecare card și în fiecare fereastră de pachet.
+
+**Geolocație**: un banner discret (o singură dată, niciodată din nou dacă refuzi) cere permisiunea de a-ți detecta țara. Dacă accepți și ești deja în țara destinației (ex: ești în Italia și te uiți la pachetul Roma), biletul de avion apare automat nebifat, cu explicația „Nu ai nevoie — ești deja acolo”, în loc de „Inclus” blocat. Alte pachete, din alte țări, nu sunt afectate.
+
+Notă: asta schimbă doar starea vizuală a biletului (nebifat + explicat clar), nu recalculează automat prețul total — ar necesita o reproiectare mai amplă a formulei de preț (partea „zbor” e în prezent inclusă fix în prețul de bază pentru pachetele internaționale). Spune-mi dacă vrei să mergem și pe partea asta.
+
+## Raportează un bug + Cloudinary + poză Google — sesiune curentă
+
+- **Buton „Raportează un bug"** în subsolul ambelor site-uri (text mic, gri, discret). Funcționează fără cont. Salvat separat în Firebase, la `bugReports` — citibil doar de admin, dintr-un tab nou „Rapoarte Bug” în Jurnal (Helper nu îl vede).
+- **Cloudinary configurat** cu datele reale (`cloud: nglqkywm`, preset: `FeelVoyage`). Nu am putut testa live upload-ul din acest mediu (rețeaua blochează explicit `api.cloudinary.com`), dar codul e verificat logic — testează tu odată urcat pe GitHub Pages.
+- **Poză de profil automată la Google** — prima dată când cineva se loghează cu Google, poza din contul Google devine poza de profil FeelVoyage. O poate schimba oricând după, normal, din profil.
+
+## Rapoarte Bug — despărțite pe site (sesiune curentă)
+
+Tab-ul „Rapoarte Bug” din Jurnal are acum două sub-categorii clare — „FeelVoyage” și „FeelVoyage Reviews” — fiecare cu propriul număr de rapoarte; nu se amestecă niciodată într-o singură listă.
+
+## Țara pe profil + admin (sesiune curentă)
+
+Geolocația (deja construită) se conectează acum la cont: țara detectată (doar țara, nimic mai precis) se salvează automat pe cont și apare ca un mic ecuson pe profil (steag + nume țară), lângă „Membru FeelVoyage”. Admin o vede și el, în fișa fiecărui utilizator.
+
+## SEO, viteză chat, poze mai clare (sesiune curentă)
+
+- **SEO de bază**: `meta description`, link canonic, date structurate Schema.org (TravelAgency / WebSite) pe ambele site-uri, plus `robots.txt` și `sitemap.xml`. **Important**: astea ajută motoarele de căutare să înțeleagă și să indexeze corect site-ul, dar nu pot garanta apariția la „recomandate” — asta ține de algoritmul Google, vechimea domeniului și linkurile către site, nu doar de cod.
+- **Chat puțin mai rapid**: răspunsurile AI sunt acum limitate la un text ceva mai scurt (generare mai rapidă), iar botul clasic (fără AI) răspunde după 0,35-0,7 secunde în loc de 0,6-1,2 secunde.
+- **152 de poze locale ascuțite** (Herculane, Săcelu, Constanța, Sovata, Cluj-Napoca, Craiova, Timișoara, Castelul Corvinilor, Ierusalim, Laponia) — filtru unsharp mask aplicat tuturor.
+- **Toate pozele Unsplash (278)**: cerute acum la rezoluție mai mare (1600px în loc de 1000px) — poze vizibil mai clare pe ecrane mari, fără nicio modificare de cod suplimentară (galeria mare le folosește direct; cardurile mici rămân la rezoluție redusă, pentru viteză).
+
+## Site reviews — mobil mai curat (sesiune curentă)
+
+Filtrul „N★+” din fereastra fiecărei destinații nu mai sare pe 2 rânduri pe telefon — acum derulează orizontal, într-un singur rând, fără bară de scroll vizibilă (ca filtrele de categorii de pe site-ul principal).
+
+## Anunțuri cu șabloane (sesiune curentă)
+
+Butonul de megafon din panoul de admin (deja exista, trimitea actualizări abonaților la newsletter) are acum un prim pas nou: alege între 5 șabloane predefinite (scrise în engleză: New Update, New Destinations, Special Offer, Seasonal Greeting, We'd Love Your Feedback), orice șablon creat anterior de tine, sau „Scrie mesaj propriu" (fluxul vechi, neschimbat). Poți crea șabloane noi direct din acel ecran („Creează șablon nou") — se salvează în Firebase și rămân disponibile de atunci încolo, pe orice dispozitiv de pe care te loghezi ca admin.
+
+## Preț recalculat când ești deja în țara destinației (sesiune curentă)
+
+Ultima piesă rămasă din cererea de geolocație: acum, când ești deja în țara destinației, prețul chiar scade — nu doar bifa de la transport. Testat exact pe Roma (Italia): 2 adulți, 840 € → 546 €, cu o linie clară în estimare: „Fără zbor — ești deja acolo (2 × 147 €) -294 €". Suma scăzută e partea de zbor „coaptă” în prețul de bază (fixă, nu depinde de câte nopți stai — la fel cum funcționează și restul formulei). Destinațiile din România (care oricum nu au zbor copt în preț) rămân neafectate. Totul apare automat și în detaliile comenzii trimise către tine.
+
+Cu asta, lista ta mare de cereri din acest fir e completă.
+
+## Prețuri reale de zbor dus-întors, pentru toate destinațiile (sesiune curentă)
+
+Fiecare destinație are acum un preț real de zbor dus-întors (`flightPriceRT`, în euro, per adult) — cercetat din surse reale (KAYAK, Wizz Air, rute din București, sezon redus), nu mai e o estimare abstractă (procent din preț). Exemple verificate: Roma 80 €, Dubai 230 €, Kenya (safari) 580 €, Sydney 1.100 €. Destinațiile din România rămân la 0 € (fără zbor necesar).
+
+**Bug găsit și reparat pe parcurs**: 7 destinații din România (Castelul Corvinilor, Cluj-Napoca, Timișoara, Craiova, Băile Herculane, Sovata, Băile Săcelu) foloseau o categorie diferită de „romania" (ex: „seniori", „halloween", „târguri de Crăciun") și, din cauza asta, formula de preț le reducea greșit prețul cu ~35%, fără niciun motiv real. Acum formula se uită la **țara** destinației (deja catalogată), nu la eticheta de categorie — toate cele 7 au prețul corect confirmat (egal cu prețul de bază afișat).
+
+Reducerea „ești deja în țară" (din sesiunea trecută) folosește acum prețul real de zbor în loc de vechea estimare.
+
+## Calibrare prețuri + curs valutar live (sesiune curentă)
+
+**Recalibrare**: acum că fiecare destinație are un preț real de zbor (sesiunea trecută), am scos vechea estimare abstractă de zbor din prețul de bază — `dest.price` reprezintă acum doar partea de teren (hotel/masă), iar totalul afișat = teren + zbor real. Rezultatul: majoritatea prețurilor au scăzut, reflectând zboruri low-cost reale din București (Wizz Air/Ryanair), ceea ce înseamnă prețuri mai competitive.
+
+**Excepție**: pentru destinațiile cu logistică internă scumpă — safari (Kenya, Serengeti, Namibia, Victoria Falls), insule izolate (Maldive, Seychelles, Zanzibar, Insula Paștelui), circuite lungi (Machu Picchu, Patagonia) — reducerea a fost mult mai blândă, pentru că acolo costul real nu e zborul internațional, ci cazările specializate și transferurile interne.
+
+**Bug găsit și reparat pe parcurs**: formula de preț, folosită cu fixedShare-ul vechi al categoriei, afecta incorect destinațiile din România cu categorie diferită de „romania" — am eliminat complet acel mecanism, nu mai există risc de recurență.
+
+**Curs valutar live**: prețurile în euro NU se schimbă (reflectă costuri reale), dar echivalentul în lei se recalculează automat cu cursul real EUR/RON de azi (Frankfurter.app, bazat pe cursurile BCE, gratuit, fără cheie) — exact cum ai cerut: dacă euro „crește" (ia mai mulți lei), suma în lei afișată crește automat; dacă scade, scade. Se reîmprospătează din rețea cel mult o dată la 12 ore (cursul BCE oricum se actualizează o dată pe zi); dacă rețeaua nu răspunde, site-ul rămâne pe cursul de rezervă, fără să se strice nimic. Testat matematic: 706 € la curs 5,45 → 3.848 lei; la curs 6,00 → 4.236 lei, recalculat live chiar și cu fereastra de pachet deja deschisă.
