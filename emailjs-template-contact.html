@@ -1,30 +1,29 @@
 <!--
-  FeelVoyage — șablon EmailJS pentru notificarea de comandă nouă (folosit atât pentru „Trimite Cerere de
-  Ofertă”, cât și pentru rezervările de pachete).
+  FeelVoyage — șablon EmailJS pentru notificarea de comandă nouă, REFĂCUT DE LA ZERO, cât mai simplu posibil.
 
-  IMPORTANT, citește înainte de a pune ceva aici:
-  1. EmailJS NU suportă sintaxa Handlebars {{#if}} — e doar înlocuire simplă de variabile (confirmat în
-     documentația lor oficială). Un {{#if}} în template produce exact eroarea „Template: One or more
-     dynamic variables are corrupted”. De-asta TOT ce diferă de la o cerere la alta (telefon, e-mail,
-     destinație, țară, mesaj, perioadă, călători, servicii) e deja construit ca HTML gata făcut, în
-     js/emailnotify.js, și ajunge aici într-UN SINGUR bloc: {{{body_html}}}. NU desface acel bloc în bucăți
-     și NU schimba triplele acolade {{{ }}} în duble {{ }} — ar apărea codul HTML ca text simplu, nu randat.
-  2. Dacă primești din nou eroarea „corrupted” DUPĂ ce pui acest template: verifică și restul câmpurilor
-     din EmailJS (nu doar conținutul de mai jos) — în special „To Email” (ar trebui să fie {{to_email}})
-     și „Subject”. O variabilă greșită ACOLO poate da aceeași eroare, nu doar conținutul.
+  De ce așa de simplu: variantele anterioare foloseau {{#if}} și apoi {{{HTML}}} (triple-acolade), și tot
+  primeai eroarea „Template: One or more dynamic variables are corrupted” — deci problema nu era la
+  structura HTML, ci la ceva din sintaxa aia specială. Varianta asta NU mai are NIMIC din toate astea:
+  doar variabile simple {{...}}, exact ca la newsletter (ăla a mers dintotdeauna). Fiecare rând apare
+  MEREU — dacă un criteriu n-a fost completat, apare „—” în loc de valoare, nu dispare rândul.
 
   CUM ÎL PUI ÎN EMAILJS:
   1. emailjs.com → Email Templates → template-ul tău (cel din templateId din js/emailjs-config.js).
   2. Butonul „</> Code Editor” (colțul din dreapta sus) — NU „Design Editor”.
-  3. Șterge tot, lipește tot conținutul acestui fișier.
+  3. Șterge ABSOLUT TOT ce e acolo (inclusiv orice a mai rămas din variantele anterioare), lipește tot
+     conținutul acestui fișier.
   4. „To Email”: {{to_email}}
   5. „Subject”: {{order_type}} — {{name}}
   6. „Save”.
+
+  Dacă DUPĂ asta tot apare eroarea „corrupted”, problema e aproape sigur în altă parte din dashboard-ul
+  EmailJS (nu în acest fișier) — cel mai probabil template-ul ăsta nu e cel folosit cu adevărat (verifică
+  templateId din js/emailjs-config.js, să fie EXACT ID-ul template-ului în care ai lipit conținutul de
+  mai jos), sau contul EmailJS are o limită/problemă de alt fel. Spune-mi și verificăm împreună.
 -->
 <div style="margin:0; padding:24px 12px; background:#f1f5f9; font-family:Arial,Helvetica,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #e2e8f0;">
 
-    <!-- Antet -->
     <tr>
       <td style="background:#0f172a; padding:22px 28px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -40,7 +39,6 @@
       </td>
     </tr>
 
-    <!-- Titlu -->
     <tr>
       <td style="padding:24px 28px 4px;">
         <p style="margin:0; font-size:12px; font-weight:bold; letter-spacing:.04em; text-transform:uppercase; color:#0284c7;">Cerere nouă primită</p>
@@ -49,17 +47,61 @@
       </td>
     </tr>
 
-    <!-- Tot conținutul variabil (contact, destinație, țară, mesaj, perioadă, călători, servicii) — un singur
-         bloc, gata construit în js/emailnotify.js, niciodată despărțit în bucăți mai mici aici. -->
+    <!-- Toate criteriile, mereu vizibile — „—” dacă nu s-a completat acel câmp -->
     <tr>
       <td style="padding:18px 28px 6px;">
-        {{{body_html}}}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0;">
+          <tr><td style="padding:16px 18px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:4px 0; font-size:13px; color:#64748b; width:140px; vertical-align:top;">Telefon</td>
+                <td style="padding:4px 0; font-size:14px; color:#0f172a; font-weight:bold;">{{phone}}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0; font-size:13px; color:#64748b; vertical-align:top;">E-mail</td>
+                <td style="padding:4px 0; font-size:14px; color:#0f172a; font-weight:bold;">{{email}}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0; font-size:13px; color:#64748b; vertical-align:top;">Destinație dorită</td>
+                <td style="padding:4px 0; font-size:14px; color:#0f172a; font-weight:bold;">{{destination}}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0; font-size:13px; color:#64748b; vertical-align:top;">Țară / Cetățenie</td>
+                <td style="padding:4px 0; font-size:14px; color:#0f172a; font-weight:bold;">{{country}}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0; font-size:13px; color:#64748b; vertical-align:top;">Perioadă</td>
+                <td style="padding:4px 0; font-size:14px; color:#0f172a; font-weight:bold;">{{period}}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0; font-size:13px; color:#64748b; vertical-align:top;">Călători</td>
+                <td style="padding:4px 0; font-size:14px; color:#0f172a; font-weight:bold;">{{travelers}}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0; font-size:13px; color:#64748b; vertical-align:top;">Servicii alese</td>
+                <td style="padding:4px 0; font-size:14px; color:#0f172a; font-weight:bold;">{{services}}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0; font-size:13px; color:#64748b; vertical-align:top;">Facilități nealese</td>
+                <td style="padding:4px 0; font-size:14px; color:#0f172a; font-weight:bold;">{{amenities_excluded}}</td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
       </td>
     </tr>
 
-    <!-- Butoane de răspuns rapid -->
     <tr>
-      <td align="center" style="padding:14px 28px 26px;">
+      <td style="padding:14px 28px 6px;">
+        <p style="margin:0 0 6px; font-size:12px; font-weight:bold; letter-spacing:.04em; text-transform:uppercase; color:#64748b;">Mesaj</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px;">
+          <tr><td style="padding:14px 16px; font-size:14px; line-height:1.55; color:#78350f;">{{message}}</td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" style="padding:20px 28px 26px;">
         <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
           <tr>
             <td style="border-radius:10px; background:#16a34a; text-align:center;">
@@ -74,7 +116,6 @@
       </td>
     </tr>
 
-    <!-- Subsol -->
     <tr>
       <td style="padding:16px 28px; background:#f8fafc; border-top:1px solid #e2e8f0;">
         <p style="margin:0; font-size:11px; color:#94a3b8; text-align:center;">Notificare automată FeelVoyage — cererea e deja salvată și în Jurnalul de pe site.</p>
