@@ -375,6 +375,11 @@ html.dark .doc-accept-login { color: var(--fv-accent-strong); }
 .fv-geo-btn-yes:hover { background: #0369a1; }
 .fv-geo-btn-no { background: rgba(255,255,255,.1); color: #cbd5e1; }
 .fv-geo-btn-no:hover { background: rgba(255,255,255,.18); }
+.fv-geo-btn-manual { background: rgba(255,255,255,.1); color: #fef3c7; border: 1px solid rgba(254,243,199,.35); }
+.fv-geo-btn-manual:hover { background: rgba(255,255,255,.18); }
+.fv-geo-manual-box { width: 100%; display: flex; gap: .5rem; margin-top: .7rem; flex-wrap: wrap; }
+.fv-geo-manual-box.hidden { display: none; }
+.fv-geo-select { flex: 1; min-width: 160px; padding: .5rem .7rem; border-radius: .6rem; border: 1px solid rgba(255,255,255,.2); background: #1e293b; color: #fff; font-size: .8rem; }
 
 /* Ecusoanele de rol (js/roles.js) — doar vizuale, fără nicio funcție ascunsă (excepție: „helper” vede Jurnalul, doar-citire). */
 .fv-role-chip { display: inline-flex; align-items: center; gap: .3rem; padding: .18rem .6rem; border-radius: 9999px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; }

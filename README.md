@@ -722,3 +722,21 @@ Pe lângă „Răspunde pe e-mail", acum apare și un buton verde **„Sună pe 
 ## Spațiere reparată în Jurnal (sesiune curentă)
 
 Tab-ul „Rapoarte Bug" din Jurnal: lipsea complet spațiul dintre rândul cu „FeelVoyage / FeelVoyage Reviews" și butonul „Actualizează" de dedesubt — se atingeau direct. Adăugat puțin spațiu, verificat vizual.
+
+## Șablon EmailJS pentru anunțuri/newsletter (sesiune curentă)
+
+Fișier nou: `emailjs-template-newsletter.html` — pentru `updateTemplateId` (butonul de megafon din admin), diferit de `emailjs-template-contact.html` (care e pentru notificările de comandă). Instrucțiunile de instalare sunt în comentariul din capul fișierului.
+
+Design nou, cu degrade pe antet (albastru → auriu, culorile site-ului), mesajul pus în evidență într-o casetă cu bordură, și buton clar **„🌍 Vizitează Site-ul"** către site. Testat vizual pe desktop și telefon.
+
+**Bug onest găsit și reparat**: varianta ta inițială promitea „te poți dezabona din contul tău, din secțiunea Profil" — dar am verificat codul și **nu există niciun comutator de genul ăsta în profil** (doar adminul poate abona/dezabona pe cineva, din panoul lui). Am înlocuit cu un link de e-mail real și funcțional, care chiar face ce promite. Dacă vrei, pot să construiesc un comutator propriu-zis în profil, ca oamenii să se poată dezabona singuri — spune-mi dacă te interesează.
+
+## Țara contului — reproiectată complet (sesiune curentă)
+
+Rezolvă exact problema semnalată: logica veche ținea cont doar de dispozitiv (localStorage), nu de cont — de-asta, deși ai acceptat locația, putea să nu se vadă pe profil dacă ceva se întrerupea pe parcurs (reverse-geocoding eșuat, sau nu erai încă logat în acel moment).
+
+**Acum**:
+- Dacă **ești logat și contul tău are deja o țară salvată** → nu te mai întreabă NICIODATĂ, pe niciun dispozitiv — testat exact acest caz.
+- Dacă **ești logat și contul tău NU are țară** → te întreabă, chiar dacă pe alt dispozitiv ai răspuns cândva „nu, mulțumesc" (situația de cont-fără-țară e nouă și merită întrebată din nou) — testat.
+- **Opțiune nouă: alegere manuală** — dacă geolocația browserului nu merge sau o refuzi, apare un buton „Aleg manual țara" cu o listă simplă din care alegi — testat, salvează corect atât local cât și pe cont.
+- **O singură dată, cu adevărat**: regula din Firebase a fost schimbată să permită scrierea câmpului `country` al propriului cont DOAR dacă nu există deja o valoare — practic imposibil de schimbat din aplicație a doua oară, exact cum ai cerut; doar un admin o poate schimba, direct din baza de date.
