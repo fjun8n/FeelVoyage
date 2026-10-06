@@ -175,6 +175,9 @@
         "priceDetails": {
           ".validate": "newData.isString() && newData.val().length <= 1500"
         },
+        "amenitiesExcluded": {
+          ".validate": "newData.isString() && newData.val().length <= 500"
+        },
         "returnDate": {
           ".validate": "newData.isString() && newData.val().length <= 10"
         },
@@ -236,7 +239,7 @@
       }
     },
     "bugReports": {
-      ".read": false,
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       "$reportId": {
         ".write": "!data.exists() && newData.exists()",
         ".validate": "newData.hasChildren(['text', 'status', 'createdAt', 'site'])",

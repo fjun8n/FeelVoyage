@@ -534,7 +534,10 @@
                     const snap = await withTimeout(dbM.get(dbM.ref(db, 'announcementTemplates')), 15000);
                     const v = snap.val() || {};
                     return Object.keys(v).map(function (id) { return Object.assign({ id: id }, v[id]); }).sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
-                } catch (e) { throw FVError('network', e); }
+                } catch (e) {
+                    if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
+                    throw FVError('network', e);
+                }
             },
             // Butonul „Raportează un bug” din subsol — merge oricui, logat sau nu (js/bugreport.js).
             submitBugReport: async function (report) {
@@ -559,7 +562,12 @@
                     const snap = await withTimeout(dbM.get(dbM.ref(db, BUG_REPORTS_PATH)), 15000);
                     const v = snap.val() || {};
                     return Object.keys(v).map(function (id) { return Object.assign({ id: id }, v[id]); }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-                } catch (e) { throw FVError('network', e); }
+                } catch (e) {
+                    // „permission denied” înseamnă aproape sigur că regulile LIVE din Firebase Console nu au fost
+                    // încă actualizate cu conținutul curent al firebase-rules.json (eu nu le pot publica direct).
+                    if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
+                    throw FVError('network', e);
+                }
             },
             // Poza de profil: utilizatorul o încarcă în Firebase Storage (js/avatar.js) și doar salvează aici adresa rezultată.
             setPhotoURL: async function (url) {

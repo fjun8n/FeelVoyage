@@ -187,7 +187,7 @@
 
     function errText(code) {
         return ({
-            forbidden: trF('log.forbidden', 'Acces respins: jurnalul de pe server poate fi citit doar de un cont de administrator.'),
+            forbidden: trF('log.forbidden', 'Acces respins de Firebase. Dacă ești sigur că ești logat ca administrator, cel mai probabil regulile din Firebase Console nu au fost încă actualizate cu conținutul curent din firebase-rules.json.'),
             unsupported: trF('log.unsupported', 'Serverul (Firebase) nu este configurat: jurnalul rămâne doar pe dispozitiv.'),
             network: trF('log.networkErr', 'Nu am putut citi de pe server. Verifică internetul și regulile Firebase (firebase-rules.json).')
         })[code] || trF('log.networkErr', 'Nu am putut citi de pe server. Verifică internetul și regulile Firebase (firebase-rules.json).');

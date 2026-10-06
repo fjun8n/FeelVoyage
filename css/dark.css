@@ -106,6 +106,7 @@ html.dark .border-emerald-200 { border-color: rgba(16, 185, 129, 0.32); }
 html.dark .hover\:bg-slate-100:hover { background-color: var(--fv-surface-3); }
 html.dark .hover\:bg-slate-200:hover { background-color: #2c3d5f; }
 html.dark .hover\:bg-brand-50:hover { background-color: rgba(56, 189, 248, 0.11); }
+html.dark .hover\:bg-slate-50:hover { background-color: rgba(148, 163, 184, 0.10); }
 html.dark .hover\:bg-brand-100:hover { background-color: rgba(56, 189, 248, 0.18); }
 html.dark .hover\:bg-rose-50:hover { background-color: rgba(244, 63, 94, 0.13); }
 html.dark .hover\:border-brand-200:hover { border-color: rgba(56, 189, 248, 0.34); }

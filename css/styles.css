@@ -358,9 +358,11 @@ html.dark .doc-accept-login { color: var(--fv-accent-strong); }
     background: rgba(0, 0, 0, .45); opacity: 1;
 }
 
-/* Bannerul discret de cerere a locației (js/geo.js) — o singură dată, înainte de promptul real al browserului. */
+/* Bannerul discret de cerere a locației (js/geo.js) — o singură dată, înainte de promptul real al browserului.
+   Fixat SUS (nu jos): un banner „bottom” ar ajunge mereu peste orice conținut e vizibil jos de ecran în acel
+   moment — inclusiv subsolul (butonul „Raportează un bug”) — oricând utilizatorul derulează pagina în jos. */
 #fvGeoBanner {
-    position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%) translateY(20px); opacity: 0; z-index: 250;
+    position: fixed; left: 50%; top: calc(5.5rem + env(safe-area-inset-top, 0px)); transform: translateX(-50%) translateY(-20px); opacity: 0; z-index: 250;
     display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; max-width: calc(100vw - 2rem);
     background: #0f172a; color: #fff; padding: .85rem 1.1rem; border-radius: 1rem; box-shadow: 0 20px 40px -12px rgba(0,0,0,.4);
     font-size: .8rem; transition: opacity .25s ease, transform .25s ease;

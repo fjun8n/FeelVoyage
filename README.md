@@ -663,3 +663,29 @@ Reducerea „ești deja în țară" (din sesiunea trecută) folosește acum pre�
 **Bug găsit și reparat pe parcurs**: formula de preț, folosită cu fixedShare-ul vechi al categoriei, afecta incorect destinațiile din România cu categorie diferită de „romania" — am eliminat complet acel mecanism, nu mai există risc de recurență.
 
 **Curs valutar live**: prețurile în euro NU se schimbă (reflectă costuri reale), dar echivalentul în lei se recalculează automat cu cursul real EUR/RON de azi (Frankfurter.app, bazat pe cursurile BCE, gratuit, fără cheie) — exact cum ai cerut: dacă euro „crește" (ia mai mulți lei), suma în lei afișată crește automat; dacă scade, scade. Se reîmprospătează din rețea cel mult o dată la 12 ore (cursul BCE oricum se actualizează o dată pe zi); dacă rețeaua nu răspunde, site-ul rămâne pe cursul de rezervă, fără să se strice nimic. Testat matematic: 706 € la curs 5,45 → 3.848 lei; la curs 6,00 → 4.236 lei, recalculat live chiar și cu fereastra de pachet deja deschisă.
+
+## Scanare completă a site-ului — bug-uri găsite și reparate (sesiune curentă)
+
+Verificare sistematică: sintaxă, structură date, reguli Firebase vs. cod, HTML, traduceri, teste live extinse.
+
+### 🔴 Bug critic (ar fi afectat clienți reali)
+**`amenitiesExcluded` lipsea din regulile Firebase pentru `orders`.** Acest câmp era scris la FIECARE comandă de pachet trimisă, dar regulile nu-l permiteau explicit — cum regulile resping orice câmp nelistat, fiecare comandă reală ar fi fost respinsă silențios de Firebase odată urcat pe server (clientul ar fi crezut că a trimis-o, dar nu ar fi ajuns la tine niciodată). Reparat și verificat riguros, câmp cu câmp, pentru toate cele 3 tipuri de formulare.
+
+### 🟡 Bug-uri de UX (minore, dar reale)
+- Bannerul de cerere a locației (fixat jos) se putea suprapune cu butonul „Raportează un bug" din subsol — mutat sus, sub antet.
+- Butonul X de închidere din modalul „Raportează un bug" nu avea dimensiuni explicite (spre deosebire de toate celelalte butoane de închidere din site, care au `w-10 h-10` sau similar) — reparat, aliniat la tiparul restului site-ului.
+
+### ✅ Verificat temeinic, fără probleme
+- Sintaxă JS (55 fișiere), JSON (reguli + date structurate SEO)
+- Zero ID-uri HTML duplicate, zero referințe moarte către elemente inexistente
+- CSS (Tailwind) perfect sincronizat cu codul curent, pe ambele site-uri
+- Toate cele 87 de destinații: structură completă, fără date aberante, fără poze lipsă
+- Traduceri: 923 chei identice pe toate 4 limbile (EN/IT/ES/FR) de pe site-ul principal, 14 chei identice pe toate 5 limbile (RO/EN/IT/FR/ES) de pe reviews — sistem de fallback robust confirmat (nicio cheie lipsă nu poate afișa text gol sau „undefined")
+- Zero erori JavaScript la teste live extinse (peste 20 de destinații diferite, catalog, căutare, formulare, autentificare, bug report) pe ambele site-uri
+
+## Reparații din sesiunea curentă
+
+- **Eroarea „Nu am putut citi de pe server" la Rapoarte Bug**: regulile locale (`firebase-rules.json`) sunt deja corecte (admin poate citi). Cel mai probabil regulile LIVE din Firebase Console nu au fost încă actualizate cu conținutul curent al fișierului — **te rog copiază din nou tot conținutul `firebase-rules.json` în Firebase Console → Realtime Database → Rules → Publică**, ori de câte ori primești o arhivă nouă cu modificări la acest fișier. Am și îmbunătățit mesajul de eroare: acum, dacă problema e chiar de permisiuni, apare un mesaj clar care spune exact asta, în loc de mesajul generic de rețea.
+- **Dropdown țară (și alte hover-uri „albe" din tot site-ul)**: culoarea de hover (`hover:bg-slate-50`) nu avea variantă pentru mod întunecat — se vedea alb/foarte deschis pe fundal închis. Reparat generic, o singură dată, pentru toate cele 3 locuri unde apărea (dropdown țară, butoanele de rol din admin, butonul de login cu Google).
+- **Poza de profil, acum și în antet**: lângă nume, în colțul din dreapta sus, apare acum poza de profil (dacă ai una încărcată), nu doar iconița generică. Se actualizează imediat, fără reîncărcarea paginii, în clipa în care schimbi poza din profil.
+- **Rolurile de pe profil**: am re-verificat codul — sunt deja afișate lângă eticheta Membru/Admin, în ordinea ierarhiei, limitate la maximum 2 chiar dacă ai mai multe roluri. Nu era nimic de reparat aici.

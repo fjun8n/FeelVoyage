@@ -25,6 +25,7 @@
     const authBtn = document.getElementById('authBtn');
     const authBtnLabel = document.getElementById('authBtnLabel');
     const authBtnIcon = document.getElementById('authBtnIcon');
+    const authBtnAvatar = document.getElementById('authBtnAvatar');
     const userDropdown = document.getElementById('userDropdown');
     const userDropdownContent = document.getElementById('userDropdownContent');
     const authMobileBtn = document.getElementById('authMobileBtn');
@@ -299,6 +300,13 @@
         authBtnLabel.textContent = label;
         authBtn.setAttribute('aria-label', label);
         authBtnIcon.className = 'fa-solid fa-circle-user text-lg ' + (guest ? 'text-brand-600' : 'text-emerald-500');
+        // Poza de profil (Cloudinary, js/avatar.js), dacă există, înlocuiește iconița generică și aici, în antet.
+        if (authBtnAvatar) {
+            const photo = !guest && session.photoURL;
+            authBtnAvatar.classList.toggle('hidden', !photo);
+            authBtnIcon.classList.toggle('hidden', !!photo);
+            if (photo) authBtnAvatar.src = session.photoURL;
+        }
 
         const item = 'w-full text-left px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 rounded-xl flex items-center gap-2';
         if (!guest) {

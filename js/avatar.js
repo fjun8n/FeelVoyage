@@ -33,6 +33,13 @@
         } else {
             avatarEl.textContent = initials || 'FV';
         }
+        // Aceeași poză, imediat și în antet (butonul de cont), fără să fie nevoie de reîncărcarea paginii.
+        const headerIcon = document.getElementById('authBtnIcon'), headerAvatar = document.getElementById('authBtnAvatar');
+        if (headerAvatar) {
+            headerAvatar.classList.toggle('hidden', !url);
+            if (headerIcon) headerIcon.classList.toggle('hidden', !!url);
+            if (url) headerAvatar.src = url;
+        }
     }
     window.fvRenderAvatar = renderAvatar;
 
