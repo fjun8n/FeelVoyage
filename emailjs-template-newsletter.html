@@ -4,60 +4,61 @@
   templateId (notificări de comandă). Variabilele trimise sunt DOAR {{message}} și {{sent_at}} — abonații
   nu au nume salvat, așa că nu poți personaliza cu „Salut, Ion”.
 
+  REGULI DE AUR (aceleași ca la emailjs-template-contact.html — altfel apare eroarea „Template: One or
+  more dynamic variables are corrupted”):
+  1. NICIODATĂ ghilimele simple ' în interiorul unui atribut style="..." (ex: 'Times New Roman').
+  2. NICIODATĂ tabel-în-tabel-în-tabel (maximum UN nivel de <table>).
+
   CUM ÎL PUI ÎN EMAILJS:
   1. emailjs.com → Email Templates → template-ul folosit pentru newsletter (updateTemplateId din
-     js/emailjs-config.js) — sau „Create New Template” dacă vrei unul separat de cel de comenzi.
+     js/emailjs-config.js).
   2. Butonul „</> Code Editor” (colțul din dreapta sus) — NU „Design Editor”.
   3. Șterge tot, lipește conținutul acestui fișier.
-  4. „Subject”, pune ceva de genul: Noutăți de la FeelVoyage ✈️
+  4. „Subject”, pune ceva de genul: Noutăți de la FeelVoyage
   5. „Save”.
 -->
-<div style="margin:0; padding:28px 12px; background:#eef2f7; font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; margin:0 auto;">
+<div style="max-width:560px; margin:0 auto; font-family:Arial,sans-serif; background:#f1f5f9; padding:20px 12px;">
 
-    <!-- Antet, cu degrade — culoarea solidă e rezerva pentru clienții de mail vechi care nu știu gradient -->
+  <!-- Antet — banner plin, iconița site-ului în stânga + text FeelVoyage -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a; border-radius:14px 14px 0 0;">
     <tr>
-      <td style="background-color:#0369a1; background-image:linear-gradient(135deg,#0369a1,#f59e0b); border-radius:18px 18px 0 0; padding:34px 30px; text-align:center;">
-        <p style="margin:0 0 6px; font-size:11px; font-weight:bold; letter-spacing:.14em; text-transform:uppercase; color:#fef3c7;">Anunț FeelVoyage</p>
-        <h1 style="margin:0; font-size:26px; color:#ffffff; font-family:Georgia,'Times New Roman',serif;">✈️ Feel<span style="color:#fef08a;">Voyage</span></h1>
+      <td style="padding:16px 22px;">
+        <img src="https://fjun8n.github.io/FeelVoyage/img/logo-icon-email.png" width="40" height="40" alt="" style="display:inline-block; width:40px; height:40px; vertical-align:middle; margin-right:10px;">
+        <span style="vertical-align:middle; font-size:22px; font-family:Georgia,serif;"><span style="color:#f59e0b;">Feel</span><span style="color:#ffffff; font-weight:bold;">Voyage</span></span>
       </td>
     </tr>
-
-    <!-- Corp -->
-    <tr>
-      <td style="background:#ffffff; padding:38px 32px 8px; border:1px solid #e2e8f0; border-top:none;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc; border-left:4px solid #f59e0b; border-radius:4px;">
-          <tr>
-            <td style="padding:20px 22px; font-size:16px; line-height:1.75; color:#1e293b; font-weight:600; white-space:pre-wrap;">{{message}}</td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-
-    <!-- Buton -->
-    <tr>
-      <td style="background:#ffffff; padding:30px 32px 10px; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0; text-align:center;">
-        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
-          <tr>
-            <td style="border-radius:999px; background-color:#e11d48; background-image:linear-gradient(135deg,#0369a1,#e11d48);">
-              <a href="https://fjun8n.github.io/FeelVoyage/" style="display:inline-block; padding:15px 38px; font-size:16px; font-weight:bold; color:#ffffff; text-decoration:none;">🌍 Vizitează Site-ul</a>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-
-    <!-- Subsol -->
-    <tr>
-      <td style="background:#ffffff; padding:28px 32px 32px; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 18px 18px;">
-        <hr style="border:none; border-top:1px solid #f1f5f9; margin:0 0 18px;">
-        <p style="margin:0; font-size:12px; color:#94a3b8; text-align:center; line-height:1.7;">
-          Primești acest e-mail pentru că ești abonat la newsletter-ul FeelVoyage.<br>
-          Dacă nu mai vrei să primești aceste anunțuri, <a href="mailto:crucrudenis@gmail.com?subject=Dezabonare%20newsletter" style="color:#94a3b8; text-decoration:underline;">scrie-ne aici</a> și te dezabonăm imediat.
-        </p>
-        <p style="margin:14px 0 0; font-size:11px; font-weight:bold; color:#64748b; text-align:center;">{{sent_at}}</p>
-      </td>
-    </tr>
-
   </table>
+
+  <!-- Etichetă „Anunț” -->
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:14px 0 0;">
+    <tr><td style="background:#fde68a; color:#78350f; font-size:11px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px; padding:6px 14px; border-radius:999px;">Anunț FeelVoyage</td></tr>
+  </table>
+
+  <!-- Mesajul -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:14px; margin:10px 0 0; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
+    <tr><td style="padding:22px 24px; font-size:16px; line-height:1.7; color:#0f172a; font-weight:600;">{{message}}</td></tr>
+  </table>
+
+  <!-- Buton -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0 0;">
+    <tr>
+      <td style="text-align:center;">
+        <a href="https://fjun8n.github.io/FeelVoyage/" style="display:inline-block; padding:14px 32px; background:#0284c7; color:#ffffff; font-weight:bold; font-size:15px; text-decoration:none; border-radius:999px;">Vizitează Site-ul</a>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Subsol -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0 0;">
+    <tr>
+      <td style="padding:14px 22px; font-size:12px; color:#94a3b8; text-align:center; line-height:1.7;">
+        Primești acest e-mail pentru că ești abonat la newsletter-ul FeelVoyage.<br>
+        Dacă nu mai vrei să primești aceste anunțuri, <a href="mailto:crucrudenis@gmail.com?subject=Dezabonare%20newsletter" style="color:#94a3b8; text-decoration:underline;">scrie-ne aici</a> și te dezabonăm imediat.
+      </td>
+    </tr>
+  </table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr><td style="padding:0 22px; font-size:11px; font-weight:bold; color:#64748b; text-align:center;">{{sent_at}}</td></tr>
+  </table>
+
 </div>
