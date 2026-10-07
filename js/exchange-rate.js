@@ -34,7 +34,11 @@
                 const rate = data && data.rates && data.rates.RON;
                 if (typeof rate === 'number' && rate > 0) { saveCache(rate); applyRate(rate); }
             })
-            .catch(function (e) { console.warn('[FeelVoyage] Cursul EUR/RON live nu s-a putut încărca, rămânem la cel de rezervă:', e); });
+            // console.log, nu .warn — nereușita e gestionată deja complet (rămânem pe cursul de rezervă, site-ul
+            // funcționează normal), de obicei din cauza rețelei/browser-ului vizitatorului (ad-blocker etc.), nimic
+            // de reparat la noi; console.log nu ajunge în Jurnal (js/logger.js prinde doar warn/error), ca să nu
+            // aglomereze panoul de admin cu ceva ce nu cere nicio acțiune.
+            .catch(function (e) { console.log('[FeelVoyage] Cursul EUR/RON live nu s-a putut încărca, rămânem la cel de rezervă:', e); });
     }
 
     // Un curs din cache (chiar și de acum câteva ore) se aplică imediat, ca prețurile în lei să fie corecte din

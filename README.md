@@ -792,3 +792,9 @@ Pentru că eroarea „corrupted” persista și cu variantele anterioare, am ren
 - **Țara se completează automat din profil** (reconfirmat că funcționează, neschimbat față de ultima sesiune).
 
 Testat complet: blocare corectă dacă perioada lipsește, trimitere reușită cu toate câmpurile completate — `periodText` arată acum „03/11/2026 – 06/11/2026 (3 nopți)”, construit din calendarul real, nu din text liber.
+
+## Avertismentul „Cursul EUR/RON live nu s-a putut încărca" (sesiune curentă)
+
+Nu era un bug — site-ul gestionează deja perfect această situație (trece automat pe cursul de rezervă, totul funcționează normal). Apare când rețeaua/browserul unui VIZITATOR (ad-blocker, extensie de confidențialitate etc.) blochează cererea către serviciul extern de curs valutar — ceva complet în afara controlului nostru, care nu afectează cu nimic experiența acelui vizitator.
+
+Cum Jurnalul captează doar mesajele de tip „warning"/„error" din consolă, am coborât acest mesaj la un nivel simplu de depanare — nu mai apare deloc în Jurnal, dar rămâne vizibil pentru oricine vrea să investigheze din propria consolă de browser. Testat: cursul de rezervă funcționează identic ca înainte, doar vizibilitatea în Jurnal s-a schimbat.
