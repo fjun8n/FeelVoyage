@@ -125,21 +125,17 @@
         }
     }
 
-    // Decide dacă trebuie arătat bannerul, pe baza stării CONTULUI (dacă ești logat) — nu doar a dispozitivului.
+    // Decide dacă trebuie arătat bannerul — DOAR pentru conturi autentificate. Un vizitator fără cont nu
+    // mai este întrebat deloc (nici per-dispozitiv): fără cont nu există unde să salvăm țara definitiv, așa
+    // că întrebarea repetată la fiecare vizită era doar deranjantă, nu folositoare.
     function maybeShowBanner() {
         if (shownThisSession || bannerEl) return;
         const session = currentSession();
-        if (session) {
-            // Logat: singura sursă de adevăr e contul. Dacă are deja o țară, nu întrebăm NICIODATĂ, pe niciun
-            // dispozitiv — exact cerința ta. Dacă nu are, întrebăm (chiar dacă alt dispozitiv, demult, a zis
-            // „nu, mulțumesc” — situația de „sunt logat și nu am țară” e nouă și merită întrebată din nou).
-            if (session.country) return;
-            shownThisSession = true;
-            showBanner();
-            return;
-        }
-        // Fără cont: comportamentul vechi, per-dispozitiv, doar pentru prețul biletului de avion.
-        if (wasAsked() || getCountry()) return;
+        if (!session) return;   // fără cont: nu arătăm bannerul
+        // Logat: singura sursă de adevăr e contul. Dacă are deja o țară, nu întrebăm NICIODATĂ, pe niciun
+        // dispozitiv — exact cerința ta. Dacă nu are, întrebăm (chiar dacă alt dispozitiv, demult, a zis
+        // „nu, mulțumesc” — situația de „sunt logat și nu am țară” e nouă și merită întrebată din nou).
+        if (session.country) return;
         shownThisSession = true;
         showBanner();
     }

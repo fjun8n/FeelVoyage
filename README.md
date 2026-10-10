@@ -798,3 +798,14 @@ Testat complet: blocare corectă dacă perioada lipsește, trimitere reușită c
 Nu era un bug — site-ul gestionează deja perfect această situație (trece automat pe cursul de rezervă, totul funcționează normal). Apare când rețeaua/browserul unui VIZITATOR (ad-blocker, extensie de confidențialitate etc.) blochează cererea către serviciul extern de curs valutar — ceva complet în afara controlului nostru, care nu afectează cu nimic experiența acelui vizitator.
 
 Cum Jurnalul captează doar mesajele de tip „warning"/„error" din consolă, am coborât acest mesaj la un nivel simplu de depanare — nu mai apare deloc în Jurnal, dar rămâne vizibil pentru oricine vrea să investigheze din propria consolă de browser. Testat: cursul de rezervă funcționează identic ca înainte, doar vizibilitatea în Jurnal s-a schimbat.
+
+## Ascuțire și redimensionare pentru ultimele 4 destinații cu poze locale (Herculane, Săcelu, Constanța, Sovata)
+
+Din cele 7 destinații cu poze proprii, doar Cluj-Napoca, Craiova și Timișoara primiseră anterior tratamentul de clarificare (vezi mai sus); celelalte 4 au rămas netratate — asta a fost reparat acum, cu exact același standard: pozele cu latura lungă sub 1280px au fost mărite (Lanczos, factor variabil până la 2.5×, plafonat ca să nu devină neclare) și apoi clarificate cu Unsharp Mask (radius 1.6, percent 130, threshold 2), salvate la calitate 85; cele cu latura lungă peste 1600px au fost doar redimensionate în jos la maximum 1600px; cele deja în intervalul 1280–1600px au rămas neatinse.
+
+- **Băile Herculane**: 12 din 17 poze mărite și clarificate (cea mai mică, 480×480, dusă la 1200×1200), 2 doar redimensionate în jos, 3 lăsate neatinse.
+- **Băile Săcelu**: 2 din 14 poze mărite și clarificate, 1 doar redimensionată în jos, 11 lăsate neatinse (erau deja la 1600px).
+- **Constanța**: 6 din 15 poze mărite și clarificate, 9 lăsate neatinse.
+- **Sovata**: 9 din 15 poze mărite și clarificate, 6 lăsate neatinse.
+
+Niciun nume de fișier nu s-a schimbat (doar conținutul), deci referințele din `js/destinations.js` rămân valide fără nicio altă modificare de cod. Folderele corespunzătoare din `reviews/img/destinations/` au fost sincronizate 1-la-1 cu cele din proiectul principal, ca pe site-ul de recenzii să se vadă aceleași poze clarificate.

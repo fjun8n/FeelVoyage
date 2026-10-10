@@ -395,6 +395,9 @@
 
     window.openAuthModal = openAuthModal;
     window.closeAuthModal = closeAuthModal;
+    // Expus ca formularul de contact să se poată re-precompleta singur (nume/e-mail/telefon/țară) imediat
+    // după ce se golește la trimitere (form.reset()), fără să mai fie nevoie de refresh de pagină.
+    window.fvSyncContactFormGate = syncContactFormGate;
     window.fvLogout = async function () {
         try { await FVBackend.logout(); } catch (e) { /* deconectare locală oricum */ }
         session = null;

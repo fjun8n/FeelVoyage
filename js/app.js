@@ -1243,6 +1243,9 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     form.reset();
     if (typeof window.fvResetCountrySelect === 'function') window.fvResetCountrySelect();
     if (contactRange) contactRange.reset(true);
+    // Numele, e-mailul, telefonul și țara se precompletează din cont din nou, imediat — fără asta rămâneau
+    // goale după reset() până la un refresh de pagină (fillProfile rulează doar la încărcare/login).
+    if (typeof window.fvSyncContactFormGate === 'function') window.fvSyncContactFormGate();
     setTimeout(() => {
         document.getElementById('contactSuccess').classList.add('hidden');
     }, 5000);
