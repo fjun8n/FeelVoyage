@@ -30,11 +30,42 @@
       Exemplu de conținut: {{message}}
       Notează „Template ID"-ul acestui al doilea șablon și pune-l mai jos, la updateTemplateId.
    Dacă nu completezi updateTemplateId, butonul din panoul de administrator rămâne dezactivat — restul site-ului
-   funcționează normal oricum. */
+   funcționează normal oricum.
+
+   OPȚIONAL — VARIANTA ÎN ENGLEZĂ A AMBELOR ȘABLOANE: emailjs-template-contact-en.html și
+   emailjs-template-newsletter-en.html (la fel ca pașii 3/6 de mai sus, dar fiecare ca șablon NOU, separat).
+   Pune Template ID-urile generate la templateIdEn / updateTemplateIdEn mai jos. Fără asta, totul rămâne
+   exact ca până acum (doar în română) — nu e un pas obligatoriu. */
 window.FV_EMAILJS_CONFIG = {
     publicKey: "PXMzonXn_vMUEWtH8",
     serviceId: "FeelVoyage",
     templateId: "template_iscq76d",
     updateTemplateId: "template_ftx524k",
-    toEmail: "crucrudenis@gmail.com"
+    toEmail: "crucrudenis@gmail.com",
+
+    // OPȚIONAL — variantele în ENGLEZĂ ale celor două șabloane (emailjs-template-contact-en.html și
+    // emailjs-template-newsletter-en.html): le creezi ca șabloane NOI, separate, în contul tău EmailJS
+    // (vezi instrucțiunile din fiecare fișier -en.html), apoi pui aici Template ID-urile generate.
+    // Dacă le lași goale (ca mai jos), nimic nu se schimbă: totul continuă să meargă doar în română, ca până acum.
+    // templateIdEn: notificarea de comandă/contact folosește automat varianta engleză când cererea a fost
+    // trimisă cât timp site-ul era în engleză (order.lang === 'en') — nu trebuie ales manual.
+    templateIdEn: "",
+
+    /* NEWSLETTER PE LIMBA FIECĂRUI ABONAT
+       Fiecare abonat primește anunțul pe limba ȚĂRII lui din cont (Franța → franceză, Italia → italiană,
+       Spania/America Latină → spaniolă, România/Moldova → română, restul → engleză). Tu îl scrii O SINGURĂ
+       dată, în română: textul se traduce automat cu Gemini (js/translate.js, aceeași configurație AI care
+       există deja) și fiecare primește șablonul limbii lui.
+
+       Pentru fiecare limbă ai nevoie de un șablon NOU în EmailJS, făcut din fișierul corespunzător:
+           updateTemplateIdEn ← emailjs-template-newsletter-en.html
+           updateTemplateIdIt ← emailjs-template-newsletter-it.html
+           updateTemplateIdFr ← emailjs-template-newsletter-fr.html
+           updateTemplateIdEs ← emailjs-template-newsletter-es.html
+       Ce lași gol se rezolvă singur: limba respectivă primește șablonul englez, iar dacă nici acela nu e
+       completat, pe cel românesc (textul tradus se trimite oricum). Deci poți adăuga limbile pe rând. */
+    updateTemplateIdEn: "",
+    updateTemplateIdIt: "",
+    updateTemplateIdFr: "",
+    updateTemplateIdEs: ""
 };

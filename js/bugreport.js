@@ -41,6 +41,12 @@
             statusEl.className = 'text-xs text-center text-rose-500';
             return;
         }
+        // filtrul de conținut indecent (js/moderation.js) — un raport de bug nu are nevoie de înjurături
+        if (window.FVModeration && !FVModeration.checkText(text).ok) {
+            statusEl.textContent = trF('mod.textBlocked', 'Textul conține un limbaj nepotrivit. Te rugăm să reformulezi.');
+            statusEl.className = 'text-xs text-center text-rose-500';
+            return;
+        }
         const be = backend();
         if (!be || !be.submitBugReport) {
             statusEl.textContent = trF('bug.unavailable', 'Momentan nu putem trimite raportul. Încearcă din nou mai târziu.');

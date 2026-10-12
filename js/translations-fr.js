@@ -240,9 +240,9 @@ i18n.fr = {
     "log.forbidden": "Accès refusé : le journal du serveur ne peut être lu que par un compte administrateur.",
     "log.unsupported": "Le serveur (Firebase) n'est pas configuré : le journal reste uniquement sur cet appareil.",
     "log.networkErr": "Lecture impossible depuis le serveur. Vérifiez internet et les règles Firebase (firebase-rules.json).",
-    "log.pruneOld": "Supprimer de plus de 30 jours",
+    "log.pruneOld": "Réduire à 1000",
     "log.clearServer": "Tout supprimer sur le serveur",
-    "log.confirmPrune": "Supprimer du serveur les entrées de plus de 30 jours ?",
+    "log.confirmPrune": "Réduire le journal du serveur aux 1000 entrées les plus récentes ? (les moins importantes sont supprimées d'abord : info, puis avertissements, puis erreurs)",
     "log.confirmClearServer": "Supprimer TOUT le journal du serveur (tous les visiteurs) ?",
     "log.pruned": "Supprimées : {n}",
     "log.serverCleared": "Le journal du serveur a été supprimé.",
@@ -514,7 +514,7 @@ i18n.fr = {
 
     "privacy.s4.p2": "Les entrées du journal technique sont conservées au plus 30 jours, puis supprimées par l'administrateur.",
 
-    "privacy.s5.intro": "Conformément au Règlement général sur la protection des données (RGPD), vous disposez des droits suivants :",
+    "privacy.s5.intro": "Conformément au règlement général sur la protection des données (RGPD), vous disposez des droits suivants :",
 
     "privacy.s5.b1.lead": "Droit d'accès",
 
@@ -540,13 +540,13 @@ i18n.fr = {
 
     "privacy.s5.b6.text": "Vous pouvez vous adresser à l'Autorité nationale de contrôle du traitement des données à caractère personnel (ANSPDCP).",
 
-    "privacy.s5.exercise": "Pour exercer vos droits, écrivez-nous à l'adresse e-mail indiquée dans la section Coordonnées ; nous répondons dans un délai d'un mois maximum.",
+    "privacy.s5.exercise": "Pour exercer vos droits, écrivez-nous à l'adresse e-mail indiquée dans la section coordonnées ; nous répondons dans un délai d'un mois maximum.",
 
     "privacy.s6.intro": "L'équipe FeelVoyage est à votre disposition 24 h/24 et 7 j/7 pour toute question relative à la confidentialité de vos données ou pour planifier vos prochaines vacances. Vous pouvez nous contacter aux coordonnées ci-dessous :",
 
     "privacy.ct.name": "Nom de l'agence",
 
-    "privacy.s6.p2": "Nous nous réservons le droit de modifier la présente Politique de confidentialité. Toute mise à jour sera publiée sur cette page.",
+    "privacy.s6.p2": "Nous nous réservons le droit de modifier la présente politique de confidentialité. Toute mise à jour sera publiée sur cette page.",
 
     "anpc.subtitle": "Règlement extrajudiciaire des litiges : ce qu'est le SAL et à qui s'adresser en cas de réclamation.",
 
@@ -596,9 +596,9 @@ i18n.fr = {
 
     "accept.label": "Acceptation",
 
-    "accept.terms": "J'ai lu et j'accepte les Conditions générales",
+    "accept.terms": "J'ai lu et j'accepte les conditions générales",
 
-    "accept.privacy": "J'ai lu et j'accepte la Politique de confidentialité",
+    "accept.privacy": "J'ai lu et j'accepte la politique de confidentialité",
 
     "accept.anpc": "J'ai lu et pris connaissance des informations sur l'ANPC / le SAL",
 
@@ -712,11 +712,11 @@ i18n.fr = {
     "auth.loginSubmit": "Se connecter",
     "auth.registerSubmit": "Créer un compte gratuit",
     "auth.consentPrefix": "J'ai lu et j'accepte les",
-    "auth.consentTermsLink": "Conditions Générales",
+    "auth.consentTermsLink": "Conditions générales",
     "auth.consentAnd": "et la",
-    "auth.consentPrivacyLink": "Politique de Confidentialité",
+    "auth.consentPrivacyLink": "Politique de confidentialité",
     "auth.newsletterOptIn": "Je souhaite recevoir par e-mail les offres et actualités de FeelVoyage (newsletter).",
-    "auth.errorConsent": "Vous devez accepter les Conditions Générales et la Politique de Confidentialité pour créer un compte.",
+    "auth.errorConsent": "Vous devez accepter les conditions générales et la politique de confidentialité pour créer un compte.",
     "auth.optionalNote": "Le compte est facultatif : vous pouvez toujours réserver sans compte. Les données du compte de démonstration sont enregistrées uniquement sur votre appareil.",
 
     // Navigare
@@ -737,6 +737,38 @@ i18n.fr = {
 
     // Cont
     "auth.adminChip": "Administrateur",
+    "admin.loginDenied": "Ce compte n'a pas d'accès administrateur.",
+    "admin.loginHint": "Réservé aux administrateurs. Utilisez votre compte FeelVoyage.ro.",
+    "footer.reportBug": "Signaler un bug",
+    "bug.title": "Signaler un bug",
+    "bug.subtitle": "Dites-nous ce qui n'a pas marché — chaque détail aide.",
+    "bug.textPlaceholder": "Que s'est-il passé ? Qu'essayiez-vous de faire ?",
+    "bug.emailPlaceholder": "E-mail (facultatif, si vous voulez une réponse)",
+    "bug.submit": "Envoyer le signalement",
+    "bug.tooShort": "Dites-nous un peu plus sur ce qui s'est passé.",
+    "bug.unavailable": "Nous ne pouvons pas envoyer le signalement pour le moment. Réessayez plus tard.",
+    "bug.thanks": "Merci ! Nous avons reçu votre signalement.",
+    "bug.error": "Nous n'avons pas pu envoyer le signalement. Réessayez.",
+    "mod.textBlocked": "Le texte contient un langage inapproprié. Merci de reformuler.",
+    "mod.blockedChat": "Ce message contient un langage inapproprié et n'a pas été envoyé. Reformulez, s'il vous plaît — je suis là pour vous aider avec vos vacances. 🙂",
+    "mod.imageChecking": "Vérification des photos…",
+    "mod.imageBlocked": "La photo n'a pas été acceptée : contenu inadapté au site.",
+    "mod.imageUnavailable": "Nous n'avons pas pu vérifier la photo pour le moment. Réessayez dans un instant.",
+    "est.title": "Estimation de prix",
+    "est.total": "Estimation totale",
+    "est.nights": "nuits",
+    "est.flight": "Vol estimé (aller-retour)",
+    "est.perAdult": "adulte",
+    "est.transport": "Transport",
+    "est.transportRo": "autocar, en Roumanie",
+    "est.stay": "Hébergement",
+    "est.perNight": "nuit",
+    "est.perPerson": "personne",
+    "est.calculating": "Calcul de l'estimation…",
+    "est.note": "Estimation indicative, calculée automatiquement d'après les prix de nos forfaits. Un conseiller confirme l'offre finale et la disponibilité.",
+    "est.inCatalog": "Nous avons déjà un forfait pour cette destination :",
+    "est.countryBlocked": "Écrivez une ville ou une localité, pas un pays — sinon nous ne pouvons pas estimer le prix (par exemple « Paris », pas « France »).",
+    "est.notFound": "Nous n'avons pas trouvé ce lieu. Vérifiez l'orthographe ou indiquez la ville la plus proche.",
 
     // Administrator
     "admin.usersBtn": "Utilisateurs",
@@ -782,6 +814,9 @@ i18n.fr = {
 
     // Destinații
     "dest.perPerson": "pers.",
+    "discount.badge": "Réduction juste pour vous",
+    "discount.viewBtn": "Voir le forfait",
+    "discount.expiresIn": "Expire dans {h}h {m}min",
 
     // Rezervare
     "modal.adults": "Adultes",
@@ -812,6 +847,9 @@ i18n.fr = {
     "quote.longstayLine": "Réduction séjour long, plus de {min} nuits (-{pct} %)",
     "quote.offseasonLine": "Réduction réservation anticipée, hors saison (-{pct} %)",
     "quote.earlyBookingLine": "Réduction réservation très anticipée (-{pct} %)",
+    "quote.personalDiscountLine": "Votre réduction personnelle (-{pct} %)",
+    "discount.priceLabel": "Prix réduit / personne",
+    "discount.badgeShort": "réduction",
     "quote.amenitiesRemovedLine": "Prestations non désirées, décochées ({count} sur {total}) (-{pct} %)",
     "newsletter.popup.title": "Ne manquez pas nos offres",
     "newsletter.popup.body": "Abonnez-vous à la newsletter et recevez en premier nos offres spéciales et réductions.",
@@ -829,6 +867,11 @@ i18n.fr = {
     "admin.broadcast.notConfiguredTitle": "Pas encore configuré",
     "admin.broadcast.notConfiguredBody": "Complétez updateTemplateId dans js/emailjs-config.js pour pouvoir envoyer des actualités aux abonnés.",
     "admin.broadcast.hint": "Écrivez un message court (ex. « Nous avons ajouté 5 nouvelles destinations ! »). Seuls les abonnés à la newsletter le reçoivent.",
+    "admin.broadcast.langLabel": "Langue du modèle",
+    "admin.broadcast.langRo": "Roumain",
+    "admin.broadcast.langEn": "Anglais",
+    "admin.broadcast.translating": "Traduction du message…",
+    "admin.broadcast.langsNote": "Vous l'écrivez une fois, en {from} ; chacun le reçoit dans la langue du pays enregistré sur son compte : {list}",
     "admin.broadcast.count": "{n} abonnés recevront le message",
     "admin.broadcast.loading": "Chargement de la liste des abonnés…",
     "admin.broadcast.placeholder": "Quoi de neuf sur le site ?",
@@ -838,14 +881,14 @@ i18n.fr = {
     "admin.broadcast.done": "Terminé — {sent} envoyés, {failed} échoués.",
     "chat.newsletter.decline": "Non, merci",
     "chat.newsletter.declined": "Entendu, pas de souci ! Si vous changez d'avis, écrivez-moi \"newsletter\" à tout moment. 🙂",
-    "chat.newsletter.needAccount": "Pour vous abonner à la newsletter, vous avez d'abord besoin d'un compte gratuit — créez-en un rapidement depuis « Mon Compte », en haut.",
+    "chat.newsletter.needAccount": "Pour vous abonner à la newsletter, vous avez d'abord besoin d'un compte gratuit — créez-en un rapidement depuis « Mon compte », en haut.",
     "chat.newsletter.alreadyIn": "Vous êtes déjà abonné ! 🎉 On vous écrit seulement quand il y a du nouveau sur le site.",
     "chat.newsletter.ask": "Bien sûr — voulez-vous vous abonner à la newsletter ? On vous écrit seulement quand il y a du nouveau sur le site, rien d'autre.",
     "admin.newsletter": "Abonné à la newsletter",
     "admin.newsletterOn": "Oui, abonné",
     "admin.newsletterOff": "Non abonné",
     "admin.newsletterSaved": "Enregistré.",
-    "modal.reviewsTitle": "Avis des Voyageurs",
+    "modal.reviewsTitle": "Avis des voyageurs",
     "modal.leaveReview": "Laisser un avis",
     "review.badge": "Votre avis",
     "review.titlePrefix": "Laisser un avis —",
@@ -876,7 +919,7 @@ i18n.fr = {
     "quote.noteLow": "La date choisie est en basse saison : le prix de base s'applique.",
     "quote.disclaimer": "Estimation pour une chambre double, à titre indicatif. L'offre finale et la disponibilité sont confirmées par un conseiller. Les dépenses personnelles, les taxes de séjour locales et les visites ou excursions facultatives que vous n'avez pas sélectionnées ne sont pas incluses.",
     "booking.consentTitle": "Avant d'envoyer",
-    "booking.consentErrorDocs": "Vous devez accepter les Conditions Générales, la Politique de Confidentialité et les informations ANPC / SAL avant d'envoyer.",
+    "booking.consentErrorDocs": "Vous devez accepter les conditions générales, la politique de confidentialité et les informations ANPC / SAL avant d'envoyer.",
     "booking.consentErrorEmail": "Vous devez vérifier votre e-mail avant d'envoyer une réservation. Allez dans votre profil et cliquez sur « Renvoyer l'e-mail » ou « Je l'ai vérifié, actualiser ».",
 
     // Rezervare
@@ -909,7 +952,7 @@ i18n.fr = {
     "auth.errorTooMany": "Trop de tentatives. Réessayez dans quelques minutes.",
     "auth.errorGeneric": "Une erreur est survenue. Veuillez réessayer.",
     "auth.optionalNoteCloud": "Le compte est facultatif : vous pouvez toujours réserver sans compte. Vous pouvez vous connecter depuis n'importe quel appareil avec le même e-mail et le même mot de passe.",
-    "auth.termsNote": "En vous inscrivant, vous acceptez les Conditions générales et la Politique de confidentialité de FeelVoyage.",
+    "auth.termsNote": "En vous inscrivant, vous acceptez les conditions générales et la politique de confidentialité de FeelVoyage.",
     "auth.errorLogin": "E-mail ou mot de passe incorrect.",
     "auth.errorName": "Veuillez saisir votre nom et votre prénom.",
     "auth.errorNameCase": "Le nom doit commencer chaque mot par une majuscule (ex. Ion Popescu).",

@@ -93,8 +93,9 @@
         helperOn = !adminOn && !!helperFlag;   // dacă e și administrator, contează doar ca administrator (acces complet)
         if (adminOn || helperOn) {
             mountButton();
-            // curățare: la autentificarea administratorului, o dată pe sesiune, se șterg de pe server intrările mai vechi de 30 de zile
-            if (adminOn && backendOk() && !cache.pruned) { cache.pruned = true; root.FVBackend.pruneLogs(30).then(function (n) { if (root.FVLog) root.FVLog.info('admin', 'log.pruned', { n: n }); }, function () { }); }
+            // curățare: la autentificarea administratorului, o dată pe sesiune, jurnalul serverului e redus la plafonul de 1000 de intrări —
+            // se șterg mai întâi cele mai „neimportante” (info, apoi warn, apoi error), nu neapărat cele mai vechi (vezi js/backend.js → pruneLogs)
+            if (adminOn && backendOk() && !cache.pruned) { cache.pruned = true; root.FVBackend.pruneLogs(1000).then(function (n) { if (root.FVLog) root.FVLog.info('admin', 'log.pruned', { n: n }); }, function () { }); }
         } else {
             removeButton(); close(); cache = { server: null, serverErr: '', users: null, usersErr: '', bugs: null, bugsErr: '', loading: false, pruned: false };
             if (was && root.FVLog) root.FVLog.info('admin', 'log.access-removed');
@@ -159,7 +160,7 @@
                 (adminOn ? '<button type="button" class="lv-act" data-lv="json"><i class="fa-solid fa-download"></i> JSON</button>' +
                 '<button type="button" class="lv-act" data-lv="csv"><i class="fa-solid fa-file-csv"></i> CSV</button>' : '') +
                 (!adminOn ? '' : src === 'server'
-                    ? '<button type="button" class="lv-act lv-danger" data-lv="prune"><i class="fa-solid fa-broom"></i> ' + esc(trF('log.pruneOld', 'Șterge peste 30 de zile')) + '</button>' +
+                    ? '<button type="button" class="lv-act lv-danger" data-lv="prune"><i class="fa-solid fa-broom"></i> ' + esc(trF('log.pruneOld', 'Reduce la 1000')) + '</button>' +
                       '<button type="button" class="lv-act lv-danger" data-lv="clear-server"><i class="fa-solid fa-trash"></i> ' + esc(trF('log.clearServer', 'Șterge tot de pe server')) + '</button>'
                     : '<button type="button" class="lv-act lv-danger" data-lv="clear"><i class="fa-solid fa-trash"></i> ' + esc(trF('log.clear', 'Șterge')) + '</button>') +
             '</div>' +
@@ -312,7 +313,7 @@
         if (cache.loading) return Promise.resolve();
         if (!force && cache.server && (!adminOn || cache.users)) { render(); return Promise.resolve(); }
         cache.loading = true; cache.serverErr = ''; cache.usersErr = ''; render();
-        var pLogs = root.FVBackend.listLogs(400).then(function (list) { cache.server = list.map(fromServer); }, function (e) { cache.serverErr = (e && e.code) || 'network'; cache.server = []; });
+        var pLogs = root.FVBackend.listLogs(1000).then(function (list) { cache.server = list.map(fromServer); }, function (e) { cache.serverErr = (e && e.code) || 'network'; cache.server = []; });
         // „helper” vede jurnalul, dar NICIODATĂ lista de conturi sau rapoartele de bug — nici cererile nu pleacă pentru el
         var tasks = [pLogs];
         if (adminOn) {
@@ -321,10 +322,10 @@
         }
         return Promise.all(tasks).then(function () {
             cache.loading = false;
-            // curățare automată: o dată pe sesiune, intrările mai vechi de 30 de zile se șterg de pe server (doar administratorul poate șterge)
+            // curățare automată: o dată pe sesiune, jurnalul serverului e redus la plafonul de 1000 (doar administratorul poate șterge)
             if (adminOn && !cache.pruned && !cache.serverErr) {
                 cache.pruned = true;
-                root.FVBackend.pruneLogs(30).then(function (n) { if (root.FVLog) root.FVLog.info('admin', 'log.pruned', { n: n }); }, function () { });
+                root.FVBackend.pruneLogs(1000).then(function (n) { if (root.FVLog) root.FVLog.info('admin', 'log.pruned', { n: n }); }, function () { });
             }
             if (isOpen()) render();
         });
@@ -349,8 +350,8 @@
         else if (a === 'refresh') { if (src === 'device') { render(); } else loadServer(true); }
         else if (a === 'clear') { if (root.confirm(trF('log.confirmClear', 'Ștergi tot jurnalul de pe acest dispozitiv?'))) { root.FVLog.clear(); openIds = {}; render(); } }
         else if (a === 'prune') {
-            if (!root.confirm(trF('log.confirmPrune', 'Ștergi de pe server intrările mai vechi de 30 de zile?'))) return;
-            root.FVBackend.pruneLogs(30).then(function (n) { toast(trF('log.pruned', 'Șterse: {n}').replace('{n}', n)); loadServer(true); }, function (er) { toast(errText(er && er.code), 'error'); });
+            if (!root.confirm(trF('log.confirmPrune', 'Reduci jurnalul serverului la cele mai recente 1000 de intrări? (se șterg mai întâi cele mai puțin importante: info, apoi warn, apoi error)'))) return;
+            root.FVBackend.pruneLogs(1000).then(function (n) { toast(trF('log.pruned', 'Șterse: {n}').replace('{n}', n)); loadServer(true); }, function (er) { toast(errText(er && er.code), 'error'); });
         }
         else if (a === 'clear-server') {
             if (!root.confirm(trF('log.confirmClearServer', 'Ștergi TOT jurnalul de pe server (toți vizitatorii)?'))) return;

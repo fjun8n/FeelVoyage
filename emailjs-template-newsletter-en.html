@@ -1,0 +1,64 @@
+<!--
+  FeelVoyage — EmailJS template for announcements/newsletter (ENGLISH wrapper).
+
+  English version of emailjs-template-newsletter.html — same structure, only the fixed wrapper text
+  is translated; {{message}} itself is still whatever the administrator types for that particular
+  broadcast (write it in English when you pick this template from the admin panel's "Send update"
+  button — a language choice appears there once updateTemplateIdEn below is set).
+
+  HOW TO ADD IT TO EMAILJS (optional):
+  1. emailjs.com → Email Templates → "Create New Template" (a separate one from the Romanian version).
+  2. "</> Code Editor" button (top right) — NOT "Design Editor".
+  3. Delete everything, paste this file's content.
+  4. Subject, e.g.: FeelVoyage News ✈️
+  5. "Save", then copy the new Template ID into updateTemplateIdEn in js/emailjs-config.js.
+-->
+<div style="margin:0; padding:28px 12px; background:#eef2f7; font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; margin:0 auto;">
+
+    <!-- Header, with a gradient — the solid color is the fallback for old mail clients that don't know gradients -->
+    <tr>
+      <td style="background-color:#0369a1; background-image:linear-gradient(135deg,#0369a1,#f59e0b); border-radius:18px 18px 0 0; padding:34px 30px; text-align:center;">
+        <p style="margin:0 0 6px; font-size:11px; font-weight:bold; letter-spacing:.14em; text-transform:uppercase; color:#fef3c7;">FeelVoyage Announcement</p>
+        <h1 style="margin:0; font-size:26px; color:#ffffff; font-family:Georgia,'Times New Roman',serif;">✈️ Feel<span style="color:#fef08a;">Voyage</span></h1>
+      </td>
+    </tr>
+
+    <!-- Body -->
+    <tr>
+      <td style="background:#ffffff; padding:38px 32px 8px; border:1px solid #e2e8f0; border-top:none;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc; border-left:4px solid #f59e0b; border-radius:4px;">
+          <tr>
+            <td style="padding:20px 22px; font-size:16px; line-height:1.75; color:#1e293b; font-weight:600; white-space:pre-wrap;">{{message}}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Button -->
+    <tr>
+      <td style="background:#ffffff; padding:30px 32px 10px; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0; text-align:center;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+          <tr>
+            <td style="border-radius:999px; background-color:#e11d48; background-image:linear-gradient(135deg,#0369a1,#e11d48);">
+              <a href="https://fjun8n.github.io/FeelVoyage/" style="display:inline-block; padding:15px 38px; font-size:16px; font-weight:bold; color:#ffffff; text-decoration:none;">🌍 Visit the Website</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="background:#ffffff; padding:28px 32px 32px; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 18px 18px;">
+        <hr style="border:none; border-top:1px solid #f1f5f9; margin:0 0 18px;">
+        <p style="margin:0; font-size:12px; color:#94a3b8; text-align:center; line-height:1.7;">
+          You're receiving this email because you're subscribed to the FeelVoyage newsletter.<br>
+          If you'd rather not get these announcements, <a href="mailto:crucrudenis@gmail.com?subject=Newsletter%20unsubscribe" style="color:#94a3b8; text-decoration:underline;">write to us here</a> and we'll unsubscribe you right away.
+        </p>
+        <p style="margin:14px 0 0; font-size:11px; font-weight:bold; color:#64748b; text-align:center;">{{sent_at}}</p>
+      </td>
+    </tr>
+
+  </table>
+</div>

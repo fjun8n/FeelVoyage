@@ -155,7 +155,7 @@ function buildCard(item) {
                         <span class="text-xs font-medium bg-black/50 px-2.5 py-1 rounded-lg backdrop-blur-sm">
                             <i class="fa-regular fa-clock mr-1"></i> ${t.period}
                         </span>
-                        <button type="button" class="fv-photos-pill text-xs bg-brand-600/90 px-2 py-0.5 rounded backdrop-blur-sm font-semibold" data-photos aria-label="${tr('card.seePhotos', 'Vezi toate pozele pachetului')}">
+                        <button type="button" class="fv-photos-pill text-xs bg-brand-600/90 px-2.5 py-1.5 rounded backdrop-blur-sm font-semibold" data-photos aria-label="${tr('card.seePhotos', 'Vezi toate pozele pachetului')}">
                             <i class="fa-solid fa-images mr-1"></i> ${tr('dest.fotoN', '{n} Foto').replace('{n}', (item.images || []).length)}
                         </button>
                     </div>
@@ -194,7 +194,7 @@ function buildCard(item) {
                             `<div>
                                 <span class="text-[10px] uppercase text-slate-400 font-bold block">${tr('dest.deLa', 'De la')}</span>
                                 <span class="text-2xl font-black text-brand-900">${item.price} ${item.currency}</span><span class="text-xs font-bold text-slate-400 ml-1">/ ${tr('dest.perPerson', 'pers.')}</span>
-                                ${item.priceRon ? `<span class="text-[11px] text-slate-400 font-medium block -mt-1">approx. ${item.priceRon}</span>` : ''}
+                                ${window.FVPricing ? `<span class="text-[11px] text-slate-400 font-medium block -mt-1">approx. ${FVPricing.fmtRON(FVPricing.toRON(item.price))}</span>` : ''}
                             </div>`
                         }
                         <button onclick="openModal('${item.id}')" class="dest-btn px-5 py-3 sm:py-2.5 rounded-xl ${item.comingSoon ? 'fv-amber-btn' : 'bg-slate-900 group-hover:bg-brand-600'} text-white font-bold text-xs shadow transition-all flex items-center gap-1.5">
@@ -549,8 +549,12 @@ document.addEventListener('keydown', (e) => {
 let currentBookingDest = null;   // destinația pentru care e deschisă fereastra de rezervare
 // dacă țara se detectează CÂT TIMP un pachet e deja deschis, actualizăm imediat starea biletului de avion
 document.addEventListener('fv:geo-country', () => { if (currentBookingDest && !currentBookingDest.comingSoon) { initBookingExtras(currentBookingDest); refreshExtraChips(currentBookingDest); } });
-// cursul EUR/RON (js/exchange-rate.js) s-a actualizat cât timp un pachet era deschis — reafișăm prețul în lei
-document.addEventListener('fv:exchange-rate', () => { if (currentBookingDest && !currentBookingDest.comingSoon) renderBookingQuote(); });
+// cursul EUR/RON (js/exchange-rate.js) s-a actualizat — reafișăm prețul în lei peste tot unde apare:
+// în fereastra pachetului deschis ȚI pe cardurile din prima pagină / catalog (altfel rămâneau cu cursul vechi, „copt” o singură dată).
+document.addEventListener('fv:exchange-rate', () => {
+    if (currentBookingDest && !currentBookingDest.comingSoon) renderBookingQuote();
+    if (typeof renderDestinations === 'function') renderDestinations();
+});
 function openModal(id, photoIndex) {
     const item = destinations.find(d => d.id === id);
     if (!item) { if (window.FVLog) FVLog.warn('package', 'unknown', { id: String(id).slice(0, 40) }); return; }
@@ -567,7 +571,11 @@ function openModal(id, photoIndex) {
     modalTitle.innerText = t.title;
     modalBadge.innerText = t.tagLabel || item.category;
     const comingSoonPriceLabel = tr('modal.comingSoonBadge', 'În curând');
-    modalPrice.innerText = item.comingSoon ? comingSoonPriceLabel : `${item.price} ${item.currency} (${item.priceRon || ''})`;
+    // Ecusonul de reducere se ascunde la fiecare deschidere; dacă pachetul ăsta are reducerea personală ACTIVĂ a
+    // contului curent, renderBookingQuote() (apelat chiar mai jos, din initBookingPricing) îl reafișează cu procentul corect.
+    const discountBadgeElInit = document.getElementById('modalDiscountBadge');
+    if (discountBadgeElInit) discountBadgeElInit.classList.add('hidden');
+    modalPrice.innerText = item.comingSoon ? comingSoonPriceLabel : `${item.price} ${item.currency} (${window.FVPricing ? FVPricing.fmtRON(FVPricing.toRON(item.price)) : ''})`;
     const priceLabelText = item.comingSoon ? tr('modal.comingSoonStatusLabel', 'Status pachet') : tr('modal.priceLabel', 'Preț / persoană');
     document.getElementById('modalPriceLabel').textContent = priceLabelText;
     document.getElementById('bkPriceLabel').textContent = priceLabelText;
@@ -578,7 +586,8 @@ function openModal(id, photoIndex) {
         airportEl.classList.toggle('flex', !!item.nearestAirport);
         if (item.nearestAirport) document.getElementById('modalAirportName').textContent = item.nearestAirport;
     }
-    // antetul pentru calculator (același conținut ca pe poza de pe telefon)
+    // antetul pentru calculator (același conținut ca pe poza de pe telefon); pentru pachetele normale, bkPrice e
+    // rescris imediat de renderBookingQuote() (mai jos, din initBookingPricing) — aici contează doar pentru „în curând"
     document.getElementById('bkTitle').textContent = t.title;
     document.getElementById('bkBadge').textContent = t.tagLabel || item.category;
     document.getElementById('bkPrice').textContent = modalPrice.innerText;
@@ -728,15 +737,23 @@ function currentNights() {
     return n ? n : undefined;   // fără interval ales: durata standard a pachetului
 }
 
-function currentQuote() {
+// Procentul reducerii PERSONALE (js/discount.js) a contului curent, DOAR dacă e chiar activă pe pachetul deschis acum — altfel 0.
+function currentPersonalDiscountPct() {
+    const session = (typeof window.fvCurrentSession === 'function') ? window.fvCurrentSession() : null;
+    const active = (window.FVDiscount && FVDiscount.activeFor) ? FVDiscount.activeFor(session) : null;
+    return (currentBookingDest && active && active.destId === currentBookingDest.id) ? active.pct : 0;
+}
+// opts suplimentare peste cele din starea curentă (ex. { personalDiscountPct: 0 }, pentru prețul „vechi”, fără reducere)
+function currentQuote(extraOpts) {
     if (!currentBookingDest || !window.FVPricing) return null;
     const range = currentRange();
-    return FVPricing.quote(currentBookingDest, {
+    return FVPricing.quote(currentBookingDest, Object.assign({
         adults: bookingState.adults, kids04: bookingState.kids04, kids512: bookingState.kids512,
         extras: selectedServiceKeys(), date: range.start, nights: currentNights(),
         amenitiesRemoved: deselectedAmenities.size,
-        skipTransport: travelerAlreadyInDestCountry(currentBookingDest)   // geolocație (js/geo.js): ești deja în țara destinației
-    });
+        skipTransport: travelerAlreadyInDestCountry(currentBookingDest),   // geolocație (js/geo.js): ești deja în țara destinației
+        personalDiscountPct: currentPersonalDiscountPct()
+    }, extraOpts || {}));
 }
 
 // Textul unei linii din estimare. localized=false => mereu în română (pentru comanda trimisă în Firebase, pe care o citești tu)
@@ -754,6 +771,7 @@ function quoteLineText(l, localized) {
         case 'longstay': return fmtTpl(t('quote.longstayLine', 'Reducere sejur lung, peste {min} nopți (-{pct}%)'), { min: FVPricing.LONG_STAY_NIGHTS, pct: l.pct });
         case 'offseason': return fmtTpl(t('quote.offseasonLine', 'Reducere rezervare din timp, în afara sezonului (-{pct}%)'), { pct: l.pct });
         case 'earlybooking': return fmtTpl(t('quote.earlyBookingLine', 'Reducere rezervare cu mult înainte (-{pct}%)'), { pct: l.pct });
+        case 'personalDiscount': return fmtTpl(t('quote.personalDiscountLine', 'Reducerea ta personală (-{pct}%)'), { pct: l.pct });
         case 'amenities_removed': return fmtTpl(t('quote.amenitiesRemovedLine', 'Facilități nedorite, debifate ({count} din {total}) (-{pct}%)'), { count: l.count, total: l.total, pct: l.pct });
         case 'extra':
             if (l.per === 'group') return fmtTpl(t('quote.groupLine', '{name} (per grup)'), { name: name(l.key) });
@@ -826,8 +844,25 @@ function renderBookingQuote() {
     if (!q) return;
     renderSteppers();
     refreshExtraChips(currentBookingDest);   // prețurile serviciilor depind de numărul de nopți
-    // antetul ferestrei: prețul mediu pe persoană, actualizat live
-    modalPrice.innerText = `${priceEUR(q.perPerson)} (${FVPricing.fmtRON(FVPricing.toRON(q.perPerson))})`;
+    // antetul ferestrei: prețul mediu pe persoană, actualizat live — dacă reducerea personală a contului (js/discount.js)
+    // e activă chiar pe acest pachet, arătăm prețul vechi (tăiat) lângă cel redus, plus un ecuson cu procentul.
+    const discountBadgeEl = document.getElementById('modalDiscountBadge');
+    const modalPriceLabelEl = document.getElementById('modalPriceLabel');
+    if (q.personalDiscountPct > 0) {
+        const qFull = currentQuote({ personalDiscountPct: 0 });   // aceeași configurație (adulți/nopți/servicii), DAR fără reducerea personală — doar pentru „preț vechi”
+        const priceHtml = `<span class="line-through text-sm sm:text-lg font-bold opacity-60 mr-2">${priceEUR(qFull.perPerson)}</span><span class="text-emerald-300">${priceEUR(q.perPerson)}</span>`;
+        modalPrice.innerHTML = priceHtml;
+        document.getElementById('bkPrice').innerHTML = priceHtml;
+        if (discountBadgeEl) { discountBadgeEl.classList.remove('hidden'); discountBadgeEl.innerHTML = `<i class="fa-solid fa-bolt" aria-hidden="true"></i> -${q.personalDiscountPct}% ${tr('discount.badgeShort', 'reducere')}`; }
+        if (modalPriceLabelEl) modalPriceLabelEl.textContent = tr('discount.priceLabel', 'Preț redus / persoană');
+        document.getElementById('bkPriceLabel').textContent = modalPriceLabelEl ? modalPriceLabelEl.textContent : '';
+    } else {
+        modalPrice.innerText = `${priceEUR(q.perPerson)} (${FVPricing.fmtRON(FVPricing.toRON(q.perPerson))})`;
+        document.getElementById('bkPrice').textContent = modalPrice.innerText;
+        if (discountBadgeEl) discountBadgeEl.classList.add('hidden');
+        if (modalPriceLabelEl) modalPriceLabelEl.textContent = tr('modal.priceLabel', 'Preț / persoană');
+        document.getElementById('bkPriceLabel').textContent = modalPriceLabelEl ? modalPriceLabelEl.textContent : '';
+    }
     document.getElementById('quoteLines').innerHTML = q.lines.map(l =>
         `<li class="flex items-start justify-between gap-3"><span class="min-w-0">${quoteLineText(l, true)}</span><span class="font-bold text-slate-800 whitespace-nowrap">${priceEUR(l.amount)}</span></li>`
     ).join('');
@@ -901,7 +936,8 @@ bookingRange = FVDateRange.create(document.getElementById('dateRange'), {
 contactRange = FVDateRange.create(document.getElementById('contactDateRange'), {
     t: (key, fallback) => tr(key, fallback),
     getLang: () => currentLang,
-    onChange: () => { }
+    // perioada aleasă schimbă numărul de nopți, deci și estimarea de preț (js/contact-estimate.js)
+    onChange: () => { if (window.FVContactEstimate) FVContactEstimate.refresh(); }
 });
 document.addEventListener('fv:language', () => {
     if (bookingRange) bookingRange.refresh();
@@ -1090,6 +1126,8 @@ document.getElementById('modalBookingForm').addEventListener('submit', async (e)
         amenitiesExcluded: dest ? Array.from(deselectedAmenities).map(i => dest.amenities[i]).filter(Boolean).join(', ') : '',
         totalPrice: quote.total,
         pricePerPerson: quote.perPerson,
+        // Lipsea complet (js/emailnotify.js citește order.priceRon pentru e-mailul de confirmare) — fără el, e-mailul arăta „(≈ )”, fără nicio sumă în lei.
+        priceRon: window.FVPricing ? FVPricing.fmtRON(quote.ron) : '',
         priceDetails: quote.lines.map(l => `${quoteLineText(l, false)} = ${l.amount} €`).join('; ') + ` | Total ${quote.total} € (≈ ${quote.ron} lei)`
     };
     setFormBusy(form, true);
@@ -1223,6 +1261,28 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     if (checkedServices.length && uncheckedServices.length) order.amenitiesExcluded = uncheckedServices.map(k => allServiceLabels[k]).join(', ');
 
     if (val('contactMsg')) order.message = val('contactMsg');
+
+    // Estimarea de preț arătată omului deasupra butonului (js/contact-estimate.js) merge și în cerere,
+    // ca să o vezi în mail exact cum a văzut-o el. Dacă nu s-a putut calcula (loc necunoscut, fără internet),
+    // câmpurile lipsesc pur și simplu.
+    const estNow = window.FVContactEstimate ? FVContactEstimate.current() : null;
+    if (estNow) {
+        order.estimateTotal = estNow.total;
+        order.estimatePerPerson = estNow.perPerson;
+        order.estimateRon = window.FVPricing ? FVPricing.fmtRON(estNow.ron) : '';
+        order.estimateNights = estNow.nights;
+        order.estimateFlight = estNow.flightPerAdult;
+        order.estimateNight = estNow.nightRate;
+        order.estimatePlace = [estNow.place.name, estNow.place.country].filter(Boolean).join(', ').slice(0, 150);
+        order.estimateSource = (estNow.source.flight + '/' + estNow.source.night).slice(0, 60);
+    }
+
+    // filtrul de conținut indecent (js/moderation.js): cererea nu pleacă dacă mesajul conține înjurături
+    if (order.message && window.FVModeration && !FVModeration.checkText(order.message).ok) {
+        notify(tr('mod.textBlocked', 'Textul conține un limbaj nepotrivit. Te rugăm să reformulezi.'), 'error');
+        if (window.FVLog) FVLog.info('mod', 'contact.blocked');   // niciodată textul
+        return;
+    }
 
     setFormBusy(form, true);
     try {

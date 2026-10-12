@@ -55,8 +55,10 @@
         const p = (typeof FVPricing !== 'undefined') ? FVPricing.profile(d) : { nights: 0, minNights: 0, maxNights: 0, nightsFixed: false, transportIncluded: false, board: 'none', guideIncluded: false };
         const durata = p.nightsFixed ? p.nights + ' nopți (durată fixă, circuit)' : p.nights + ' nopți standard (flexibil ' + p.minNights + '–' + p.maxNights + ')';
         const amenities = Array.isArray(d.amenities) ? d.amenities.slice(0, 4).join(', ') : '';
+        // Lei calculați LIVE cu cursul de azi (nu valoarea „coaptă” din destinations.js, care rămânea veche) — la fel ca pe carduri.
+        const ronTxt = (typeof FVPricing !== 'undefined') ? FVPricing.fmtRON(FVPricing.toRON(d.price)) : (d.priceRon || '');
         return '• id=' + d.id + ' | ' + d.title + ' | ' + (CATEGORY_RO[d.category] || d.category)
-            + ' | ' + durata + ' | ' + (BOARD_RO[p.board] || '') + ' | de la ' + d.price + ' € (' + d.priceRon + ') pe adult'
+            + ' | ' + durata + ' | ' + (BOARD_RO[p.board] || '') + ' | de la ' + d.price + ' € (' + ronTxt + ') pe adult'
             + ' | transport inclus: ' + (p.transportIncluded ? 'da' : 'nu') + ' | ghid local inclus: ' + (p.guideIncluded ? 'da' : 'nu')
             + ' | include: ' + amenities + ' | ' + shorten(d.description, 70);   // 67 de destinații: descrieri scurte ca promptul să rămână sub ~30.000 de caractere
     }

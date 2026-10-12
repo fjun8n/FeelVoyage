@@ -96,6 +96,20 @@
         btn.disabled = true;
         try {
             const blob = await prepareImage(file);
+            // Filtrul de conținut (js/moderation.js): poza de profil se verifică ÎNAINTE de a pleca spre Cloudinary.
+            // Dacă verificarea nu poate rula, poza nu se încarcă, dar omul poate reîncerca (vezi explicația din moderation.js).
+            if (window.FVModeration) {
+                setStatus(trF('mod.imageChecking', 'Se verifică poza…'), false);
+                const verdict = await FVModeration.checkImage(blob);
+                if (!verdict.ok) {
+                    setStatus(verdict.reason === 'unavailable'
+                        ? trF('mod.imageUnavailable', 'Nu am putut verifica poza acum. Încearcă din nou în câteva momente.')
+                        : trF('mod.imageBlocked', 'Poza nu a fost acceptată: conținut nepotrivit pentru site.'), true);
+                    if (window.FVLog) FVLog.info('mod', 'avatar.blocked', { reason: verdict.reason });
+                    return;
+                }
+                setStatus(trF('auth.photoUploading', 'Se încarcă poza...'), false);
+            }
             const url = await uploadToCloudinary(blob);
             await FVBackend.setPhotoURL(url);
             renderAvatar(url, null);

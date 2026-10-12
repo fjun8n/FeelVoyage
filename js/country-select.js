@@ -52,7 +52,7 @@
     function reset() {
         hidden.value = '';
         hidden.removeAttribute('data-name');
-        if (flagImg) { flagImg.src = ''; flagImg.classList.add('hidden'); }
+        if (flagImg) { flagImg.removeAttribute('src'); flagImg.classList.add('hidden'); }   // NU src = '' — vezi lightbox.js
         if (labelEl) { labelEl.textContent = labelEl.getAttribute('data-placeholder') || 'Selectează țara...'; labelEl.classList.add('text-slate-400'); labelEl.classList.remove('text-slate-800'); }
     }
     window.fvResetCountrySelect = reset;

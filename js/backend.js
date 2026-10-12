@@ -203,7 +203,19 @@
                 kv.set(KEY_SESSION_LOCAL, JSON.stringify(s));
                 publishSession(s);
                 return Promise.resolve(true);
-            }
+            },
+            // Reducerea aleatorie pe cont (js/discount.js alege ce și cât; aici doar o salvăm). Fără Firebase nu există
+            // administrator care să o acorde manual (vezi adminGrantDiscount mai jos) — doar rularea automată funcționează.
+            setDiscount: function (payload) {
+                var s = readJSON(KEY_SESSION_LOCAL, null);
+                if (!s) return Promise.reject(FVError('forbidden'));
+                s.discount = payload;
+                kv.set(KEY_SESSION_LOCAL, JSON.stringify(s));
+                publishSession(s);
+                return Promise.resolve(true);
+            },
+            adminGrantDiscount: function () { return Promise.reject(FVError('unsupported')); },
+            adminDiscountCooldownUntil: function () { return Promise.reject(FVError('unsupported')); }
         };
     }
 
@@ -219,7 +231,7 @@
             onConnection: function (cb) { cb(false); return noop; },
             onAccounts: function (cb) { Promise.resolve().then(function () { cb(cachedAccounts()); }); return noop; },
             onAuth: function (cb) { Promise.resolve().then(function () { cb(null); }); return noop; },
-            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail, adminSetNewsletter: fail, adminSetName: fail, adminResetContactCooldown: fail, adminSetRole: fail, setPhotoURL: fail, recordContactRequest: fail, submitBugReport: fail, listBugReports: fail, setCountry: fail, saveAnnouncementTemplate: fail, listAnnouncementTemplates: fail, submitReview: fail,
+            register: fail, login: fail, loginWithGoogle: fail, resendVerification: fail, refreshVerification: fail, resetPassword: fail, submitOrder: fail, listUsers: fail, submitLogs: fail, listLogs: fail, pruneLogs: fail, clearLogs: fail, saveConsent: fail, withdrawConsent: fail, setNewsletter: fail, adminSetNewsletter: fail, adminSetName: fail, adminResetContactCooldown: fail, adminSetRole: fail, setPhotoURL: fail, recordContactRequest: fail, submitBugReport: fail, listBugReports: fail, setCountry: fail, saveAnnouncementTemplate: fail, listAnnouncementTemplates: fail, submitReview: fail, setDiscount: fail, adminGrantDiscount: fail, adminDiscountCooldownUntil: fail,
             onReviewStats: function (destId, cb) { cb({ avg: 5, count: 0 }); return noop; },
             onDestinationReviews: function (destId, cb) { cb([]); return noop; },
             onTopReviews: function (limit, cb) { cb([]); return noop; },
@@ -340,7 +352,14 @@
                 lastContactRequestAt: profile.lastContactRequestAt || 0,   // pentru limita de 1 cerere de ofertă / 3 zile (vezi js/contact-limit.js)
                 orderCount: Number(profile.orderCount) || 0,   // total comenzi (pachete + cereri simple) — pentru rolul „Călător Loial” (vezi js/roles.js)
                 country: profile.country || '',   // cod ISO (ex: 'RO'), detectat prin geolocație (js/geo.js) — doar țara, nimic mai precis
-                roles: (profile.roles && typeof profile.roles === 'object') ? profile.roles : {}   // roluri vizuale: loyal / beta / bugfinder / helper (vezi js/roles.js)
+                roles: (profile.roles && typeof profile.roles === 'object') ? profile.roles : {},   // roluri vizuale: loyal / beta / bugfinder / helper (vezi js/roles.js)
+                discount: (profile.discount && typeof profile.discount === 'object') ? {   // reducerea curentă/următoare a contului (js/discount.js)
+                    destId: String(profile.discount.destId || ''),
+                    pct: Number(profile.discount.pct) || 0,
+                    startAt: Number(profile.discount.startAt) || 0,
+                    endAt: Number(profile.discount.endAt) || 0,
+                    nextRollAt: Number(profile.discount.nextRollAt) || 0
+                } : null
             };
         }
 
@@ -513,6 +532,54 @@
                     console.error('[FeelVoyage] Nu pot salva țara contului:', e);
                     throw FVError('network', e);
                 }
+            },
+            // Reducerea aleatorie a contului (js/discount.js alege ce destinație/procent/interval — aici doar o scriem).
+            // Protecția reală e în regulile bazei de date: un cont își poate rescrie singur „discount" DOAR când a trecut
+            // termenul „nextRollAt" al reducerii curente — altfel scrierea e respinsă, indiferent ce ar încerca din consolă.
+            setDiscount: async function (payload) {
+                if (!auth.currentUser || !session) throw FVError('forbidden');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    await withTimeout(dbM.set(dbM.ref(db, 'users/' + auth.currentUser.uid + '/discount'), payload), 15000);
+                    session = Object.assign({}, session, { discount: payload });
+                    authSubs.forEach(function (cb) { cb(session); });
+                    return true;
+                } catch (e) {
+                    if (!(e && e.code === 'network')) console.error('[FeelVoyage] Nu pot salva reducerea pe cont (poate nu a trecut încă termenul programat):', e);
+                    throw FVError('network', e);
+                }
+            },
+            // Administratorul acordă manual o reducere (același algoritm ponderat, ales de js/discount.js) unui cont, din
+            // panoul de utilizatori (js/admin.js). Scriere ATOMICĂ pe două căi deodată — reducerea + propriul „cooldown"
+            // de 24H (adminDiscountCooldown/<uid-admin>): dacă nu au trecut cele 24H, regulile resping ÎNTREAGA scriere,
+            // deci limita nu poate fi forțată din consola browserului — doar editând direct baza de date se „resetează".
+            adminGrantDiscount: async function (uid, payload) {
+                if (!session || !session.admin) throw FVError('forbidden');
+                const me = auth.currentUser;
+                if (!me) throw FVError('forbidden');
+                try {
+                    if (!(await waitConnected(6000))) throw FVError('network');
+                    const updates = {};
+                    updates['users/' + uid + '/discount'] = payload;
+                    updates['adminDiscountCooldown/' + me.uid] = dbM.serverTimestamp();
+                    await withTimeout(dbM.update(dbM.ref(db), updates), 15000);
+                    return true;
+                } catch (e) {
+                    if (e && /permission/i.test(String(e.code || e.message))) throw FVError('cooldown', e);   // aproape sigur: nu au trecut cele 24H
+                    console.error('[FeelVoyage] Nu pot acorda reducerea. Ai publicat regulile noi din firebase-rules.json?', e);
+                    throw FVError('network', e);
+                }
+            },
+            // Cât mai are de așteptat ADMINISTRATORUL curent până poate acorda din nou manual o reducere (pentru numărătoarea din panou).
+            adminDiscountCooldownUntil: async function () {
+                if (!session || !session.admin) throw FVError('forbidden');
+                const me = auth.currentUser;
+                if (!me) throw FVError('forbidden');
+                try {
+                    const snap = await dbM.get(dbM.ref(db, 'adminDiscountCooldown/' + me.uid));
+                    const last = Number(snap.val()) || 0;
+                    return last ? last + 86400000 : 0;
+                } catch (e) { return 0; }
             },
             // Șabloane de anunț create de administrator (pe lângă cele predefinite din cod) — js/admin.js, butonul de megafon.
             saveAnnouncementTemplate: async function (tpl) {
@@ -772,7 +839,7 @@
                     const users = res[0].val() || {}, admins = res[1].val() || {};
                     return Object.keys(users).map(function (uid) {
                         const u = users[uid] || {};
-                        return { uid: uid, name: String(u.name || ''), email: String(u.email || ''), phone: String(u.phone || ''), createdAt: Number(u.createdAt) || 0, admin: admins[uid] === true, consents: cleanConsents(u.consents), newsletter: !!u.newsletter, lastContactRequestAt: Number(u.lastContactRequestAt) || 0, photoURL: String(u.photoURL || ''), orderCount: Number(u.orderCount) || 0, roles: (u.roles && typeof u.roles === 'object') ? u.roles : {}, country: String(u.country || '') };
+                        return { uid: uid, name: String(u.name || ''), email: String(u.email || ''), phone: String(u.phone || ''), createdAt: Number(u.createdAt) || 0, admin: admins[uid] === true, consents: cleanConsents(u.consents), newsletter: !!u.newsletter, lastContactRequestAt: Number(u.lastContactRequestAt) || 0, photoURL: String(u.photoURL || ''), orderCount: Number(u.orderCount) || 0, roles: (u.roles && typeof u.roles === 'object') ? u.roles : {}, country: String(u.country || ''), discount: (u.discount && typeof u.discount === 'object') ? u.discount : null };
                     }).sort(function (a, b) { return (b.createdAt - a.createdAt) || a.name.localeCompare(b.name); });
                 } catch (e) {
                     if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
@@ -793,7 +860,7 @@
             listLogs: async function (limit) {
                 if (!session || !session.admin) throw FVError('forbidden');
                 try {
-                    const q = dbM.query(dbM.ref(db, LOGS_PATH), dbM.orderByKey(), dbM.limitToLast(Math.max(1, Math.min(Number(limit) || 300, 1000))));
+                    const q = dbM.query(dbM.ref(db, LOGS_PATH), dbM.orderByKey(), dbM.limitToLast(Math.max(1, Math.min(Number(limit) || 900, 1000))));
                     const v = (await dbM.get(q)).val() || {};
                     return Object.keys(v).map(function (id) { return Object.assign({ id: id }, v[id]); }).sort(function (a, b) { return (a.at || a.ts || 0) - (b.at || b.ts || 0); });
                 } catch (e) {
@@ -801,14 +868,25 @@
                     throw FVError('network', e);
                 }
             },
-            pruneLogs: async function (days) {
+            // Plafon (nu mai e pe vechime): când jurnalul serverului trece de „cap” intrări, se șterg mai întâi cele mai
+            // „neimportante” — info, abia apoi warn, abia apoi error — începând mereu cu cele mai vechi din nivelul respectiv.
+            // Dacă jurnalul e plin doar de atenționări, se șterg și atenționări; dacă e plin doar de erori, se șterg și acelea.
+            pruneLogs: async function (cap) {
                 if (!session || !session.admin) throw FVError('forbidden');
-                const cutoff = Date.now() - Math.max(1, Number(days) || 30) * 86400000;
+                const limit = Math.max(50, Math.min(Number(cap) || 1000, 5000));
                 try {
-                    const q = dbM.query(dbM.ref(db, LOGS_PATH), dbM.orderByChild('at'), dbM.endAt(cutoff), dbM.limitToFirst(500));
-                    const ids = Object.keys((await dbM.get(q)).val() || {});
-                    if (ids.length) { const rm = {}; ids.forEach(function (k) { rm[k] = null; }); await withTimeout(dbM.update(dbM.ref(db, LOGS_PATH), rm), 15000); }
-                    return ids.length;
+                    const v = (await dbM.get(dbM.ref(db, LOGS_PATH))).val() || {};
+                    const ids = Object.keys(v).sort(function (a, b) { return (v[a].at || v[a].ts || 0) - (v[b].at || v[b].ts || 0); });   // cele mai vechi primele
+                    let excess = ids.length - limit;
+                    if (excess <= 0) return 0;
+                    const buckets = { info: [], warn: [], error: [] };
+                    ids.forEach(function (id) { const lvl = v[id] && v[id].l; if (buckets[lvl]) buckets[lvl].push(id); });
+                    const toRemove = [];
+                    ['info', 'warn', 'error'].forEach(function (lvl) {
+                        while (excess > 0 && buckets[lvl].length) { toRemove.push(buckets[lvl].shift()); excess--; }
+                    });
+                    if (toRemove.length) { const rm = {}; toRemove.forEach(function (k) { rm[k] = null; }); await withTimeout(dbM.update(dbM.ref(db, LOGS_PATH), rm), 15000); }
+                    return toRemove.length;
                 } catch (e) {
                     if (e && /permission/i.test(String(e.code || e.message))) throw FVError('forbidden', e);
                     throw FVError('network', e);
@@ -877,6 +955,9 @@
         adminResetContactCooldown: function (uid) { return ready.then(function (b) { return b.adminResetContactCooldown(uid); }); },
         submitBugReport: function (report) { return ready.then(function (b) { return b.submitBugReport(report); }); },
         setCountry: function (code) { return ready.then(function (b) { return b.setCountry(code); }); },
+        setDiscount: function (payload) { return ready.then(function (b) { return b.setDiscount(payload); }); },
+        adminGrantDiscount: function (uid, payload) { return ready.then(function (b) { return b.adminGrantDiscount(uid, payload); }); },
+        adminDiscountCooldownUntil: function () { return ready.then(function (b) { return b.adminDiscountCooldownUntil(); }); },
         saveAnnouncementTemplate: function (tpl) { return ready.then(function (b) { return b.saveAnnouncementTemplate(tpl); }); },
         listAnnouncementTemplates: function () { return ready.then(function (b) { return b.listAnnouncementTemplates(); }); },
         listBugReports: function () { return ready.then(function (b) { return b.listBugReports(); }); },

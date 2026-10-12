@@ -752,3 +752,135 @@ html.dark .fv-logo-shadow { filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .55)); }
 /* Clasa Tailwind „lowercase” nu există în css/tailwind.css (precompilat, nefolosită până acum) — adăugată aici direct.
    Folosită la titlul din hero: partea din mijloc scrisă cu litere mici, primul cuvânt și numele companiei rămân neschimbate. */
 .lowercase { text-transform: lowercase; }
+
+/* ============================================================================
+   FeelVoyage Reviews — interfața de ADMINISTRATOR a site-ului de recenzii
+   (js/admin-auth.js, js/logviewer.js, js/chat-admin.js — doar pe reviews/).
+
+   Scris manual aici, nu cu clase Tailwind: reviews/css/tailwind.css e un fișier
+   precompilat, mai mic decât cel de pe site-ul principal, deci clasele noi n-ar
+   exista în el și ar pica silențios (vezi nota despre tailwind.css mai sus).
+   Fereastra de autentificare și jurnalul refolosesc clasele .lv-* de mai sus.
+   Culorile urmează variabilele din css/dark.css, ca să arate bine și pe întuneric.
+   Fișierul e identic pe ambele site-uri; dacă îl modifici, copiază-l în amândouă.
+   ============================================================================ */
+
+/* butonul discret care deschide autentificarea de administrator (colț stânga-jos) */
+.ra-fab {
+    position: fixed; z-index: 80;
+    left: max(.75rem, env(safe-area-inset-left)); bottom: max(.75rem, env(safe-area-inset-bottom));
+    width: 2.25rem; height: 2.25rem; border: 0; border-radius: 9999px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(15, 23, 42, .32); color: #fff; font-size: .8rem;
+    opacity: .35; transition: opacity .18s ease, background-color .18s ease;
+}
+.ra-fab:hover, .ra-fab:focus-visible { opacity: 1; background: #0f766e; outline: none; }
+
+/* bara de administrator, vizibilă DOAR după autentificare (sus-dreapta, sub antet) */
+.ra-bar {
+    position: fixed; z-index: 80;
+    top: max(5rem, calc(env(safe-area-inset-top) + 5rem)); right: max(.75rem, env(safe-area-inset-right));
+    display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; justify-content: flex-end;
+    max-width: calc(100vw - 1.5rem);
+    padding: .4rem .5rem; border-radius: 9999px;
+    background: var(--fv-surface, #fff); color: var(--fv-text, #0f172a);
+    border: 1px solid var(--fv-line, #e2e8f0);
+    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, .35);
+}
+@media (min-width: 640px) { .ra-bar { top: max(6.5rem, calc(env(safe-area-inset-top) + 6.5rem)); right: max(1.25rem, env(safe-area-inset-right)); } }
+.ra-bar.ra-hide, .ra-fab.ra-hide, .ra-chat-dock.ra-hide { display: none !important; }
+.ra-chip {
+    display: inline-flex; align-items: center; gap: .3rem; flex: none;
+    padding: .25rem .6rem; border-radius: 9999px; background: #1d4ed8; color: #fff;
+    font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+}
+.ra-tools { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
+.ra-out {
+    width: 1.9rem; height: 1.9rem; flex: none; border: 0; border-radius: 9999px; cursor: pointer;
+    background: var(--fv-surface-2, #f1f5f9); color: #b91c1c; font-size: .75rem;
+}
+.ra-out:hover { background: #fee2e2; }
+
+/* fereastra de autentificare: refolosește .lv-modal / .lv-panel / .lv-head / .lv-body */
+.ra-form { display: flex; flex-direction: column; gap: .6rem; padding-bottom: 1rem; }
+.ra-label { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--fv-text-soft, #64748b); }
+.ra-err { margin: 0; font-size: .76rem; font-weight: 600; color: #b91c1c; }
+.ra-err.ra-hide { display: none; }
+.ra-submit {
+    width: 100%; padding: .7rem 1rem; border: 0; border-radius: .85rem; cursor: pointer;
+    background: #0f766e; color: #fff; font-size: .85rem; font-weight: 800;
+}
+.ra-submit:hover { background: #115e59; }
+.ra-submit:disabled { opacity: .6; cursor: default; }
+
+/* mini chat bot, doar pentru administrator (refolosește .chat-dock/.chat-window de mai sus pentru dimensiuni) */
+.ra-chat-dock {
+    position: fixed; z-index: 79; display: flex; flex-direction: column; align-items: flex-end;
+    bottom: max(1rem, env(safe-area-inset-bottom)); right: max(1rem, env(safe-area-inset-right));
+}
+.ra-chat-toggle {
+    width: 3.25rem; height: 3.25rem; border: 0; border-radius: 9999px; cursor: pointer;
+    background: linear-gradient(90deg, #0f766e, #0369a1); color: #fff; font-size: 1.15rem;
+    box-shadow: 0 18px 30px -12px rgba(0, 0, 0, .5); transition: transform .15s ease;
+}
+.ra-chat-toggle:hover { transform: scale(1.06); }
+.ra-chat-toggle:active { transform: scale(.95); }
+.ra-chat-win {
+    width: min(23rem, calc(100vw - 1.5rem));
+    height: min(30rem, calc(100svh - 11rem));
+    margin-bottom: .6rem; display: flex; flex-direction: column; overflow: hidden;
+    border-radius: 1.25rem; background: var(--fv-surface, #fff); color: var(--fv-text, #0f172a);
+    border: 1px solid var(--fv-line, #e2e8f0); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, .45);
+}
+.ra-chat-win.ra-hide { display: none; }
+.ra-chat-head { display: flex; align-items: center; gap: .6rem; flex: none; padding: .75rem .9rem; background: linear-gradient(90deg, #0f766e, #0369a1); color: #fff; }
+.ra-chat-head h4 { margin: 0; font-size: .85rem; font-weight: 800; }
+.ra-chat-head p { margin: 0; font-size: .66rem; opacity: .85; }
+.ra-chat-msgs { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: .5rem; padding: .85rem; background: var(--fv-page, #f8fafc); font-size: .82rem; line-height: 1.5; }
+.ra-msg { max-width: 88%; padding: .55rem .75rem; border-radius: .9rem; overflow-wrap: anywhere; }
+.ra-msg-bot { align-self: flex-start; background: var(--fv-surface, #fff); border: 1px solid var(--fv-line-soft, #e2e8f0); border-top-left-radius: .25rem; }
+.ra-msg-me { align-self: flex-end; background: #0f766e; color: #fff; border-top-right-radius: .25rem; }
+.ra-msg-err { align-self: flex-start; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.ra-chat-form { flex: none; display: flex; align-items: center; gap: .5rem; padding: .6rem .7rem; background: var(--fv-surface, #fff); border-top: 1px solid var(--fv-line, #e2e8f0); }
+.ra-chat-input { flex: 1 1 auto; min-width: 0; padding: .6rem .8rem; border-radius: .85rem; border: 1px solid var(--fv-line, #cbd5e1); background: var(--fv-input, #f8fafc); color: var(--fv-text, #0f172a); font-size: .82rem; }
+.ra-chat-input:focus { outline: 2px solid #0f766e; outline-offset: -1px; }
+.ra-chat-send { width: 2.5rem; height: 2.5rem; flex: none; border: 0; border-radius: .85rem; cursor: pointer; background: linear-gradient(90deg, #0f766e, #0369a1); color: #fff; }
+.ra-chat-send:disabled { opacity: .55; cursor: default; }
+.ra-chat-note { flex: none; margin: 0; padding: 0 .7rem .6rem; background: var(--fv-surface, #fff); color: var(--fv-text-soft, #94a3b8); font-size: 10px; text-align: center; }
+
+/* ============================================================================
+   Estimarea de preț din „Trimite o solicitare de ofertă” (js/contact-estimate.js).
+   Scrisă manual, ca tot ce e nou: css/tailwind.css e precompilat, deci clasele
+   care nu există deja în el ar pica silențios (vezi nota de mai sus).
+   ============================================================================ */
+.fv-est {
+    border: 1px solid #bae6fd; border-radius: 1rem; padding: .9rem 1rem;
+    background: linear-gradient(180deg, #f0f9ff, #fff);
+}
+.fv-est.hidden { display: none; }
+html.dark .fv-est { background: var(--fv-surface-2, #182339); border-color: var(--fv-line, #2a3956); }
+.fv-est-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; flex-wrap: wrap; margin-bottom: .6rem; }
+.fv-est-title { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #0369a1; }
+html.dark .fv-est-title { color: #7dd3fc; }
+.fv-est-place { font-size: .72rem; font-weight: 700; color: var(--fv-text-soft, #64748b); text-align: right; }
+.fv-est-rows { display: flex; flex-direction: column; gap: .3rem; }
+.fv-est-row { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; font-size: .8rem; color: var(--fv-text-mid, #334155); }
+.fv-est-row span:first-child { min-width: 0; }
+.fv-est-row b { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
+.fv-est-total {
+    display: flex; align-items: baseline; justify-content: space-between; gap: .75rem;
+    margin-top: .6rem; padding-top: .6rem; border-top: 1px dashed #bae6fd;
+    font-size: .85rem; font-weight: 800; color: var(--fv-text-strong, #0f172a);
+}
+html.dark .fv-est-total { border-top-color: var(--fv-line, #2a3956); }
+.fv-est-total strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; white-space: nowrap; color: #0369a1; }
+html.dark .fv-est-total strong { color: #7dd3fc; }
+.fv-est-ron { margin: .15rem 0 0; text-align: right; font-size: .75rem; font-weight: 700; color: var(--fv-text-soft, #64748b); font-variant-numeric: tabular-nums; }
+.fv-est-note { margin: .55rem 0 0; font-size: .68rem; line-height: 1.45; color: var(--fv-text-soft, #94a3b8); }
+.fv-est-wait { font-size: .78rem; color: var(--fv-text-soft, #64748b); }
+
+/* mesajul de sub „Destinație dorită” */
+#contactDestNote.is-bad { color: #b91c1c; }
+#contactDestNote.is-info { color: #0369a1; }
+html.dark #contactDestNote.is-info { color: #7dd3fc; }
+#contactDestNote .fv-dest-link { text-decoration: underline; font-weight: 800; cursor: pointer; background: none; border: 0; padding: 0; color: inherit; font-size: inherit; }

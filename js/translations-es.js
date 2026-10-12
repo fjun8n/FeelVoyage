@@ -26,7 +26,7 @@ i18n.es = {
     "hero.categMunte": "⛰️ Montaña y naturaleza",
     "hero.categCityBreak": "🏛️ Escapada urbana",
     "hero.categExotic": "🌴 Vacaciones exóticas",
-    "hero.categAsia": "🌏 China y Corea del Sur",
+    "hero.categAsia": "🌏 China y Corea del sur",
     "hero.oriceBuget": "Cualquier presupuesto",
     "hero.sub300": "Menos de 300 €",
     "hero.sub600": "Menos de 600 €",
@@ -240,9 +240,9 @@ i18n.es = {
     "log.forbidden": "Acceso denegado: el registro del servidor solo puede leerlo una cuenta de administrador.",
     "log.unsupported": "El servidor (Firebase) no está configurado: el registro queda solo en este dispositivo.",
     "log.networkErr": "No se pudo leer del servidor. Revisa internet y las reglas de Firebase (firebase-rules.json).",
-    "log.pruneOld": "Borrar de más de 30 días",
+    "log.pruneOld": "Reducir a 1000",
     "log.clearServer": "Borrar todo del servidor",
-    "log.confirmPrune": "¿Borrar del servidor las entradas de más de 30 días?",
+    "log.confirmPrune": "¿Reducir el registro del servidor a las 1000 entradas más recientes? (se eliminan primero las menos importantes: info, luego avisos, luego errores)",
     "log.confirmClearServer": "¿Borrar por completo el registro del servidor (todos los visitantes)?",
     "log.pruned": "Borradas: {n}",
     "log.serverCleared": "El registro del servidor se ha borrado.",
@@ -279,12 +279,12 @@ i18n.es = {
     "serv.card2Title": "Alojamiento premium y resorts",
     "serv.card2Desc": "Acuerdos directos con hoteles de 4 y 5 estrellas, resorts todo incluido y villas privadas garantizadas.",
     "serv.card3Title": "Cruceros de lujo",
-    "serv.card3Desc": "Aventuras por mar en los cruceros más espectaculares del Caribe, el Mediterráneo y el norte de Europa.",
+    "serv.card3Desc": "Aventuras por mar en los cruceros más espectaculares del Caribe, el mediterráneo y el norte de Europa.",
 
     // Despre noi
     "despre.badge": "Nuestra historia",
     "despre.title": "Sobre FeelVoyage — Viajar con alma",
-    "despre.subtitle": "Una agencia de viajes nacida en el corazón del condado de Gorj que hoy abre todo el mundo: desde el litoral rumano hasta China y Corea del Sur.",
+    "despre.subtitle": "Una agencia de viajes nacida en el corazón del condado de Gorj que hoy abre todo el mundo: desde el litoral rumano hasta China y Corea del sur.",
     "despre.p1": "¡Bienvenido a FeelVoyage, la agencia de viajes creada para convertir tus vacaciones soñadas en realidad!",
     "despre.p2": "Este sitio es mucho más que una simple plataforma de reservas; es un proyecto en equipo en el que hemos puesto mucha pasión. Somos un grupo de alumnos del Liceo Económico Virgil Madgearu de Târgu Jiu, con ganas de unir nuestros conocimientos de turismo con el espíritu emprendedor. Más concretamente, somos alumnos de 11.º E, y hemos diseñado cada sección de este sitio con el objetivo de ofrecerte los destinos y las experiencias de viaje más bonitos.",
     "despre.p3": "Todo el concepto FeelVoyage tomó vida, se organizó y se puso en marcha con éxito junto a nuestro profesor, que nos guió paso a paso en el desarrollo de esta agencia.",
@@ -400,7 +400,7 @@ i18n.es = {
 
     "terms.s5.p2": "El turista es responsable de cumplir los requisitos aduaneros, fronterizos y sanitarios (vacunas obligatorias, certificados médicos) impuestos por el país de destino o de tránsito. FeelVoyage no puede ser considerada responsable y no reembolsará el coste de los servicios si se deniega al turista el embarque o la entrada en el país de destino.",
 
-    "terms.s5.p3": "Para los menores de 18 años que viajen solos o acompañados de un solo progenitor, se aplican las normas específicas de la Policía de Fronteras rumana.",
+    "terms.s5.p3": "Para los menores de 18 años que viajen solos o acompañados de un solo progenitor, se aplican las normas específicas de la policía de fronteras rumana.",
 
     "terms.s6.intro": "FeelVoyage no es responsable de:",
 
@@ -514,7 +514,7 @@ i18n.es = {
 
     "privacy.s4.p2": "Las entradas del registro técnico se conservan como máximo 30 días y después el administrador las elimina.",
 
-    "privacy.s5.intro": "Conforme al Reglamento General de Protección de Datos (RGPD), usted tiene los siguientes derechos:",
+    "privacy.s5.intro": "Conforme al Reglamento general de Protección de datos (RGPD), usted tiene los siguientes derechos:",
 
     "privacy.s5.b1.lead": "Derecho de acceso",
 
@@ -538,7 +538,7 @@ i18n.es = {
 
     "privacy.s5.b6.lead": "Derecho a presentar una reclamación",
 
-    "privacy.s5.b6.text": "Puede dirigirse a la Autoridad Nacional de Supervisión del Tratamiento de Datos Personales (ANSPDCP).",
+    "privacy.s5.b6.text": "Puede dirigirse a la Autoridad nacional de Supervisión del tratamiento de datos personales (ANSPDCP).",
 
     "privacy.s5.exercise": "Para ejercer sus derechos, escríbanos a la dirección de correo electrónico indicada en la sección de contacto; respondemos en un plazo máximo de un mes.",
 
@@ -546,7 +546,7 @@ i18n.es = {
 
     "privacy.ct.name": "Nombre de la agencia",
 
-    "privacy.s6.p2": "Nos reservamos el derecho de modificar esta Política de privacidad. Cualquier actualización se publicará en esta página.",
+    "privacy.s6.p2": "Nos reservamos el derecho de modificar esta política de privacidad. Cualquier actualización se publicará en esta página.",
 
     "anpc.subtitle": "Resolución alternativa de litigios: qué es el SAL y adónde acudir si tiene una reclamación.",
 
@@ -584,7 +584,7 @@ i18n.es = {
 
     "anpc.s4.b1.text": "Puede presentar una reclamación ante la Autoridad Nacional para la Protección de los Consumidores, con sus datos reales (no de forma anónima), el nombre del comerciante, la descripción de la situación y los documentos justificativos. Sede central: Bulevardul Aviatorilor n.º 72, sector 1, Bucarest.",
 
-    "anpc.s4.b2.lead": "Centro Europeo del Consumidor de Rumanía (ECC Rumanía)",
+    "anpc.s4.b2.lead": "Centro europeo del consumidor de Rumanía (ECC Rumanía)",
 
     "anpc.s4.b2.text": "Si el litigio afecta a un comerciante de otro Estado de la UE (por ejemplo, una aerolínea o un hotel en el extranjero), el ECC Rumanía ofrece gratuitamente información y apoyo para una solución amistosa.",
 
@@ -598,7 +598,7 @@ i18n.es = {
 
     "accept.terms": "He leído y acepto los Términos y condiciones",
 
-    "accept.privacy": "He leído y acepto la Política de privacidad",
+    "accept.privacy": "He leído y acepto la política de privacidad",
 
     "accept.anpc": "He leído y tomo nota de la información sobre la ANPC / el SAL",
 
@@ -712,11 +712,11 @@ i18n.es = {
     "auth.loginSubmit": "Iniciar sesión",
     "auth.registerSubmit": "Crear cuenta gratis",
     "auth.consentPrefix": "He leído y acepto los",
-    "auth.consentTermsLink": "Términos y Condiciones",
+    "auth.consentTermsLink": "Términos y condiciones",
     "auth.consentAnd": "y la",
-    "auth.consentPrivacyLink": "Política de Privacidad",
+    "auth.consentPrivacyLink": "Política de privacidad",
     "auth.newsletterOptIn": "Quiero recibir por correo ofertas y novedades de FeelVoyage (newsletter).",
-    "auth.errorConsent": "Debes aceptar los Términos y Condiciones y la Política de Privacidad para crear una cuenta.",
+    "auth.errorConsent": "Debes aceptar los Términos y condiciones y la política de privacidad para crear una cuenta.",
     "auth.optionalNote": "La cuenta es opcional: siempre puedes reservar sin ella. Los datos de la cuenta de demostración se guardan solo en tu dispositivo.",
 
     // Navigare
@@ -737,6 +737,38 @@ i18n.es = {
 
     // Cont
     "auth.adminChip": "Administrador",
+    "admin.loginDenied": "Esta cuenta no tiene acceso de administrador.",
+    "admin.loginHint": "Solo para administradores. Usa tu cuenta de FeelVoyage.ro.",
+    "footer.reportBug": "Reportar un error",
+    "bug.title": "Reportar un error",
+    "bug.subtitle": "Cuéntanos qué no funcionó — cualquier detalle ayuda.",
+    "bug.textPlaceholder": "¿Qué pasó? ¿Qué intentabas hacer?",
+    "bug.emailPlaceholder": "E-mail (opcional, si quieres una respuesta)",
+    "bug.submit": "Enviar el reporte",
+    "bug.tooShort": "Cuéntanos un poco más sobre lo que pasó.",
+    "bug.unavailable": "Ahora mismo no podemos enviar el reporte. Inténtalo de nuevo más tarde.",
+    "bug.thanks": "¡Gracias! Hemos recibido tu reporte.",
+    "bug.error": "No hemos podido enviar el reporte. Inténtalo de nuevo.",
+    "mod.textBlocked": "El texto contiene lenguaje inapropiado. Por favor, reformúlalo.",
+    "mod.blockedChat": "El mensaje contiene lenguaje inapropiado y no se ha enviado. Reformúlalo, por favor: estoy aquí para ayudarte con tus vacaciones. 🙂",
+    "mod.imageChecking": "Comprobando las fotos…",
+    "mod.imageBlocked": "La foto no se ha aceptado: contenido no apropiado para el sitio.",
+    "mod.imageUnavailable": "No hemos podido comprobar la foto ahora mismo. Inténtalo de nuevo en un momento.",
+    "est.title": "Estimación de precio",
+    "est.total": "Estimación total",
+    "est.nights": "noches",
+    "est.flight": "Vuelo estimado (ida y vuelta)",
+    "est.perAdult": "adulto",
+    "est.transport": "Transporte",
+    "est.transportRo": "autocar, en Rumania",
+    "est.stay": "Alojamiento",
+    "est.perNight": "noche",
+    "est.perPerson": "persona",
+    "est.calculating": "Calculando la estimación…",
+    "est.note": "Estimación orientativa, calculada automáticamente a partir de los precios de nuestros paquetes. La oferta final y la disponibilidad las confirma un asesor.",
+    "est.inCatalog": "Ya tenemos un paquete para este destino:",
+    "est.countryBlocked": "Escribe una ciudad o una localidad, no un país — si no, no podemos estimar el precio (por ejemplo «París», no «Francia»).",
+    "est.notFound": "No hemos encontrado este lugar. Comprueba cómo está escrito o escribe la ciudad más cercana.",
 
     // Administrator
     "admin.usersBtn": "Usuarios",
@@ -782,6 +814,9 @@ i18n.es = {
 
     // Destinații
     "dest.perPerson": "pers.",
+    "discount.badge": "Descuento solo para ti",
+    "discount.viewBtn": "Ver paquete",
+    "discount.expiresIn": "Caduca en {h}h {m}min",
 
     // Rezervare
     "modal.adults": "Adultos",
@@ -812,6 +847,9 @@ i18n.es = {
     "quote.longstayLine": "Descuento por estancia larga, más de {min} noches (-{pct} %)",
     "quote.offseasonLine": "Descuento por reserva anticipada, fuera de temporada (-{pct} %)",
     "quote.earlyBookingLine": "Descuento por reserva con mucha antelación (-{pct} %)",
+    "quote.personalDiscountLine": "Tu descuento personal (-{pct} %)",
+    "discount.priceLabel": "Precio con descuento / persona",
+    "discount.badgeShort": "descuento",
     "quote.amenitiesRemovedLine": "Servicios no deseados, desmarcados ({count} de {total}) (-{pct} %)",
     "newsletter.popup.title": "No te pierdas nuestras ofertas",
     "newsletter.popup.body": "Suscríbete al boletín y recibe primero nuestras ofertas especiales y descuentos.",
@@ -829,6 +867,11 @@ i18n.es = {
     "admin.broadcast.notConfiguredTitle": "Aún no configurado",
     "admin.broadcast.notConfiguredBody": "Completa updateTemplateId en js/emailjs-config.js para poder enviar actualizaciones a los suscriptores.",
     "admin.broadcast.hint": "Escribe un mensaje corto (ej. «¡Añadimos 5 destinos nuevos!»). Solo lo reciben los suscriptores del boletín.",
+    "admin.broadcast.langLabel": "Idioma de la plantilla",
+    "admin.broadcast.langRo": "Rumano",
+    "admin.broadcast.langEn": "Inglés",
+    "admin.broadcast.translating": "Traduciendo el mensaje…",
+    "admin.broadcast.langsNote": "Lo escribes una vez, en {from}; cada uno lo recibe en el idioma del país guardado en su cuenta: {list}",
     "admin.broadcast.count": "{n} suscriptores recibirán el mensaje",
     "admin.broadcast.loading": "Cargando lista de suscriptores…",
     "admin.broadcast.placeholder": "¿Qué hay de nuevo en el sitio?",
@@ -838,14 +881,14 @@ i18n.es = {
     "admin.broadcast.done": "Listo — {sent} enviados, {failed} fallidos.",
     "chat.newsletter.decline": "No, gracias",
     "chat.newsletter.declined": "Vale, ¡sin problema! Si cambias de idea, escríbeme \"newsletter\" cuando quieras. 🙂",
-    "chat.newsletter.needAccount": "Para suscribirte al boletín, primero necesitas una cuenta gratuita — créala rápido desde \"Mi Cuenta\", arriba.",
+    "chat.newsletter.needAccount": "Para suscribirte al boletín, primero necesitas una cuenta gratuita — créala rápido desde \"Mi cuenta\", arriba.",
     "chat.newsletter.alreadyIn": "¡Ya estás suscrito! 🎉 Solo te escribimos cuando hay algo nuevo en el sitio.",
     "chat.newsletter.ask": "Claro — ¿quieres suscribirte al boletín? Solo te escribimos cuando hay algo nuevo en el sitio, nada más.",
     "admin.newsletter": "Suscrito al boletín",
     "admin.newsletterOn": "Sí, suscrito",
     "admin.newsletterOff": "No suscrito",
     "admin.newsletterSaved": "Guardado.",
-    "modal.reviewsTitle": "Reseñas de Viajeros",
+    "modal.reviewsTitle": "Reseñas de viajeros",
     "modal.leaveReview": "Dejar una reseña",
     "review.badge": "Tu reseña",
     "review.titlePrefix": "Dejar una reseña —",
@@ -876,7 +919,7 @@ i18n.es = {
     "quote.noteLow": "La fecha elegida está en temporada baja: se aplica el precio base.",
     "quote.disclaimer": "Estimación para una habitación doble, a título informativo. La oferta final y la disponibilidad las confirma un asesor. No se incluyen los gastos personales, las tasas turísticas locales ni las visitas o excursiones opcionales que no hayas seleccionado.",
     "booking.consentTitle": "Antes de enviar",
-    "booking.consentErrorDocs": "Debes aceptar los Términos y Condiciones, la Política de Privacidad y la información ANPC / SAL antes de enviar.",
+    "booking.consentErrorDocs": "Debes aceptar los Términos y condiciones, la política de privacidad y la información ANPC / SAL antes de enviar.",
     "booking.consentErrorEmail": "Debes verificar tu correo antes de enviar una reserva. Ve a tu perfil y pulsa «Reenviar el correo» o «Ya lo verifiqué, actualizar».",
 
     // Rezervare
@@ -909,7 +952,7 @@ i18n.es = {
     "auth.errorTooMany": "Demasiados intentos. Inténtalo de nuevo dentro de unos minutos.",
     "auth.errorGeneric": "Algo ha salido mal. Inténtalo de nuevo.",
     "auth.optionalNoteCloud": "La cuenta es opcional: siempre puedes reservar sin ella. Puedes iniciar sesión desde cualquier dispositivo con el mismo correo y la misma contraseña.",
-    "auth.termsNote": "Al registrarte aceptas los Términos y condiciones y la Política de privacidad de FeelVoyage.",
+    "auth.termsNote": "Al registrarte aceptas los Términos y condiciones y la política de privacidad de FeelVoyage.",
     "auth.errorLogin": "Correo o contraseña incorrectos.",
     "auth.errorName": "Introduce tu nombre y apellidos.",
     "auth.errorNameCase": "El nombre debe empezar cada palabra con mayúscula (ej. Ion Popescu).",

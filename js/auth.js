@@ -438,7 +438,11 @@
     // ușor deghizate; aceeași normalizare se aplică și listei de mai sus, ca cele două părți ale comparației să rămână pe aceeași „limbă”.
     function normalizeForFilter(s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/(.)\1+/g, '$1'); }
     var BAD_WORDS_NORM = BAD_WORDS.map(normalizeForFilter);
+    // Verificarea se face acum \u00een js/moderation.js (filtrul comun al site-ului: list\u0103 mai mare, \u00een mai multe limbi,
+    // \u0219i prinde \u0219i variantele deghizate cu cifre sau cu litere desp\u0103r\u021bite). Lista de mai sus r\u0103m\u00e2ne ca rezerv\u0103,
+    // pentru cazul \u00een care moderation.js n-a fost \u00eenc\u0103rcat.
     function containsBadWord(name) {
+        if (window.FVModeration && typeof FVModeration.checkName === 'function') return !FVModeration.checkName(name).ok;
         var words = normalizeForFilter(name).split(/[^a-z]+/).filter(Boolean);
         return words.some(function (w) { return BAD_WORDS_NORM.indexOf(w) !== -1; });
     }

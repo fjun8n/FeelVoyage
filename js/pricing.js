@@ -338,6 +338,11 @@
         const longStay = nights > LONG_STAY_NIGHTS;
         if (longStay) { const d = -Math.round(core * LONG_STAY_DISCOUNT); add('longstay', { nights: nights, pct: Math.round(LONG_STAY_DISCOUNT * 100) }, d); }
 
+        // Reducerea PERSONALĂ a contului (js/discount.js): 2-5%, aleasă aleator o dată la 7-14 zile, activă 24-48H —
+        // independentă de celelalte reduceri de mai sus (se adună la ele, nu le înlocuiește).
+        const personalPct = Math.max(0, Math.min(100, Number(opts.personalDiscountPct) || 0)) / 100;
+        if (personalPct > 0) { const d = -Math.round(core * personalPct); add('personalDiscount', { pct: Math.round(personalPct * 100) }, d); }
+
         // Reducere de rezervare din timp: fie sezon opus (doar la destinațiile sezoniere), fie plecare la 8-13 luni distanță
         // (la orice destinație) — se aplică doar reducerea mai mare dintre cele două, nu se adună.
         const orderDate = opts.orderDate || todayISO();
@@ -380,7 +385,8 @@
             dateAllowed: isDateAllowed(dest, opts.date),
             longStay: longStay,
             offSeasonPct: Math.round(finalOffSeasonPct * 100),
-            earlyBookingPct: Math.round(earlyBookingPct * 100)
+            earlyBookingPct: Math.round(earlyBookingPct * 100),
+            personalDiscountPct: Math.round(personalPct * 100)
         };
     }
 

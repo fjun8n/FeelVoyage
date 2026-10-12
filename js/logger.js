@@ -11,8 +11,21 @@
     'use strict';
 
     var KEY = 'fv_logs';
-    var MAX_ENTRIES = 300;
+    var MAX_ENTRIES = 900;
     var MAX_BYTES = 90000;                                   // plafon pentru ce se salvează în localStorage
+    var EVICT_ORDER = ['debug', 'info', 'warn', 'error'];    // la plafon, se șterg mai întâi cele mai „neimportante”: debug, apoi info, abia apoi warn, abia apoi error
+    // Șterge din „entries” (cele mai vechi primele, în ordine cronologică) până când shouldStop() zice că e suficient —
+    // dar mereu de la nivelul cel mai puțin important către cel mai important: dacă jurnalul e plin doar de atenționări,
+    // abia atunci începe să se șteargă și din ele; dacă e plin doar de erori, se șterg și acelea (altfel jurnalul s-ar bloca, plin).
+    function evictByPriority(shouldStop) {
+        for (var li = 0; li < EVICT_ORDER.length; li++) {
+            var lvl = EVICT_ORDER[li];
+            for (var i = 0; i < entries.length;) {
+                if (shouldStop()) return;
+                if (entries[i].l === lvl) entries.splice(i, 1); else i++;
+            }
+        }
+    }
     var LEVELS = { debug: 0, info: 1, warn: 2, error: 3 };
     var sid = Math.random().toString(36).slice(2, 8);          // identifică o vizită (o încărcare de pagină)
     var seq = 0;
@@ -35,7 +48,12 @@
         saveTimer = null;
         try {
             var json = JSON.stringify(entries);
-            while (json.length > MAX_BYTES && entries.length > 20) { entries.splice(0, Math.ceil(entries.length / 5)); json = JSON.stringify(entries); }
+            if (json.length > MAX_BYTES && entries.length > 20) {
+                // la fel ca la numărul de evenimente: se taie mai întâi ce are prioritate mai mică, nu neapărat cele mai vechi
+                evictByPriority(function () { json = JSON.stringify(entries); return json.length <= MAX_BYTES || entries.length <= 20; });
+                // plasă de siguranță (foarte improbabil să mai fie nevoie): dacă tot e prea mare, taie pur și simplu cele mai vechi
+                while (json.length > MAX_BYTES && entries.length > 20) { entries.splice(0, Math.ceil(entries.length / 5)); json = JSON.stringify(entries); }
+            }
             root.localStorage.setItem(KEY, json);
         } catch (err) { /* spațiu plin / stocare dezactivată: rămâne doar în memorie */ }
     }
@@ -84,7 +102,7 @@
             var entry = { n: ++seq, t: now, s: sid, l: level, c: String(cat), e: String(ev) };
             if (d !== undefined) entry.d = d;
             entries.push(entry);
-            if (entries.length > MAX_ENTRIES) entries.splice(0, entries.length - MAX_ENTRIES);
+            if (entries.length > MAX_ENTRIES) evictByPriority(function () { return entries.length <= MAX_ENTRIES; });
             lastKey = key; lastAt = now; lastEntry = entry;
             scheduleSave();
             if (debugOn) { try { (origConsole.debug || console.log).call(console, '[FV]', level, cat + '.' + ev, d === undefined ? '' : d); } catch (e2) { } }
@@ -211,6 +229,18 @@
     function summary(ev) {
         var d = navTimes();
         d.fcp = vitals.fcp; d.lcp = vitals.lcp; d.cls = vitals.cls; d.longTasks = vitals.longTasks; d.tbt = Math.round(vitals.tbt); d.maxLongTask = vitals.maxLong; d.worstInput = vitals.worstEvent || null;
+        // Dacă fila a fost pusă în fundal (schimbat pe altă aplicație/tab) înainte de încărcare, browserul poate întârzia
+        // randarea cu minute întregi — dcl/load/fcp/lcp ies apoi absurd de mari (ex. 17 minute), fără să însemne că site-ul
+        // e lent. În acest caz NU folosim acele valori pentru verdict (doar CLS/blocaje lungi rămân de încredere) și marcăm
+        // intrarea ca „fundal”, ca administratorul să înțeleagă de ce, nu să creadă că site-ul chiar a fost lent.
+        if (wasHiddenBeforeLoad) {
+            d.backgrounded = true;
+            var badBg = vitals.cls > 0.25 || vitals.worstEvent > 500 || vitals.tbt > 600;
+            var midBg = vitals.cls > 0.1 || vitals.worstEvent > 200 || vitals.tbt > 200;
+            d.verdict = badBg ? 'slab' : (midBg ? 'de îmbunătățit' : 'bun');
+            log(badBg ? 'warn' : 'info', 'perf', ev, d);
+            return;
+        }
         // verdict simplu după pragurile Google („bun” / „de îmbunătățit” / „slab”)
         var bad = (vitals.lcp && vitals.lcp > 4000) || vitals.cls > 0.25 || vitals.worstEvent > 500 || vitals.tbt > 600;
         var mid = (vitals.lcp && vitals.lcp > 2500) || vitals.cls > 0.1 || vitals.worstEvent > 200 || vitals.tbt > 200;
@@ -218,9 +248,12 @@
         log(bad ? 'warn' : 'info', 'perf', ev, d);
     }
     var summarized = false;
+    var wasHiddenBeforeLoad = (document.visibilityState === 'hidden');   // vezi comentariul din summary(): pagină pusă în fundal înainte să se încarce
     function afterLoad() { setTimeout(function () { if (!summarized) { summarized = true; summary('summary'); } }, 4000); }
     if (document.readyState === 'complete') afterLoad(); else root.addEventListener('load', afterLoad);
-    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { if (summarized) summary('final'); save(); } });
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') { if (!summarized) wasHiddenBeforeLoad = true; if (summarized) summary('final'); save(); }
+    });
     root.addEventListener('pagehide', function () { save(); });
 
     /* ---------------------------------------------------------------- pornire */

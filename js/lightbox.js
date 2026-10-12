@@ -41,7 +41,7 @@
     function close() {
         box.classList.add('hidden');
         box.classList.remove('flex');
-        img.src = '';
+        img.removeAttribute('src');   // NU img.src = '' — un src gol face browserul să ceară pagina curentă ca „poză” și să dea eroare (vezi jurnalul)
         document.body.style.overflow = '';
         if (returnFocus && document.contains(returnFocus)) { try { returnFocus.focus({ preventScroll: true }); } catch (e) { } }
         returnFocus = null;

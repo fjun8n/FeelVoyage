@@ -641,6 +641,15 @@ function showPackageButtons(ids, replies) {
 
 function handleFreeText(text) {
     if (aiBusy) return;
+    // „nici în chat bot să nu le poți pune”: mesajul indecent nu se trimite nicăieri (nici la AI, nici în jurnal
+    // cu textul lui) și primește un răspuns fix, scris de noi. Vezi js/moderation.js.
+    if (window.FVModeration && !FVModeration.checkText(text).ok) {
+        addUserMessage(text);
+        quickRepliesContainer.innerHTML = '';
+        addBotMessage(tr('mod.blockedChat', 'Mesajul conține un limbaj nepotrivit și nu a fost trimis. Te rog reformulează — sunt aici să te ajut cu vacanța. 🙂'), []);
+        if (window.FVLog) FVLog.info('mod', 'chat.blocked');   // niciodată textul
+        return;
+    }
     if (maybeHandleNewsletterIntent(text)) return;
     if (!(window.FVAI && FVAI.enabled())) { handleUserMessage(text); return; }
 

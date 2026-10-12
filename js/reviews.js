@@ -55,6 +55,7 @@
         photosData = [];
         photosPreview.innerHTML = '';
         errorEl.classList.add('hidden');
+        if (typeof setPhotosStatus === 'function') setPhotosStatus('', '');
         submitBtn.disabled = false;
     }
 
@@ -90,13 +91,35 @@
             img.src = url;
         });
     }
+    // Starea verificării pozelor (js/moderation.js). „kind”: 'wait' (se verifică) / 'bad' (respinsă) / '' (ascunde).
+    // Elementul se caută la fiecare apel: funcția e folosită și de resetForm(), definit mai sus în fișier.
+    function setPhotosStatus(msg, kind) {
+        const el = document.getElementById('reviewPhotosStatus');
+        if (!el) return;
+        el.textContent = msg || '';
+        el.classList.toggle('hidden', !msg);
+        el.classList.toggle('text-rose-600', kind === 'bad');
+        el.classList.toggle('text-slate-500', kind !== 'bad');
+    }
+
     photosInput.addEventListener('change', async function () {
         const files = Array.from(photosInput.files || []).slice(0, 4 - photosData.length);
+        let rejected = 0, unchecked = 0;
+        if (files.length) setPhotosStatus(t('mod.imageChecking', 'Se verifică pozele…'), 'wait');
         for (const file of files) {
             if (photosData.length >= 4) break;
             try {
                 const dataUrl = await compressImage(file, 900, 0.6);
                 if (dataUrl.length > 340000) continue;   // tot prea mare (poză foarte încărcată vizual): sărim, fără eroare blocantă
+                // Filtrul de conținut: poza nu intră în recenzie dacă e indecentă SAU dacă nu a putut fi verificată
+                // (vezi explicația din js/moderation.js — preferăm o reîncercare decât o poză nepotrivită publicată).
+                if (window.FVModeration) {
+                    const verdict = await FVModeration.checkImage(dataUrl);
+                    if (!verdict.ok) {
+                        if (verdict.reason === 'unavailable') unchecked++; else rejected++;
+                        continue;
+                    }
+                }
                 photosData.push(dataUrl);
                 const wrap = document.createElement('div');
                 wrap.className = 'relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200';
@@ -111,6 +134,9 @@
             } catch (e) { /* poza nu s-a putut citi: o sărim */ }
         }
         photosInput.value = '';
+        if (rejected) setPhotosStatus(t('mod.imageBlocked', 'O poză nu a fost adăugată: conținut nepotrivit pentru site.'), 'bad');
+        else if (unchecked) setPhotosStatus(t('mod.imageUnavailable', 'Nu am putut verifica poza acum. Încearcă din nou în câteva momente.'), 'bad');
+        else setPhotosStatus('', '');
     });
 
     closeBtn.addEventListener('click', close);
@@ -132,6 +158,18 @@
             errorEl.textContent = t('review.errorRating', 'Alege o notă de la 1 la 5 stele.');
             errorEl.classList.remove('hidden');
             return;
+        }
+        // Filtrul de conținut indecent, pe toate cele trei texte (orice limbă) — vezi js/moderation.js
+        if (window.FVModeration) {
+            const texts = [positiveEl.value, negativeEl.value, extraEl.value];
+            for (let i = 0; i < texts.length; i++) {
+                if (!FVModeration.checkText(texts[i]).ok) {
+                    errorEl.textContent = t('mod.textBlocked', 'Textul conține un limbaj nepotrivit. Te rugăm să reformulezi.');
+                    errorEl.classList.remove('hidden');
+                    if (window.FVLog) FVLog.info('mod', 'review.blocked', { field: i });   // niciodată textul
+                    return;
+                }
+            }
         }
         errorEl.classList.add('hidden');
         submitBtn.disabled = true;
@@ -237,13 +275,29 @@
             if (!pic || typeof window.fvOpenLightbox !== 'function') return;
             try { window.fvOpenLightbox(JSON.parse(pic.getAttribute('data-photos')), parseInt(pic.getAttribute('data-idx'), 10) || 0); } catch (err) { }
         });
+        // Al doilea nivel al filtrului de conținut (js/moderation.js): recenziile se verifică la scriere, dar le
+        // verificăm din nou la AFIȘARE, ca una mai veche (scrisă înainte de filtru) să nu apară pe prima pagină.
+        // Nu se șterge nimic din baza de date — doar nu se afișează.
+        function cleanReviews(list) {
+            if (!window.FVModeration) return list || [];
+            let hidden = 0;
+            const out = (list || []).filter(function (r) {
+                const bad = !FVModeration.checkText([r.positive, r.negative, r.extra].filter(Boolean).join(' ')).ok
+                    || !FVModeration.checkName(r.name || '').ok;
+                if (bad) hidden++;
+                return !bad;
+            });
+            if (hidden && window.FVLog) FVLog.warn('mod', 'review.hidden', { n: hidden });   // niciodată textul recenziei
+            return out;
+        }
         window.FVBackend.onTopReviews(3, function (list) {
-            if (!list || !list.length) {
+            const clean = cleanReviews(list);
+            if (!clean.length) {
                 topGrid.innerHTML = '';
                 topGrid.appendChild(topEmpty);
                 return;
             }
-            topGrid.innerHTML = list.map(cardHtml).join('');
+            topGrid.innerHTML = clean.map(cardHtml).join('');
         });
     }
 })();

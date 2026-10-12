@@ -20,6 +20,7 @@
     let users = [], loaded = false, loadedAt = 0, loading = false, error = null;
     let query = '', selected = null;
     let modal = null, box = null, locked = false;
+    let adminDiscountCooldownUntil = 0;   // câte ms rămân până poate administratorul CURENT acorda din nou manual o reducere (js/discount.js)
 
     const trF = function (k, fb) { return (typeof tr === 'function') ? tr(k, fb) : fb; };
     const esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
@@ -142,6 +143,24 @@
                 });
                 return;
             }
+            const discountBtn = e.target.closest('#adminDiscountGrantBtn');
+            if (discountBtn && selected && !discountBtn.disabled) {
+                const payload = (window.FVDiscount && FVDiscount.pick) ? FVDiscount.pick() : null;
+                if (!payload) { if (typeof fvToast === 'function') fvToast(trF('admin.errorGeneric', 'A apărut o eroare. Încearcă din nou.')); return; }
+                discountBtn.disabled = true;
+                FVBackend.adminGrantDiscount(selected.uid, payload).then(function () {
+                    selected.discount = payload;
+                    const u2 = users.filter(function (x) { return x.uid === selected.uid; })[0];
+                    if (u2) u2.discount = payload;
+                    adminDiscountCooldownUntil = Date.now() + 86400000;
+                    renderUser(selected);
+                    if (typeof fvToast === 'function') fvToast(trF('admin.discountGranted', 'Reducere acordată.'));
+                }).catch(function () {
+                    refreshDiscountCooldown();   // probabil cooldown-ul administratorului nu trecuse încă — reluăm valoarea reală de pe server
+                    if (typeof fvToast === 'function') fvToast(trF('admin.errorGeneric', 'A apărut o eroare. Încearcă din nou.'));
+                });
+                return;
+            }
             const saveBtn = e.target.closest('#adminNameSaveBtn');
             if (saveBtn && selected) {
                 const input = $('adminNameInput'), statusEl = $('adminNameStatus');
@@ -223,7 +242,20 @@
         if (!wasOpen && !locked && typeof lockScroll === 'function') { lockScroll(true); locked = true; }
         requestAnimationFrame(function () { box.classList.remove('scale-95', 'opacity-0'); });
         load(false);
+        refreshDiscountCooldown();
     }
+
+    // Citește de pe server cât mai are administratorul CURENT până poate acorda din nou manual o reducere (24H, vezi
+    // firebase-rules.json / adminDiscountCooldown) — valoarea reală, nu dedusă local, ca să nu poată fi păcălită.
+    function refreshDiscountCooldown() {
+        if (!window.FVBackend || !FVBackend.adminDiscountCooldownUntil) return;
+        FVBackend.adminDiscountCooldownUntil().then(function (until) {
+            adminDiscountCooldownUntil = until || 0;
+            if (selected) renderUser(selected);
+        }).catch(function () { /* mod local sau eroare de rețea: butonul rămâne activ, scrierea reală e tot protejată de reguli */ });
+    }
+    // Re-randează doar textul numărătorii inverse a butonului, fără cerere nouă de rețea (ca la limita cererii de ofertă, js/auth.js)
+    setInterval(function () { if (session && selected) renderUser(selected); }, 60000);
 
     function closeModal() {
         if (!isOpen()) return;
@@ -254,6 +286,7 @@
 
     /* ------------------------------------------------------------------ trimite actualizare (newsletter) */
     let broadcasting = false;
+    let broadcastLang = 'ro';   // 'en' doar dacă admin.js alege explicit — vezi showLangPicker în renderBroadcast()
     // Șabloane predefinite (scrise o dată, în engleză — vezi cererea utilizatorului), disponibile mereu, pe lângă
     // cele create de administrator din mers (salvate în Firebase, vezi loadTemplates mai jos).
     const BUILT_IN_TEMPLATES = [
@@ -337,8 +370,27 @@
             });
         });
     }
+    // Abonații, cu țara salvată pe contul fiecăruia: de acolo se deduce limba în care primește anunțul
+    // (vezi js/emailnotify.js → langForRecipient).
     function subscriberEmails() {
-        return users.filter(function (u) { return u.newsletter && u.email; }).map(function (u) { return u.email; });
+        return users.filter(function (u) { return u.newsletter && u.email; })
+            .map(function (u) { return { email: u.email, country: u.country || '' }; });
+    }
+    // Limba în care TU scrii anunțul: cea în care folosești acum site-ul (sau alegerea RO/EN, dacă apare butonul).
+    // E doar punctul de pornire al traducerii — nu ajunge la nimeni care are țara salvată pe cont.
+    function sourceLang() {
+        const picked = (window.FVEmailNotify && window.FVEmailNotify.updateConfiguredEn) ? broadcastLang : null;
+        return picked || lang();
+    }
+    // Câți abonați pe fiecare limbă — ca să vezi înainte de trimitere ce se va întâmpla
+    function subscribersByLang() {
+        const out = {};
+        const from = sourceLang();
+        subscriberEmails().forEach(function (r) {
+            const l = (window.FVEmailNotify && FVEmailNotify.langForRecipient) ? FVEmailNotify.langForRecipient(r, from) : from;
+            out[l] = (out[l] || 0) + 1;
+        });
+        return out;
     }
     // Pasul 2 (neschimbat ca flux): textarea + trimitere — prefill opțional, venit dintr-un șablon ales la pasul 1.
     function renderBroadcast(prefill) {
@@ -355,20 +407,55 @@
                 '</div>';
             return;
         }
+        const showLangPicker = !!(window.FVEmailNotify && window.FVEmailNotify.updateConfiguredEn);
         view.innerHTML =
             '<button type="button" id="adminTplBack" class="text-xs text-slate-400 hover:text-slate-600 font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>' + esc(trF('admin.broadcast.backToTemplates', 'Înapoi la șabloane')) + '</button>' +
             '<p class="text-xs text-slate-500">' + esc(trF('admin.broadcast.hint', 'Scrie un mesaj scurt (ex. „Am adăugat 5 destinații noi!"). Îl primesc doar cei abonați la newsletter.')) + '</p>' +
+            (showLangPicker ?
+                '<div class="flex gap-1.5" role="group" aria-label="' + esc(trF('admin.broadcast.langLabel', 'Limba șablonului')) + '">' +
+                    '<button type="button" data-bc-lang="ro" class="bc-lang-btn flex-1 py-1.5 rounded-lg border text-xs font-bold transition">' + esc(trF('admin.broadcast.langRo', 'Română')) + '</button>' +
+                    '<button type="button" data-bc-lang="en" class="bc-lang-btn flex-1 py-1.5 rounded-lg border text-xs font-bold transition">' + esc(trF('admin.broadcast.langEn', 'English')) + '</button>' +
+                '</div>' : '') +
             '<p id="adminBroadcastCount" class="text-xs font-bold text-slate-700"></p>' +
+            // pe ce limbi va pleca anunțul, după țara din contul fiecărui abonat
+            '<p id="adminBroadcastLangs" class="text-[11px] text-slate-500 leading-snug"></p>' +
             '<textarea id="adminBroadcastText" rows="5" class="w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none" placeholder="' + esc(trF('admin.broadcast.placeholder', 'Ce e nou pe site?')) + '"></textarea>' +
             '<div id="adminBroadcastProgress" class="hidden"><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div id="adminBroadcastBar" class="h-full bg-blue-600 transition-all" style="width:0%"></div></div><p id="adminBroadcastStatus" class="text-xs text-slate-500 mt-1.5"></p></div>' +
             '<button id="adminBroadcastSend" type="button" class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-700 to-sky-500 text-white font-bold text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">' +
                 '<i class="fa-solid fa-paper-plane"></i> <span>' + esc(trF('admin.broadcast.send', 'Trimite')) + '</span>' +
             '</button>';
         $('adminTplBack').addEventListener('click', renderTemplatePicker);
+        if (showLangPicker) {
+            if (broadcastLang !== 'ro' && broadcastLang !== 'en') broadcastLang = 'ro';
+            const langBtns = Array.prototype.slice.call(view.querySelectorAll('.bc-lang-btn'));
+            function paintLangBtns() {
+                langBtns.forEach(function (b) {
+                    const active = b.getAttribute('data-bc-lang') === broadcastLang;
+                    b.classList.toggle('bg-blue-600', active);
+                    b.classList.toggle('text-white', active);
+                    b.classList.toggle('border-blue-600', active);
+                    b.classList.toggle('border-slate-200', !active);
+                    b.classList.toggle('text-slate-500', !active);
+                });
+            }
+            paintLangBtns();
+            langBtns.forEach(function (b) { b.addEventListener('click', function () { broadcastLang = b.getAttribute('data-bc-lang'); paintLangBtns(); }); });
+        }
         const countEl = $('adminBroadcastCount');
         countEl.textContent = loaded
             ? trF('admin.broadcast.count', '{n} abonați vor primi mesajul').replace('{n}', emails.length)
             : trF('admin.broadcast.loading', 'Se încarcă lista de abonați…');
+        // pe ce limbi pleacă: scrii o dată, fiecare primește pe limba țării lui din cont
+        const langsEl = $('adminBroadcastLangs');
+        if (langsEl && loaded && emails.length) {
+            const byLang = subscribersByLang();
+            const bits = Object.keys(byLang).sort().map(function (l) { return byLang[l] + ' × ' + l.toUpperCase(); });
+            langsEl.textContent = trF('admin.broadcast.langsNote', 'Îl scrii o dată, în {from}; fiecare îl primește pe limba țării din contul lui: {list}')
+                .replace('{from}', sourceLang().toUpperCase())
+                .replace('{list}', bits.join(', '));
+        } else if (langsEl) {
+            langsEl.textContent = '';
+        }
         const sendBtn = $('adminBroadcastSend');
         const textEl = $('adminBroadcastText');
         if (prefill) textEl.value = prefill;
@@ -382,14 +469,20 @@
             const progress = $('adminBroadcastProgress'), bar = $('adminBroadcastBar'), status = $('adminBroadcastStatus');
             progress.classList.remove('hidden');
             status.textContent = trF('admin.broadcast.sending', 'Se trimite…');
-            window.FVEmailNotify.sendUpdateToSubscribers(emails, msg, function (done, total) {
+            // Fiecare abonat primește pe limba țării lui din cont; mesajul scris o dată se traduce automat
+            // cu Gemini (js/translate.js). Traducerea se face ÎNAINTE de primul mail, deci anunțăm pasul.
+            if (window.FVTranslate && FVTranslate.enabled()) status.textContent = trF('admin.broadcast.translating', 'Se traduce mesajul…');
+            window.FVEmailNotify.sendUpdateToSubscribers(emails, msg, function (done, total, lang) {
                 bar.style.width = Math.round(done / total * 100) + '%';
-                status.textContent = trF('admin.broadcast.progress', '{done} din {total}').replace('{done}', done).replace('{total}', total);
-            }).then(function (res) {
+                status.textContent = trF('admin.broadcast.progress', '{done} din {total}').replace('{done}', done).replace('{total}', total)
+                    + (lang ? ' · ' + lang.toUpperCase() : '');
+            }, { lang: sourceLang(), translate: true }).then(function (res) {
                 broadcasting = false;
                 textEl.disabled = false;
                 sendBtn.disabled = emails.length === 0;
-                status.textContent = trF('admin.broadcast.done', 'Gata — {sent} trimise, {failed} eșuate.').replace('{sent}', res.sent).replace('{failed}', res.failed);
+                const langBits = Object.keys(res.byLang || {}).map(function (l) { return res.byLang[l] + ' ' + l.toUpperCase(); });
+                status.textContent = trF('admin.broadcast.done', 'Gata — {sent} trimise, {failed} eșuate.').replace('{sent}', res.sent).replace('{failed}', res.failed)
+                    + (langBits.length > 1 ? ' (' + langBits.join(', ') + ')' : '');
                 if (res.sent > 0) textEl.value = '';
             });
         }, { once: true });
@@ -516,6 +609,7 @@
                 detailRow('fa-hourglass-half', trF('admin.cooldownLabel', 'Cerere de ofertă'), contactCooldownHtml(u)) +
                 detailRow('fa-award', trF('admin.rolesLabel', 'Roluri'), rolesToggleHtml(u)) +
                 detailRow('fa-earth-europe', trF('admin.countryLabel', 'Țară'), countryHtml(u)) +
+                detailRow('fa-tags', trF('admin.discountLabel', 'Reducere'), discountHtml(u)) +
                 detailRow('fa-calendar-check', trF('admin.since', 'Membru din'), esc(fmtDate(u.createdAt))) +
                 detailRow('fa-file-signature', trF('admin.consents', 'Acceptări documente'), consentsHtml(u)) +
                 detailRow('fa-envelope-open-text', trF('admin.newsletter', 'Abonat la newsletter'), newsletterToggleHtml(u)) +
@@ -536,6 +630,42 @@
         const c = FV_COUNTRIES.find(function (x) { return x.code === u.country; });
         if (!c) return '<span class="text-xs text-slate-400">' + esc(u.country) + '</span>';
         return '<span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700"><img src="https://flagcdn.com/24x18/' + u.country.toLowerCase() + '.png" alt="" class="w-4 h-auto rounded-sm">' + esc(c.name) + '</span>';
+    }
+    // titlul destinației (tradus, dacă e disponibil) pentru un id de reducere — js/destinations.js, global ca „destinations”
+    function destTitleFor(destId) {
+        if (!destId || typeof destinations === 'undefined') return destId || '';
+        const d = destinations.find(function (x) { return x.id === destId; });
+        if (!d) return destId;
+        const t = (typeof getDestinationText === 'function') ? getDestinationText(d) : { title: d.title };
+        return (t && t.title) || d.title;
+    }
+    // starea reducerii aleatorii a unui cont (js/discount.js) + butonul administratorului de acordare manuală, cu propriul
+    // lui cooldown de 24H (nu al contului vizualizat) — vezi adminDiscountCooldownUntil mai sus.
+    function discountHtml(u) {
+        const d = u && u.discount;
+        const now = Date.now();
+        let statusHtml;
+        if (!d || !d.destId) {
+            statusHtml = '<span class="text-xs text-slate-400">' + esc(trF('admin.discountNone', 'Nicio reducere încă')) + '</span>';
+        } else {
+            const title = destTitleFor(d.destId);
+            if (now >= d.startAt && now <= d.endAt) {
+                statusHtml = '<span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">' +
+                    '<i class="fa-solid fa-bolt"></i> ' + esc(trF('admin.discountActive', 'Activă: -{pct}% la {title}, până pe {date}').replace('{pct}', d.pct).replace('{title}', title).replace('{date}', fmtDate(d.endAt))) + '</span>';
+            } else {
+                statusHtml = '<span class="text-xs text-slate-500">' + esc(trF('admin.discountExpired', 'Ultima: -{pct}% la {title} (expirată). Rulare automată următoare: {date}').replace('{pct}', d.pct).replace('{title}', title).replace('{date}', fmtDate(d.nextRollAt))) + '</span>';
+            }
+        }
+        const remain = adminDiscountCooldownUntil - now;
+        const onCooldown = remain > 0;
+        const btnLabel = onCooldown
+            ? (function () { const r = FVContactLimit.formatRemaining(remain); return trF('admin.discountCooldownBtn', 'Mai ai {h}h {m}min').replace('{h}', r.h).replace('{m}', r.m); })()
+            : trF('admin.discountGrantBtn', 'Acordă reducere acum');
+        return '<div class="space-y-2">' + statusHtml +
+            '<div><button type="button" id="adminDiscountGrantBtn"' + (onCooldown ? ' disabled' : '') + ' class="px-3.5 py-2 rounded-xl text-xs font-bold transition ' + (onCooldown ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 text-white') + '">' +
+                '<i class="fa-solid fa-gift mr-1.5"></i>' + esc(btnLabel) + '</button></div>' +
+            '<p class="text-[10px] text-slate-400">' + esc(trF('admin.discountHint', 'Reducere 2-5%, aleasă aleator (șansă mai mare pentru pachetele mai ieftine), activă 24-48H. Acordarea manuală e limitată la 1 dată / 24H pentru contul tău de administrator.')) + '</p>' +
+        '</div>';
     }
     // comutatoare pentru cele 4 roluri vizuale (js/roles.js) — „loyal” se poate și retrage de aici, chiar dacă s-a acordat singur la 10 comenzi
     function rolesToggleHtml(u) {
@@ -591,7 +721,7 @@
             if (isOpen() && locked && typeof lockScroll === 'function') { lockScroll(false); locked = false; }
             removeButton();
             if (modal) { modal.remove(); modal = null; box = null; }
-            users = []; loaded = false; error = null; selected = null; query = '';
+            users = []; loaded = false; error = null; selected = null; query = ''; adminDiscountCooldownUntil = 0;
             return;
         }
         mountButton();
