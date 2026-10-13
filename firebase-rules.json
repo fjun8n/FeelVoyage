@@ -347,6 +347,7 @@
         ".validate": "newData.hasChildren(['title', 'text', 'createdAt'])",
         "title": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 80" },
         "text": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 1000" },
+        "lang": { ".validate": "newData.isString() && newData.val().matches(/^(ro|en|it|fr|es)$/)" },
         "createdAt": { ".validate": "newData.val() === now" },
         "$other": { ".validate": false }
       }

@@ -115,8 +115,11 @@
                 '<div class="w-full sm:w-40 h-32 sm:h-28 rounded-2xl overflow-hidden shrink-0 border-2 border-white/30">' +
                     '<img src="' + esc(cover) + '" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover">' +
                 '</div>' +
-                '<div class="flex-1 min-w-0">' +
-                    '<span class="inline-flex items-center gap-1.5 bg-white text-rose-700 font-black text-xs px-3 py-1 rounded-full mb-2">' +
+                // „fv-discount-text” (css/styles.css) ține coloana exact cât banner-ul: fără ea, titlul lung
+                // al pachetului (care are „truncate”, deci nu se rupe) o făcea mai lată decât banner-ul, iar
+                // „overflow-hidden” îi tăia marginile — pe telefon se citea „ducere” în loc de „Reducere”.
+                '<div class="flex-1 min-w-0 fv-discount-text">' +
+                    '<span class="fv-discount-badge inline-flex items-center gap-1.5 bg-white text-rose-700 font-black text-xs px-3 py-1 rounded-full mb-2">' +
                         '<i class="fa-solid fa-bolt" aria-hidden="true"></i> ' + esc(trF('discount.badge', 'Reducere doar pentru tine')) + ' · -' + active.pct + '%' +
                     '</span>' +
                     '<h3 class="text-lg sm:text-xl font-bold font-serif truncate">' + esc(t.title) + '</h3>' +

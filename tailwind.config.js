@@ -8,8 +8,10 @@ module.exports = {
                 brand: {
                     50: '#f0f7ff',
                     100: '#e0effe',
+                    400: '#38bdf8',   // folosit pe fundal închis (iconițe, capăt de gradient) — vezi css/styles.css
                     500: '#0284c7',
                     600: '#0369a1',
+                    700: '#056193',   // între 600 și 800: hover pentru butoanele brand-600 și mijloc de gradient
                     800: '#075985',
                     900: '#0c4a6e',
                 },

@@ -286,15 +286,21 @@
 
     /* ------------------------------------------------------------------ trimite actualizare (newsletter) */
     let broadcasting = false;
-    let broadcastLang = 'ro';   // 'en' doar dacă admin.js alege explicit — vezi showLangPicker în renderBroadcast()
-    // Șabloane predefinite (scrise o dată, în engleză — vezi cererea utilizatorului), disponibile mereu, pe lângă
-    // cele create de administrator din mers (salvate în Firebase, vezi loadTemplates mai jos).
+    /* Limba în care e SCRIS textul din casetă — punctul de plecare al traducerii, nu limba cuiva anume.
+       Fiecare abonat primește oricum pe limba țării lui din cont (js/emailnotify.js → langForRecipient);
+       asta spune doar din ce limbă se traduce. Se potrivește singură după șablonul ales. */
+    let broadcastLang = 'ro';
+    const BROADCAST_LANGS = ['ro', 'en', 'it', 'fr', 'es'];
+    // Șabloane predefinite, disponibile mereu, pe lângă cele create de administrator din mers (salvate în
+    // Firebase, vezi loadTemplates mai jos). Sunt scrise în ENGLEZĂ, de-aia poartă „lang: 'en'": fără eticheta
+    // asta, un text englezesc era trimis ca și cum ar fi fost scris în limba în care ai tu site-ul deschis,
+    // iar abonații cu acea limbă îl primeau în engleză, netradus.
     const BUILT_IN_TEMPLATES = [
-        { id: 'builtin-update', title: 'New Update', text: "🚀 We've just rolled out a fresh update to FeelVoyage! Smoother browsing, new features, and more ways to plan your perfect trip. Come take a look!" },
-        { id: 'builtin-destinations', title: 'New Destinations', text: '🌍 New destinations just landed on FeelVoyage! Fresh places, fresh adventures — check out what\'s new and start dreaming about your next trip.' },
-        { id: 'builtin-offer', title: 'Special Offer', text: "✨ Limited-time offer! For a short while, selected FeelVoyage packages come with special pricing. Don't miss out — browse the deals before they're gone!" },
-        { id: 'builtin-seasonal', title: 'Seasonal Greeting', text: '🎉 Wishing you wonderful travels ahead! Whatever the season, FeelVoyage has a getaway waiting for you. See what\'s trending right now.' },
-        { id: 'builtin-feedback', title: "We'd Love Your Feedback", text: "💬 We're always working to make FeelVoyage better. Got a minute? We'd love to hear what you think — and don't forget to check out our latest packages while you're here!" }
+        { id: 'builtin-update', lang: 'en', title: 'New Update', text: "🚀 We've just rolled out a fresh update to FeelVoyage! Smoother browsing, new features, and more ways to plan your perfect trip. Come take a look!" },
+        { id: 'builtin-destinations', lang: 'en', title: 'New Destinations', text: '🌍 New destinations just landed on FeelVoyage! Fresh places, fresh adventures — check out what\'s new and start dreaming about your next trip.' },
+        { id: 'builtin-offer', lang: 'en', title: 'Special Offer', text: "✨ Limited-time offer! For a short while, selected FeelVoyage packages come with special pricing. Don't miss out — browse the deals before they're gone!" },
+        { id: 'builtin-seasonal', lang: 'en', title: 'Seasonal Greeting', text: '🎉 Wishing you wonderful travels ahead! Whatever the season, FeelVoyage has a getaway waiting for you. See what\'s trending right now.' },
+        { id: 'builtin-feedback', lang: 'en', title: "We'd Love Your Feedback", text: "💬 We're always working to make FeelVoyage better. Got a minute? We'd love to hear what you think — and don't forget to check out our latest packages while you're here!" }
     ];
     let customTemplates = [], templatesLoaded = false;
     function allTemplates() { return BUILT_IN_TEMPLATES.concat(customTemplates); }
@@ -333,9 +339,13 @@
             const btn = e.target.closest('[data-tpl-id]');
             if (!btn) return;
             const t = allTemplates().find(function (x) { return x.id === btn.getAttribute('data-tpl-id'); });
-            if (t) renderBroadcast(t.text);
+            // Limba șablonului merge mai departe: din ea se traduce pentru ceilalți abonați.
+            // Un șablon salvat înainte de această schimbare n-are limbă reținută — atunci pornim de la limba
+            // site-ului, NU de la ce rămăsese selectat de la șablonul dinainte (ar fi o moștenire înșelătoare).
+            if (t) renderBroadcast(t.text, t.lang || lang());
         });
-        $('adminTplCustom').addEventListener('click', function () { renderBroadcast(''); });
+        // mesaj scris pe loc: pornim de la limba în care ai tu site-ul deschis acum (se poate schimba din butoane)
+        $('adminTplCustom').addEventListener('click', function () { renderBroadcast('', lang()); });
         $('adminTplNew').addEventListener('click', renderTemplateForm);
     }
     // Formular mic: titlu + text, salvate ca șablon nou (Firebase), disponibil de atunci încolo în listă.
@@ -360,8 +370,9 @@
                 return;
             }
             $('adminTplSave').disabled = true;
-            FVBackend.saveAnnouncementTemplate({ title: title, text: text }).then(function (id) {
-                customTemplates.push({ id: id, title: title, text: text });
+            // reținem și limba în care a fost scris: la trimitere, din ea se traduce pentru ceilalți
+            FVBackend.saveAnnouncementTemplate({ title: title, text: text, lang: lang() }).then(function (id) {
+                customTemplates.push({ id: id, title: title, text: text, lang: lang() });
                 renderTemplatePicker();
             }).catch(function () {
                 statusEl.textContent = trF('admin.errorGeneric', 'A apărut o eroare. Încearcă din nou.');
@@ -376,11 +387,11 @@
         return users.filter(function (u) { return u.newsletter && u.email; })
             .map(function (u) { return { email: u.email, country: u.country || '' }; });
     }
-    // Limba în care TU scrii anunțul: cea în care folosești acum site-ul (sau alegerea RO/EN, dacă apare butonul).
-    // E doar punctul de pornire al traducerii — nu ajunge la nimeni care are țara salvată pe cont.
+    /* Limba în care e SCRIS textul din casetă. E doar punctul de pornire al traducerii — nu ajunge la
+       nimeni care are țara salvată pe cont. Vine din șablonul ales (cele predefinite sunt în engleză)
+       sau din butoanele de sub casetă, pe care le poate schimba oricând administratorul. */
     function sourceLang() {
-        const picked = (window.FVEmailNotify && window.FVEmailNotify.updateConfiguredEn) ? broadcastLang : null;
-        return picked || lang();
+        return BROADCAST_LANGS.indexOf(broadcastLang) !== -1 ? broadcastLang : lang();
     }
     // Câți abonați pe fiecare limbă — ca să vezi înainte de trimitere ce se va întâmpla
     function subscribersByLang() {
@@ -393,9 +404,14 @@
         return out;
     }
     // Pasul 2 (neschimbat ca flux): textarea + trimitere — prefill opțional, venit dintr-un șablon ales la pasul 1.
-    function renderBroadcast(prefill) {
+    // „prefillLang” e limba în care e scris acel text: șabloanele predefinite sunt în engleză, cele salvate de
+    // tine păstrează limba de la salvare. Dacă lipsește (șabloane salvate înainte de această schimbare),
+    // pornim de la limba site-ului, iar butoanele de sub casetă o pot corecta.
+    function renderBroadcast(prefill, prefillLang) {
         const view = $('adminBroadcastView');
         if (!view) return;
+        if (prefillLang && BROADCAST_LANGS.indexOf(prefillLang) !== -1) broadcastLang = prefillLang;
+        else if (BROADCAST_LANGS.indexOf(broadcastLang) === -1) broadcastLang = lang();
         $('adminSub').textContent = trF('admin.broadcast.sub', 'Doar celor abonați la newsletter');
         const ready = window.FVEmailNotify && window.FVEmailNotify.updateConfigured;
         const emails = loaded ? subscriberEmails() : [];
@@ -407,15 +423,22 @@
                 '</div>';
             return;
         }
-        const showLangPicker = !!(window.FVEmailNotify && window.FVEmailNotify.updateConfiguredEn);
         view.innerHTML =
             '<button type="button" id="adminTplBack" class="text-xs text-slate-400 hover:text-slate-600 font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>' + esc(trF('admin.broadcast.backToTemplates', 'Înapoi la șabloane')) + '</button>' +
             '<p class="text-xs text-slate-500">' + esc(trF('admin.broadcast.hint', 'Scrie un mesaj scurt (ex. „Am adăugat 5 destinații noi!"). Îl primesc doar cei abonați la newsletter.')) + '</p>' +
-            (showLangPicker ?
-                '<div class="flex gap-1.5" role="group" aria-label="' + esc(trF('admin.broadcast.langLabel', 'Limba șablonului')) + '">' +
-                    '<button type="button" data-bc-lang="ro" class="bc-lang-btn flex-1 py-1.5 rounded-lg border text-xs font-bold transition">' + esc(trF('admin.broadcast.langRo', 'Română')) + '</button>' +
-                    '<button type="button" data-bc-lang="en" class="bc-lang-btn flex-1 py-1.5 rounded-lg border text-xs font-bold transition">' + esc(trF('admin.broadcast.langEn', 'English')) + '</button>' +
-                '</div>' : '') +
+            // Limba în care e SCRIS textul de mai jos. Nu alege cine ce primește (asta o face țara din contul
+            // fiecăruia) — spune doar din ce limbă se traduce. Pentru șabloanele predefinite, scrise în engleză,
+            // vine deja pe „English”.
+            '<div>' +
+                '<p class="text-[11px] font-bold text-slate-500 mb-1">' + esc(trF('admin.broadcast.langLabel', 'Mesajul de mai jos e scris în:')) + '</p>' +
+                '<div class="flex gap-1.5 flex-wrap" role="group" aria-label="' + esc(trF('admin.broadcast.langLabel', 'Mesajul de mai jos e scris în:')) + '">' +
+                    BROADCAST_LANGS.map(function (l) {
+                        const names = { ro: trF('admin.broadcast.langRo', 'Română'), en: trF('admin.broadcast.langEn', 'English'),
+                                        it: 'Italiano', fr: 'Français', es: 'Español' };
+                        return '<button type="button" data-bc-lang="' + l + '" class="bc-lang-btn flex-1 py-1.5 px-2 rounded-lg border text-xs font-bold transition">' + esc(names[l]) + '</button>';
+                    }).join('') +
+                '</div>' +
+            '</div>' +
             '<p id="adminBroadcastCount" class="text-xs font-bold text-slate-700"></p>' +
             // pe ce limbi va pleca anunțul, după țara din contul fiecărui abonat
             '<p id="adminBroadcastLangs" class="text-[11px] text-slate-500 leading-snug"></p>' +
@@ -425,37 +448,41 @@
                 '<i class="fa-solid fa-paper-plane"></i> <span>' + esc(trF('admin.broadcast.send', 'Trimite')) + '</span>' +
             '</button>';
         $('adminTplBack').addEventListener('click', renderTemplatePicker);
-        if (showLangPicker) {
-            if (broadcastLang !== 'ro' && broadcastLang !== 'en') broadcastLang = 'ro';
-            const langBtns = Array.prototype.slice.call(view.querySelectorAll('.bc-lang-btn'));
-            function paintLangBtns() {
-                langBtns.forEach(function (b) {
-                    const active = b.getAttribute('data-bc-lang') === broadcastLang;
-                    b.classList.toggle('bg-blue-600', active);
-                    b.classList.toggle('text-white', active);
-                    b.classList.toggle('border-blue-600', active);
-                    b.classList.toggle('border-slate-200', !active);
-                    b.classList.toggle('text-slate-500', !active);
-                });
-            }
-            paintLangBtns();
-            langBtns.forEach(function (b) { b.addEventListener('click', function () { broadcastLang = b.getAttribute('data-bc-lang'); paintLangBtns(); }); });
+        const langBtns = Array.prototype.slice.call(view.querySelectorAll('.bc-lang-btn'));
+        function paintLangBtns() {
+            langBtns.forEach(function (b) {
+                const active = b.getAttribute('data-bc-lang') === broadcastLang;
+                b.classList.toggle('bg-blue-600', active);
+                b.classList.toggle('text-white', active);
+                b.classList.toggle('border-blue-600', active);
+                b.classList.toggle('border-slate-200', !active);
+                b.classList.toggle('text-slate-500', !active);
+            });
         }
+        paintLangBtns();
+        langBtns.forEach(function (b) {
+            b.addEventListener('click', function () {
+                broadcastLang = b.getAttribute('data-bc-lang');
+                paintLangBtns();
+                paintLangsNote();   // se schimbă și lista „cine pe ce limbă primește"
+            });
+        });
         const countEl = $('adminBroadcastCount');
         countEl.textContent = loaded
             ? trF('admin.broadcast.count', '{n} abonați vor primi mesajul').replace('{n}', emails.length)
             : trF('admin.broadcast.loading', 'Se încarcă lista de abonați…');
         // pe ce limbi pleacă: scrii o dată, fiecare primește pe limba țării lui din cont
-        const langsEl = $('adminBroadcastLangs');
-        if (langsEl && loaded && emails.length) {
+        function paintLangsNote() {
+            const langsEl = $('adminBroadcastLangs');
+            if (!langsEl) return;
+            if (!loaded || !emails.length) { langsEl.textContent = ''; return; }
             const byLang = subscribersByLang();
             const bits = Object.keys(byLang).sort().map(function (l) { return byLang[l] + ' × ' + l.toUpperCase(); });
             langsEl.textContent = trF('admin.broadcast.langsNote', 'Îl scrii o dată, în {from}; fiecare îl primește pe limba țării din contul lui: {list}')
                 .replace('{from}', sourceLang().toUpperCase())
                 .replace('{list}', bits.join(', '));
-        } else if (langsEl) {
-            langsEl.textContent = '';
         }
+        paintLangsNote();
         const sendBtn = $('adminBroadcastSend');
         const textEl = $('adminBroadcastText');
         if (prefill) textEl.value = prefill;

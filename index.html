@@ -649,13 +649,25 @@
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+                        <!-- Apasă oriunde pe card → se deschide WhatsApp pe numărul agenției (js/contact-links.js
+                             completează și un mesaj scurt, în limba site-ului). Butonul rotund din dreapta rămâne
+                             pentru apel normal; stă deasupra zonei de clic a cardului (vezi .fv-card-aside). -->
+                        <div class="fv-contact-card flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
                             <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl flex-shrink-0">
                                 <i class="fa-solid fa-phone"></i>
                             </div>
-                            <div>
+                            <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-slate-900" data-i18n="contact.phoneTitle">Telefon & WhatsApp</h4>
-                                <p class="text-sm text-slate-600">0799 927 590</p>
+                                <p class="text-sm text-slate-600">
+                                    <a id="contactWhatsAppLink" href="https://wa.me/40799927590" target="_blank" rel="noopener noreferrer" class="fv-card-link">0799 927 590</a>
+                                </p>
+                                <p class="text-xs mt-0.5 flex items-center gap-2 flex-wrap">
+                                    <span class="inline-flex items-center gap-1 font-semibold text-emerald-600">
+                                        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i><span data-i18n="contact.openWhatsApp">deschide WhatsApp</span>
+                                    </span>
+                                    <span class="text-slate-300" aria-hidden="true">·</span>
+                                    <a id="contactCallLink" href="tel:+40799927590" class="fv-card-aside font-semibold text-brand-600 hover:underline" data-i18n="contact.callInstead">sună</a>
+                                </p>
                             </div>
                         </div>
 
@@ -671,13 +683,18 @@
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+                        <!-- Apasă oriunde pe card → se deschide aplicația de e-mail pe care o folosește omul
+                             (Gmail, Yahoo, Mail…), cu destinatarul și subiectul deja completate. -->
+                        <div class="fv-contact-card flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
                             <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl flex-shrink-0">
                                 <i class="fa-solid fa-envelope"></i>
                             </div>
-                            <div>
+                            <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-slate-900" data-i18n="contact.emailTitle">E-mail suport & oferte</h4>
-                                <p class="text-sm text-slate-600">crucrudenis@gmail.com</p>
+                                <p class="text-sm text-slate-600">
+                                    <a id="contactMailLink" href="mailto:crucrudenis@gmail.com" class="fv-card-link">crucrudenis@gmail.com</a>
+                                </p>
+                                <p class="text-xs mt-0.5 font-semibold text-rose-600" data-i18n="contact.openMail">deschide aplicația ta de e-mail</p>
                             </div>
                         </div>
                     </div>
@@ -1062,7 +1079,10 @@
                             <h3 id="modalTitle" class="text-xl sm:text-3xl font-extrabold font-serif leading-tight"></h3>
                         </div>
                         <div class="sm:text-right">
-                            <span id="modalDiscountBadge" class="hidden mb-1 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[11px] font-black sm:inline-block"></span>
+                            <!-- „-X% reducere”: js/app.js îl arată scoțând „hidden”, deci forma trebuie să fie „inline-block”
+                                 pe ORICE lățime. Cu „sm:inline-block” rămânea text simplu („inline”) pe telefon: fără pastila
+                                 roșie și putându-se rupe în două rânduri — de-aia se citea doar o bucată din „reducere”. -->
+                            <span id="modalDiscountBadge" class="hidden inline-block whitespace-nowrap mb-1 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[11px] font-black"></span>
                             <span id="modalPriceLabel" class="text-xs opacity-90 block" data-i18n="modal.priceLabel">Preț / persoană</span>
                             <span id="modalPrice" class="text-xl sm:text-3xl font-black text-amber-300"></span>
                         </div>
@@ -2240,6 +2260,8 @@
     <script src="js/theme.js"></script>
     <script src="js/contact-limit.js"></script>
     <script src="js/contact-estimate.js"></script>
+    <!-- cardurile de contact: deschid aplicația de e-mail, respectiv WhatsApp, pe limba site-ului -->
+    <script src="js/contact-links.js"></script>
     <script src="js/roles.js"></script>
     <script src="js/countries.js"></script>
     <script src="js/country-select.js"></script>

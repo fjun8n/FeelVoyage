@@ -36,6 +36,7 @@ js/moderation.js     ← filtrul de conținut indecent: text (orice limbă) + po
 js/estimate.js       ← estimarea de preț pentru o destinație din afara catalogului (zbor + cazare, calibrate pe prețurile reale)
 js/contact-estimate.js ← leagă estimarea la formularul de ofertă: blocator de țară, sugestie de pachet existent, afișarea estimării
 js/translate.js      ← traducerea automată a newsletterului (Gemini), ca fiecare abonat să-l primească pe limba lui
+js/contact-links.js  ← cardurile de contact: deschid aplicația de e-mail (mailto:) și WhatsApp (wa.me), pe limba site-ului
 js/logger.js         ← jurnalul site-ului (erori, performanță), plafon 900, rotație pe priorități
 js/logviewer.js      ← fereastra „Jurnal" din profilul administratorului
 js/logremote.js      ← trimiterea jurnalului către Firebase (nodul logs/)
@@ -919,3 +920,64 @@ Limba în care scrii tu e doar punctul de pornire al traducerii — nu ajunge la
 Țara ajunge pe cont prin geolocalizare (`js/geo.js`) sau pentru că omul a ales-o în formularul de ofertă — deci pentru majoritatea conturilor există deja. Cine n-are țară salvată primește limba în care ai scris, ca înainte.
 
 **Testat** (22 de verificări): că ȚARA decide și limba de pe cont nu mai e luată în seamă (6 combinații, inclusiv o țară fără limbă proprie pe site, care cade corect pe engleză); trimiterea către 9 abonați, din care doi aveau pe cont și o limbă diferită de țara lor — amândoi primesc limba țării; același lucru scriind anunțul în engleză (traducerea se cere din engleză în ro+fr, iar cel din Anglia primește textul original); plus compatibilitatea cu apelul vechi, pe o listă simplă de e-mailuri.
+
+---
+
+## Sesiunea curentă: estimarea rămasă pe ecran, newsletterele gata făcute, eticheta de reducere, contactul cu un singur tap
+
+### 1. Estimarea de preț rămânea după ce trimiteai cererea
+
+După o cerere trimisă cu succes, `js/app.js` golește formularul cu `form.reset()`. Problema: `reset()` **nu declanșează** evenimente `input` pe câmpuri, deci `js/contact-estimate.js` nu avea de unde să afle că destinația s-a șters. Cutia cu estimarea rămânea pe ecran, cu prețul cererii deja trimise, deasupra unui formular gol — până dădeai refresh.
+
+Mai grav decât atât: estimarea rămânea și **în memorie**. `js/app.js` citește `FVContactEstimate.current()` la fiecare trimitere, deci cererea URMĂTOARE ar fi plecat cu estimarea celei dinainte — alt oraș, alt preț, în mailul către tine.
+
+Reparat în `js/contact-estimate.js`: ascultă acum evenimentul `reset` al formularului și golește tot (locul găsit, estimarea, mesajul de sub câmp, cutia). `js/app.js` cheamă în plus `FVContactEstimate.clear()` imediat după `form.reset()`, ca să fie limpede din cod ce se întâmplă.
+
+### 2. Newsletterele gata făcute plecau în limba în care sunt scrise
+
+Cele cinci șabloane predefinite din panou („New Update", „New Destinations"…) sunt scrise **în engleză**. Limba din care se traducea era însă limba în care tu aveai site-ul deschis. Deci: site-ul pe română + un șablon predefinit = abonații din România primeau textul **englezesc, netradus** (pentru ei „limba scrisă" coincidea cu limba lor, așa că nu se mai traducea nimic), iar ceilalți primeau o traducere făcută „din română" dintr-un text care nu era românesc.
+
+Acum fiecare șablon își poartă propria limbă:
+- cele cinci predefinite sunt marcate ca engleză;
+- șabloanele pe care le salvezi tu rețin limba în care le-ai scris (câmp nou `lang` în `announcementTemplates`, cu regulă în `firebase-rules.json`);
+- un șablon salvat înainte de această schimbare pornește de la limba site-ului, nu de la ce rămăsese selectat de la șablonul dinainte.
+
+Sub casetă sunt acum butoane pentru toate cele cinci limbi ale site-ului („Mesajul de mai jos e scris în: Română / English / Italiano / Français / Español"), cu cea potrivită deja aleasă, și le poți corecta oricând. Înainte, butoanele apăreau doar RO/EN și doar dacă aveai completat șablonul englez de newsletter.
+
+Regula rămâne aceeași: **fiecare abonat primește pe limba țării de pe contul lui**; limba textului tău spune doar din ce se traduce.
+
+### 3. Eticheta de reducere, pe telefon
+
+Două lucruri, nu unul.
+
+**a) Clase Tailwind moarte.** `css/tailwind.css` e un build precompilat: conține doar clasele existente la momentul generării. Orice clasă adăugată în HTML/JS după aceea nu face nimic — fără nicio eroare în consolă. Erau **23 de clase folosite dar inexistente**, dintre care 9 chiar pe banner-ul de reducere:
+
+| clasa lipsă | ce strica |
+|---|---|
+| `from-rose-600`, `to-amber-500` | gradientul nu se desena deloc (`background-image: none`) → text alb pe fundal alb |
+| `h-32`, `sm:h-28`, `sm:w-40` | poza pachetului rămânea fără înălțime |
+| `text-white/90` | prețul și cronometrul, albe pe alb |
+| `sm:inline-block` | eticheta „-X% reducere" din fereastra pachetului rămânea text simplu, fără pastila roșie |
+| `2xl:flex` | numărul de telefon din antet era ascuns pe ORICE lățime |
+| `bg-emerald-600`, `text-brand-700`, `text-emerald-300`, … | butoane și texte fără culoarea lor |
+
+Toate cele 23 sunt scrise acum de mână în `css/styles.css`, cu valorile exacte din Tailwind. Nuanțele `brand-400` și `brand-700`, care nici nu existau în paletă, sunt adăugate și în `tailwind.config.js`, ca să rămână valabile dacă regenerezi vreodată build-ul.
+
+Atenție la un detaliu de ordine: un gradient Tailwind se face din trei reguli care își pasează aceleași variabile (`from-*` scrie lista cu două culori, `via-*` o reface cu trei, `to-*` pune culoarea finală). Scriind noi `from-rose-600` într-o foaie încărcată mai târziu, el ștergea culoarea din mijloc pusă de `.via-brand-600` din build. De-aia în `css/styles.css` regulile sunt grupate exact ca la Tailwind: întâi toate `from`, apoi `via`, apoi `to` — câteva dintre ele repetate identic, doar ca să ajungă în ordinea corectă.
+
+**b) „ducere" în loc de „Reducere".** Titlul pachetului din banner are `truncate`, adică `white-space: nowrap`. Un rând care nu se rupe împinge lățimea **minimă** a coloanei de text la titlul întreg, deci coloana ieșea mai lată decât banner-ul. `items-center` o centra, așa că surplusul se ducea în ambele părți, iar `overflow-hidden` al banner-ului tăia **și la stânga** — primele litere ale etichetei. `min-width: 0` nu ajută: e un minim, nu un plafon. Plafonul e `max-width: 100%` (clasa `.fv-discount-text`), iar acum `truncate` își face treaba: titlul lung capătă „…" în loc să împingă tot rândul afară.
+
+Am căutat același tipar pe tot site-ul, la 320 / 360 / 390 / 414 / 768 px, pe pagină și în fereastra pachetelor, și pe site-ul de recenzii: **zero elemente tăiate**. Ca să fiu sigur că verificarea chiar prinde ceva, am anulat temporar regula care a reparat banner-ul — detectorul l-a raportat imediat la loc („Reducere doar pentru tine", tăiat 8 px la stânga).
+
+### 4. Contactul: un tap și se deschide aplicația potrivită
+
+- **„E-mail suport & oferte"** → `mailto:` cu adresa și subiectul deja completate. Sistemul îl dă aplicației pe care o folosești tu — Gmail, Yahoo, Outlook, Mail. Nu alegem noi furnizorul: un link direct către `mail.google.com` ar trimite pe cineva cu Yahoo într-un loc greșit.
+- **„Telefon & WhatsApp"** → `wa.me/40799927590`, cu un mesaj scurt pregătit. Pe telefon deschide aplicația WhatsApp, pe calculator WhatsApp Web sau aplicația de desktop. Lângă număr a rămas **„sună"**, care pornește un apel normal.
+
+Se apasă **oriunde pe card**, nu doar pe text (zona de clic a legăturii principale se întinde peste tot cardul). „sună" stă deasupra acelei zone, ca să rămână apăsabil — de-aia cardul nu e un `<a>` în jurul a tot: un `<a>` în alt `<a>` e HTML nevalid.
+
+Subiectul mailului și mesajul din WhatsApp sunt pe limba în care e site-ul și se refac la fiecare schimbare de limbă (chei noi în toate cele patru fișiere de traduceri). În HTML legăturile au deja forma simplă, fără subiect, deci merg și dacă `js/contact-links.js` nu apucă să ruleze.
+
+**Ce rămâne la tine:** publică `firebase-rules.json` în Firebase Console. Pe lângă cele opt câmpuri `estimate*` de data trecută, mai e acum și `announcementTemplates/$id/lang` — fără el, salvarea unui șablon nou de newsletter va fi respinsă în întregime (nodul are `"$other": { ".validate": false }`, deci orice câmp fără validator respinge tot).
+
+**Despre șabloanele de mail din folder:** sunt șapte fișiere `emailjs-template-*.html` și **niciunul nu e vechi** — fiecare e sursa altui șablon din contul tău EmailJS: două pentru cererea de ofertă (română + engleză) și cinci pentru newsletter (română, engleză, italiană, franceză, spaniolă). N-am șters niciunul; spune-mi dacă vrei totuși să dispară vreunul anume.

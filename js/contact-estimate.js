@@ -206,6 +206,19 @@
     doc.addEventListener('fv:exchange-rate', function () { if (state.estimate) render(state.estimate); });
     doc.addEventListener('fv:language', function () { if (state.estimate) render(state.estimate); else if (state.lastQuery) handle(state.lastQuery); });
 
+    /* Golește tot: locul găsit, estimarea, mesajul de sub câmp și cutia de pe ecran.
+       Trebuie apelat ori de câte ori formularul se golește fără ca omul să scrie ceva — altfel
+       estimarea veche rămâne pe ecran și, mai rău, ar pleca mai departe cu CEREREA URMĂTOARE. */
+    function clearAll() {
+        clearTimeout(timer);
+        state.place = null;
+        state.estimate = null;
+        state.blocked = false;
+        state.lastQuery = '';
+        clearNote();
+        hideBox();
+    }
+
     // la trimitere: dacă e o țară, nu lăsăm cererea să plece (a doua barieră, pe lângă mesajul de sub câmp)
     var form = doc.getElementById('contactForm');
     if (form) form.addEventListener('submit', function (e) {
@@ -218,10 +231,24 @@
         }
     }, true);   // faza de captură: ajunge înaintea trimiterii din js/app.js
 
+    /* După ce cererea pleacă, js/app.js golește formularul cu form.reset(). „reset” NU declanșează
+       „input” pe câmpuri, așa că nimic nu ne anunța: estimarea veche rămânea pe ecran până la un
+       refresh de pagină, lângă un formular deja gol. Ascultăm direct evenimentul „reset”.
+       Evenimentul se declanșează ÎNAINTE ca valorile să fie golite, de-aia curățăm pe tura următoare:
+       dacă altcineva anulează resetul (preventDefault), nu stricăm nimic. */
+    if (form) form.addEventListener('reset', function (e) {
+        if (e.defaultPrevented) return;
+        setTimeout(function () {
+            if (String(destEl.value || '').trim() === '') clearAll();
+            else handle(destEl.value);   // câmpul a fost repopulat de altcineva: recalculăm pe ce scrie acum
+        }, 0);
+    });
+
     // ce știe estimarea, pentru js/app.js (merge în cerere și în mailul către agenție)
     root.FVContactEstimate = {
         current: function () { return state.estimate; },
         isBlocked: function () { return state.blocked; },
-        refresh: recompute
+        refresh: recompute,
+        clear: clearAll
     };
 })(window);

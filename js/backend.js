@@ -586,11 +586,13 @@
                 if (!session || !session.admin) throw FVError('forbidden');
                 const title = String((tpl && tpl.title) || '').trim().slice(0, 80);
                 const text = String((tpl && tpl.text) || '').trim().slice(0, 1000);
+                // limba în care e scris textul: din ea se traduce la trimitere, pentru abonații din alte țări
+                const lang = ['ro', 'en', 'it', 'fr', 'es'].indexOf(String((tpl && tpl.lang) || '')) !== -1 ? tpl.lang : 'ro';
                 if (!title || !text) throw FVError('invalid');
                 try {
                     if (!(await waitConnected(6000))) throw FVError('network');
                     const newRef = dbM.push(dbM.ref(db, 'announcementTemplates'));
-                    await withTimeout(dbM.set(newRef, { title: title, text: text, createdAt: dbM.serverTimestamp() }), 15000);
+                    await withTimeout(dbM.set(newRef, { title: title, text: text, lang: lang, createdAt: dbM.serverTimestamp() }), 15000);
                     return newRef.key;
                 } catch (e) { throw FVError('network', e); }
             },

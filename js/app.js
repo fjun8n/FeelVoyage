@@ -1301,6 +1301,10 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
 
     document.getElementById('contactSuccess').classList.remove('hidden');
     form.reset();
+    // Estimarea de preț ține de destinația scrisă, iar aceasta tocmai s-a șters: fără asta rămânea pe ecran
+    // deasupra unui formular gol, până la un refresh de pagină (js/contact-estimate.js ascultă oricum „reset”,
+    // dar o chemăm și de aici, ca să fie limpede din cod că la trimitere estimarea dispare).
+    if (window.FVContactEstimate && FVContactEstimate.clear) FVContactEstimate.clear();
     if (typeof window.fvResetCountrySelect === 'function') window.fvResetCountrySelect();
     if (contactRange) contactRange.reset(true);
     // Numele, e-mailul, telefonul și țara se precompletează din cont din nou, imediat — fără asta rămâneau
